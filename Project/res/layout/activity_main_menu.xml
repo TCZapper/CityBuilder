@@ -45,7 +45,8 @@
             android:layout_height="wrap_content"
             android:maxWidth="240dp"
             android:minWidth="240dp"
-            android:text="@string/dummy_button" />
+            android:text="@string/dummy_button"
+            android:onClick="gotoMainView" />
     </LinearLayout>
 
 </FrameLayout>

@@ -4,5 +4,7 @@
     <string name="app_name">CityBuilder</string>
     <string name="dummy_button">Start Building</string>
     <string name="dummy_content">City\nBuilder</string>
+    <string name="title_activity_main_view">MainViewActivity</string>
+    <string name="action_settings">Settings</string>
 
 </resources>

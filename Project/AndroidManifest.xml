@@ -23,6 +23,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.jasperb.citybuilder.MainViewActivity"
+            android:label="@string/title_activity_main_view"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|keyboardHidden">
+        </activity>
     </application>
 
 </manifest>
