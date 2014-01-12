@@ -1,15 +1,24 @@
 package com.jasperb.citybuilder;
 
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.Bundle;
 import android.view.Menu;
 
-public class MainViewActivity extends Activity {
+import com.jasperb.citybuilder.view.CityView;
 
+public class MainViewActivity extends Activity {
+	private World mWorld;
+	private CityView mCityView;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main_view);
+		
+		mWorld = new World(10,5);
+		
+		mCityView = (CityView) findViewById(R.id.City);
+		mCityView.setWorld(mWorld);
 	}
 
 	@Override
