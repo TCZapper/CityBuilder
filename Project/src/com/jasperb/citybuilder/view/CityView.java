@@ -13,7 +13,6 @@ import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.shapes.PathShape;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -21,22 +20,39 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
-import com.jasperb.citybuilder.World;
+import com.jasperb.citybuilder.CityModel;
 
 /**
+ * Custom view for handling rendering the city model. Includes the ability to pan, fling and scale within the view.
  * @author Jasper
  * 
  */
 public class CityView extends View {
 
     /**
-     * The initial fling velocity is divided by this amount.
+     * Identifier string for debug messages originating from this class
      */
+    public static final String TAG = "CityView";
 
+    /**
+     * Maximum amount of zoom for the contents of the view
+     */
     public static final float MAXIMUM_SCALE_FACTOR = 1.f;
+
+    /**
+     * Minimum amount of zoom for the contents of the view
+     */
     public static final float MINIMUM_SCALE_FACTOR = 0.25f;
-    public static final float BLOCK_WIDTH = 96;
-    public static final float BLOCK_HEIGHT = BLOCK_WIDTH / 2;
+
+    /**
+     * Width of a single tile in pixels
+     */
+    public static final float TILE_WIDTH = 96;
+
+    /**
+     * Height of a single tile in pixels
+     */
+    public static final float TILE_HEIGHT = TILE_WIDTH / 2;
 
     public enum PERSPECTIVE {
         LEFT, RIGHT
@@ -50,16 +66,17 @@ public class CityView extends View {
     private Bitmap mGroundCanvasBitmap = null;
     private Canvas mGroundCanvas = null;
     private boolean mRedrawGround = true;
-    private World mWorld = null;
+    private CityModel mCityModel = null;
     private Paint mTilePaint;
     private boolean drawGridLines = false;
     private Path mTilePath;
     private Matrix mTranslateRowMatrix, mTranslateColMatrix, mMatrix;
 
-    public void setWorld(World world) {
-        mWorld = world;
-        mTranslateRowMatrix.setTranslate(-BLOCK_WIDTH / 2, BLOCK_HEIGHT / 2);
-        mTranslateColMatrix.setTranslate((BLOCK_WIDTH / 2) * (mWorld.getHeight() + 1), (-BLOCK_HEIGHT / 2) * (mWorld.getHeight() - 1));
+    public void setCityModel(CityModel model) {
+        mCityModel = model;
+        mTranslateRowMatrix.setTranslate(-TILE_WIDTH / 2, TILE_HEIGHT / 2);
+        mTranslateColMatrix.setTranslate((TILE_WIDTH / 2) * (mCityModel.getHeight() + 1),
+                (-TILE_HEIGHT / 2) * (mCityModel.getHeight() - 1));
     }
 
     public int getFocusX() {
@@ -92,12 +109,12 @@ public class CityView extends View {
 
     /**
      * Class constructor taking a context and an attribute set. This constructor is used by the layout engine to construct a
-     * {@link PieChart} from a set of XML attributes.
+     * {@link CityView} from a set of XML attributes.
      * 
      * @param context
+     *            The Context the view is running in, through which it can access the current theme, resources, etc.
      * @param attrs
-     *            An attribute set which can contain attributes from {@link com.example.android.customviews.R.styleable.PieChart} as well as
-     *            attributes inherited from {@link android.view.View}.
+     *            An attribute set which can contain attributes inherited from {@link android.view.View}.
      */
     public CityView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -106,27 +123,28 @@ public class CityView extends View {
     }
 
     /**
-     * Class constructor taking a context. This constructor is used by the layout engine to construct a {@link PieChart}.
+     * Class constructor taking a context. This constructor is used by the layout engine to construct a {@link CityView}.
      * 
      * @param context
+     *            The Context the view is running in, through which it can access the current theme, resources, etc.
      */
     public CityView(Context context) {
         super(context);
 
         init();
     }
-/*
-    @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        // Do nothing. Do not call the superclass method--that would start a layout pass
-        // on this view's children. 
-    }
-*/
+
+    /*
+     * @Override protected void onLayout(boolean changed, int l, int t, int r, int b) { // Do nothing. Do not call the superclass
+     * method--that would start a layout pass // on this view's children. }
+     */
     @Override
     protected void onDraw(Canvas canvas) {
-        canvas.drawColor(Color.BLACK);
-        Log.d("CITYVIEW", "ONDRAW");
-        if (mGroundCanvas == null || mWorld == null)
+        Log.d(TAG, "ON DRAW");
+
+        canvas.drawColor(Color.BLACK);// Blank the canvas
+
+        if (mGroundCanvas == null || mCityModel == null)
             return;
         if (mRedrawGround) {
             drawGround();
@@ -139,16 +157,17 @@ public class CityView extends View {
     }
 
     private void drawGround() {
-        mGroundCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);// Clear
+        Log.d(TAG, "DRAW GROUND");
 
-        Log.d("CITYVIEW", "DRAW GROUND");
-        //For the moment we're going to draw every tile, even those not in view
-        mMatrix.setTranslate(mWidth / 2, 0);//don't account for mFocus yet
+        mGroundCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);// Clear the canvas (making it transparent)
+
+        // For the moment we're going to draw every tile, even those not in view
+        mMatrix.setTranslate(mWidth / 2, 0);// don't account for mFocus yet
         mTilePath.transform(mMatrix);
-        for (int col = 0; col < mWorld.getWidth(); col++) {
-            for (int row = 0; row < mWorld.getHeight(); row++) {
-                //Log.d("TEST","RC: " + row + " : " + col);
-                switch (mWorld.getTerrain(row, col)) {
+        for (int col = 0; col < mCityModel.getWidth(); col++) {
+            for (int row = 0; row < mCityModel.getHeight(); row++) {
+                // Log.d(TAG,"Paint Tile: " + row + " : " + col);
+                switch (mCityModel.getTerrain(row, col)) {
                 case GRASS:
                     mTilePaint.setColor(Color.GREEN);
                     break;
@@ -161,12 +180,13 @@ public class CityView extends View {
             }
             mTilePath.transform(mTranslateColMatrix);
         }
-        mMatrix.setTranslate((-BLOCK_WIDTH / 2) * mWorld.getWidth() - mWidth / 2, (-BLOCK_HEIGHT / 2) * mWorld.getWidth());
-        mTilePath.transform(mMatrix);//return mTilePath to origin (0,0)
+        mMatrix.setTranslate((-TILE_WIDTH / 2) * mCityModel.getWidth() - mWidth / 2, (-TILE_HEIGHT / 2) * mCityModel.getWidth());
+        mTilePath.transform(mMatrix);// return mTilePath to origin (0,0)
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        Log.d(TAG, "ON SIZE CHANGED");
         super.onSizeChanged(w, h, oldw, oldh);
 
         // Account for padding
@@ -196,7 +216,7 @@ public class CityView extends View {
     }
 
     /**
-     * Initialize the control. This code is in a separate method so that it can be called from both constructors.
+     * Initialize and allocate the necessary components of the view, except those that depend on the view size or city size 
      */
     private void init() {
         setLayerType(View.LAYER_TYPE_HARDWARE, null);
@@ -210,18 +230,21 @@ public class CityView extends View {
 
         mScaleDetector = new ScaleGestureDetector(this.getContext(), new ScaleListener());
 
+        // Create the paint, geometry and matrices used for drawing the tiles
         mTilePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mTilePaint.setStyle(Paint.Style.FILL);
         mTilePath = new Path();
-        mTilePath.lineTo(BLOCK_WIDTH / 2, BLOCK_HEIGHT / 2);
-        mTilePath.lineTo(0, BLOCK_HEIGHT);
-        mTilePath.lineTo(-BLOCK_WIDTH / 2, BLOCK_HEIGHT / 2);
-        new PathShape(mTilePath, BLOCK_WIDTH, BLOCK_HEIGHT);
+        mTilePath.lineTo(TILE_WIDTH / 2, TILE_HEIGHT / 2);
+        mTilePath.lineTo(0, TILE_HEIGHT);
+        mTilePath.lineTo(-TILE_WIDTH / 2, TILE_HEIGHT / 2);
         mMatrix = new Matrix();
         mTranslateRowMatrix = new Matrix();
         mTranslateColMatrix = new Matrix();
     }
 
+    /**
+     * Initialize and allocate the necessary components of the view that relate to the size of the canvas
+     */
     private void initCanvas() {
         // mGroundCanvasBitmap = Bitmap.createBitmap((int) (mWidth / MINIMUM_SCALE_FACTOR), (int) (mHeight / MINIMUM_SCALE_FACTOR),
         // Bitmap.Config.ARGB_8888);
@@ -231,6 +254,8 @@ public class CityView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        //Currently we do not properly try to handle these events, rather we use them as to aid debugging by forcing a complete redraw
+        
         // Let the GestureDetector interpret this event
         boolean result = mDetector.onTouchEvent(event);
 
@@ -244,7 +269,7 @@ public class CityView extends View {
                 result = true;
             }
         }
-        invalidateAll();
+        invalidateAll();//debug force redraw
         return result;
     }
 
@@ -295,19 +320,12 @@ public class CityView extends View {
             // Makes sure that the chart point is within the chart region.
             // See the sample for the implementation of hitTest().
 
-            constrainViewport();
+            // constrainViewport();
 
             lastSpanX = spanX;
             lastSpanY = spanY;
             return true;
         }
 
-        /**
-         * Ensures that current viewport is inside the viewport extremes defined by {@link #AXIS_X_MIN}, {@link #AXIS_X_MAX},
-         * {@link #AXIS_Y_MIN} and {@link #AXIS_Y_MAX}.
-         */
-        private void constrainViewport() {
-
-        }
     };
 }

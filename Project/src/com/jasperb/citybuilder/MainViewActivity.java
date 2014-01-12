@@ -7,7 +7,7 @@ import android.view.Menu;
 import com.jasperb.citybuilder.view.CityView;
 
 public class MainViewActivity extends Activity {
-	private World mWorld;
+	private CityModel mCityModel;
 	private CityView mCityView;
 	
 	@Override
@@ -15,10 +15,10 @@ public class MainViewActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main_view);
 		
-		mWorld = new World(10,5);
+		mCityModel = new CityModel(10,5);
 		
 		mCityView = (CityView) findViewById(R.id.City);
-		mCityView.setWorld(mWorld);
+		mCityView.setCityModel(mCityModel);
 	}
 
 	@Override

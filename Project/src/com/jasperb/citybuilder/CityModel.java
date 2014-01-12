@@ -9,7 +9,12 @@ import android.util.Log;
  * @author Jasper
  *
  */
-public class World { 
+public class CityModel { 
+    /**
+     * Identifier string for debug messages originating from this class
+     */
+    public static final String TAG = "CityModel";
+    
 	public enum TERRAIN { GRASS, DIRT };
 	
 	private int mWidth, mHeight;
@@ -24,8 +29,9 @@ public class World {
     }
 	
 	@SuppressWarnings("unused")
-	private World() {}
-	public World(int width, int height) {
+	private CityModel() {}
+	public CityModel(int width, int height) {
+	    Log.d(TAG, "Create City: " + width + "x" + height);
 		mWidth = width;
 		mHeight = height;
 		
@@ -37,6 +43,12 @@ public class World {
 		}
 	}
 	
+	/**
+	 * Gets the type of TERRAIN located at the specified row and column
+	 * @param row
+	 * @param col
+	 * @return the type of tile at the specified location
+	 */
 	public TERRAIN getTerrain(int row, int col) {
 		return mTerrainMap[row][col];
 	}
