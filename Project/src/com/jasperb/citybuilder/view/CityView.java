@@ -174,18 +174,16 @@ public class CityView extends View {
     }
 
     // Rough conversion
-    private Point isoToReal(Point pt) {
-        Point tempPt = new Point(0, 0);
-        tempPt.x = (2 * pt.y + pt.x) / 2;
-        tempPt.y = (2 * pt.y - pt.x) / 2;
+    private void isoToReal(float row, float col) {
+        Point tempPt = new Point(0,0);
+        tempPt.x = (Constant.TILE_WIDTH / 2) * (col - row);
+        tempPt.y = (Constant.TILE_HEIGHT / 2) * (col + row);
         return tempPt;
     }
 
-    private Point realToIso(Point pt) {
-        Point tempPt = new Point(0, 0);
-        tempPt.x = pt.x - pt.y;
-        tempPt.y = (pt.x + pt.y) / 2;
-        return tempPt;
+    private void realToIso(float x, float y) {
+        float row = (y / Constant.TILE_HEIGHT) - (x / Constant.TILE_WIDTH);
+        float col = (y / Constant.TILE_HEIGHT) + (x / Constant.TILE_WIDTH);
     }
 
     /**
