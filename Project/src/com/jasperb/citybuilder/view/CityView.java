@@ -7,9 +7,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
@@ -21,9 +18,13 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import com.jasperb.citybuilder.CityModel;
+import com.jasperb.citybuilder.util.Constant;
+import com.jasperb.citybuilder.util.PerfTools;
+import com.jasperb.citybuilder.util.TileBitmaps;
 
 /**
  * Custom view for handling rendering the city model. Includes the ability to pan, fling and scale within the view.
+ * 
  * @author Jasper
  * 
  */
@@ -34,49 +35,23 @@ public class CityView extends View {
      */
     public static final String TAG = "CityView";
 
-    /**
-     * Maximum amount of zoom for the contents of the view
-     */
-    public static final float MAXIMUM_SCALE_FACTOR = 1.f;
-
-    /**
-     * Minimum amount of zoom for the contents of the view
-     */
-    public static final float MINIMUM_SCALE_FACTOR = 0.25f;
-
-    /**
-     * Width of a single tile in pixels
-     */
-    public static final float TILE_WIDTH = 96;
-
-    /**
-     * Height of a single tile in pixels
-     */
-    public static final float TILE_HEIGHT = TILE_WIDTH / 2;
-
-    public enum PERSPECTIVE {
-        LEFT, RIGHT
-    }
+    public static final boolean LOG_FPS = false;
 
     private ScaleGestureDetector mScaleDetector;
     private GestureDetector mDetector;
     private int mFocusX = 0, mFocusY = 0;
     private int mWidth = 0, mHeight = 0;
-    private float mScaleFactor = MAXIMUM_SCALE_FACTOR;
+    private float mScaleFactor = Constant.MAXIMUM_SCALE_FACTOR;
     private Bitmap mGroundCanvasBitmap = null;
     private Canvas mGroundCanvas = null;
     private boolean mRedrawGround = true;
     private CityModel mCityModel = null;
-    private Paint mTilePaint;
-    private boolean drawGridLines = false;
-    private Path mTilePath;
-    private Matrix mTranslateRowMatrix, mTranslateColMatrix, mMatrix;
+    private boolean mDrawGridLines = false;
+    private long lastTime = 0;
+    private TileBitmaps mTileBitmaps = new TileBitmaps();
 
     public void setCityModel(CityModel model) {
         mCityModel = model;
-        mTranslateRowMatrix.setTranslate(-TILE_WIDTH / 2, TILE_HEIGHT / 2);
-        mTranslateColMatrix.setTranslate((TILE_WIDTH / 2) * (mCityModel.getHeight() + 1),
-                (-TILE_HEIGHT / 2) * (mCityModel.getHeight() - 1));
     }
 
     public int getFocusX() {
@@ -103,6 +78,7 @@ public class CityView extends View {
     }
 
     public void invalidateAll() {
+        Log.d(TAG, "INVALIDATE ALL");
         mRedrawGround = true;
         invalidate();
     }
@@ -118,7 +94,6 @@ public class CityView extends View {
      */
     public CityView(Context context, AttributeSet attrs) {
         super(context, attrs);
-
         init();
     }
 
@@ -130,7 +105,6 @@ public class CityView extends View {
      */
     public CityView(Context context) {
         super(context);
-
         init();
     }
 
@@ -153,35 +127,34 @@ public class CityView extends View {
         canvas.drawBitmap(mGroundCanvasBitmap, 0, 0, null);
 
         mRedrawGround = false;
+        if (LOG_FPS)
+            invalidateAll();
         super.onDraw(canvas);
     }
 
     private void drawGround() {
         Log.d(TAG, "DRAW GROUND");
+        if (LOG_FPS) {
+            long curTime = System.currentTimeMillis();
+            if (lastTime != 0) {
+                PerfTools.CalcAverageTick((int) (curTime - lastTime));
+            }
+            lastTime = curTime;
+        }
 
         mGroundCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);// Clear the canvas (making it transparent)
 
-        // For the moment we're going to draw every tile, even those not in view
-        mMatrix.setTranslate(mWidth / 2, 0);// don't account for mFocus yet
-        mTilePath.transform(mMatrix);
+        int offsetX = mWidth / 2 - Constant.TILE_WIDTH / 2 - 1;// -TILE_WIDTH/2 to horizontally center the tile around 0,0, and -1 because
+                                                               // the image isn't drawn properly centered
+        int offsetY = 0;// We draw the bitmap 2 pixels lower in the tile bitmap
         for (int col = 0; col < mCityModel.getWidth(); col++) {
             for (int row = 0; row < mCityModel.getHeight(); row++) {
                 // Log.d(TAG,"Paint Tile: " + row + " : " + col);
-                switch (mCityModel.getTerrain(row, col)) {
-                case GRASS:
-                    mTilePaint.setColor(Color.GREEN);
-                    break;
-                case DIRT:
-                    mTilePaint.setColor(Color.DKGRAY);
-                    break;
-                }
-                mGroundCanvas.drawPath(mTilePath, mTilePaint);
-                mTilePath.transform(mTranslateRowMatrix);
+                mGroundCanvas.drawBitmap(mTileBitmaps.getBitmap(mCityModel.getTerrain(row, col)),
+                        (-Constant.TILE_WIDTH / 2) * row + (Constant.TILE_WIDTH / 2) * col + offsetX,
+                        (Constant.TILE_HEIGHT / 2) * row + (Constant.TILE_HEIGHT / 2) * col + offsetY, null);
             }
-            mTilePath.transform(mTranslateColMatrix);
         }
-        mMatrix.setTranslate((-TILE_WIDTH / 2) * mCityModel.getWidth() - mWidth / 2, (-TILE_HEIGHT / 2) * mCityModel.getWidth());
-        mTilePath.transform(mMatrix);// return mTilePath to origin (0,0)
     }
 
     @Override
@@ -216,7 +189,7 @@ public class CityView extends View {
     }
 
     /**
-     * Initialize and allocate the necessary components of the view, except those that depend on the view size or city size 
+     * Initialize and allocate the necessary components of the view, except those that depend on the view size or city size
      */
     private void init() {
         setLayerType(View.LAYER_TYPE_HARDWARE, null);
@@ -229,17 +202,6 @@ public class CityView extends View {
         mDetector.setIsLongpressEnabled(false);
 
         mScaleDetector = new ScaleGestureDetector(this.getContext(), new ScaleListener());
-
-        // Create the paint, geometry and matrices used for drawing the tiles
-        mTilePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mTilePaint.setStyle(Paint.Style.FILL);
-        mTilePath = new Path();
-        mTilePath.lineTo(TILE_WIDTH / 2, TILE_HEIGHT / 2);
-        mTilePath.lineTo(0, TILE_HEIGHT);
-        mTilePath.lineTo(-TILE_WIDTH / 2, TILE_HEIGHT / 2);
-        mMatrix = new Matrix();
-        mTranslateRowMatrix = new Matrix();
-        mTranslateColMatrix = new Matrix();
     }
 
     /**
@@ -254,10 +216,11 @@ public class CityView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        //Currently we do not properly try to handle these events, rather we use them as to aid debugging by forcing a complete redraw
-        
-        // Let the GestureDetector interpret this event
+        // Currently we do not properly try to handle these events, rather we use them as to aid debugging by forcing a complete redraw
+
+        // Let the GestureDetectors interpret this event
         boolean result = mDetector.onTouchEvent(event);
+        result = mScaleDetector.onTouchEvent(event);
 
         // If the GestureDetector doesn't want this event, do some custom processing.
         // This code just tries to detect when the user is done scrolling by looking
@@ -269,7 +232,7 @@ public class CityView extends View {
                 result = true;
             }
         }
-        invalidateAll();//debug force redraw
+        invalidateAll();// debug force redraw
         return result;
     }
 
@@ -328,4 +291,5 @@ public class CityView extends View {
         }
 
     };
+
 }
