@@ -3,18 +3,12 @@
  */
 package com.jasperb.citybuilder.util;
 
-import android.util.Log;
 
 /**
  * @author Jasper
  * 
  */
 public class PerfTools {
-    /**
-     * Identifier string for debug messages originating from this class
-     */
-    public static final String TAG = "FPS";
-
     private static final int MAXSAMPLES = 100;
     private static long mLastTime = 0;
     private static int mIndex = 0;
@@ -29,7 +23,6 @@ public class PerfTools {
         if (++mIndex == MAXSAMPLES) {
             mIndex = 0;
         }
-        Log.d(TAG, "" + 1 / ((double) mSum / MAXSAMPLES));
         mLastTime = newTime;
 
         return ((double) mSum / MAXSAMPLES);

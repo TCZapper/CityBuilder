@@ -136,7 +136,7 @@ public class CityView extends View {
     private void drawGround() {
         Log.d(TAG, "DRAW GROUND");
         if (LOG_FPS) {
-            PerfTools.CalcAverageTick(System.currentTimeMillis());
+            Log.d(TAG + "FPS", "" + 1000 / PerfTools.CalcAverageTick(System.currentTimeMillis()));
         }
 
         mGroundCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);// Clear the canvas (making it transparent)
