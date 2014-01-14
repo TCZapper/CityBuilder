@@ -7,7 +7,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Point;
+import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.util.AttributeSet;
@@ -18,6 +18,7 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import com.jasperb.citybuilder.CityModel;
+import com.jasperb.citybuilder.util.Common;
 import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.PerfTools;
 import com.jasperb.citybuilder.util.TileBitmaps;
@@ -39,32 +40,32 @@ public class CityView extends View {
 
     private ScaleGestureDetector mScaleDetector;
     private GestureDetector mDetector;
-    private int mFocusX = 0, mFocusY = 0;
+    private float mFocusRow = 0, mFocusCol = 0;
     private int mWidth = 0, mHeight = 0;
     private float mScaleFactor = Constant.MAXIMUM_SCALE_FACTOR;
     private Bitmap mGroundCanvasBitmap = null;
     private Canvas mGroundCanvas = null;
     private boolean mRedrawGround = true;
     private CityModel mCityModel = null;
-    private boolean mDrawGridLines = false;
-    private long lastTime = 0;
+    private boolean mDrawGridLines = true;
     private TileBitmaps mTileBitmaps = new TileBitmaps();
+    private Paint mGridPaint;
 
     public void setCityModel(CityModel model) {
         mCityModel = model;
     }
 
-    public int getFocusX() {
-        return mFocusX;
+    public float getFocusRow() {
+        return mFocusRow;
     }
 
-    public int getFocusY() {
-        return mFocusY;
+    public float getFocusCol() {
+        return mFocusCol;
     }
 
-    public void setFocusCoords(int x, int y) {
-        this.mFocusX = x;
-        this.mFocusY = y;
+    public void setFocusCoords(float row, float col) {
+        this.mFocusRow = row;
+        this.mFocusCol = col;
         invalidateAll();
     }
 
@@ -135,26 +136,41 @@ public class CityView extends View {
     private void drawGround() {
         Log.d(TAG, "DRAW GROUND");
         if (LOG_FPS) {
-            long curTime = System.currentTimeMillis();
-            if (lastTime != 0) {
-                PerfTools.CalcAverageTick((int) (curTime - lastTime));
-            }
-            lastTime = curTime;
+            PerfTools.CalcAverageTick(System.currentTimeMillis());
         }
 
         mGroundCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);// Clear the canvas (making it transparent)
 
-        int offsetX = mWidth / 2 - Constant.TILE_WIDTH / 2 - 1;// -TILE_WIDTH/2 to horizontally center the tile around 0,0, and -1 because
-                                                               // the image isn't drawn properly centered
-        int offsetY = 0;// We draw the bitmap 2 pixels lower in the tile bitmap
+        // Calculate real coordinates for the top-most tile based off the focus iso coordinates being the centre of the screen
+        float realTopX = mWidth / 2 - Common.isoToRealX(mFocusRow, mFocusCol);
+        float realTopY = mHeight / 2 - Common.isoToRealY(mFocusRow, mFocusCol);
+
+        // Shift the bitmap left to horizontally center the tile around 0,0 and subtract 1 because the image isn't drawn perfectly centered
+        float bitmapOffsetX = -Constant.TILE_WIDTH / 2 - 1;
+
         for (int col = 0; col < mCityModel.getWidth(); col++) {
             for (int row = 0; row < mCityModel.getHeight(); row++) {
                 // Log.d(TAG,"Paint Tile: " + row + " : " + col);
                 mGroundCanvas.drawBitmap(mTileBitmaps.getBitmap(mCityModel.getTerrain(row, col)),
-                        (-Constant.TILE_WIDTH / 2) * row + (Constant.TILE_WIDTH / 2) * col + offsetX,
-                        (Constant.TILE_HEIGHT / 2) * row + (Constant.TILE_HEIGHT / 2) * col + offsetY, null);
+                        Common.isoToRealX(row, col) + realTopX + bitmapOffsetX, Common.isoToRealY(row, col) + realTopY, null);
             }
         }
+        if (mDrawGridLines) {
+            for (int col = 0; col <= mCityModel.getWidth(); col++) {
+                mGroundCanvas.drawLine(Common.isoToRealX(0, col) + realTopX, Common.isoToRealY(0, col) + realTopY,
+                        Common.isoToRealX(mCityModel.getHeight(), col) + realTopX,
+                        Common.isoToRealY(mCityModel.getHeight(), col) + realTopY, mGridPaint);
+            }
+            for (int row = 0; row <= mCityModel.getHeight(); row++) {
+                mGroundCanvas.drawLine(Common.isoToRealX(row, 0) + realTopX, Common.isoToRealY(row, 0) + realTopY,
+                        Common.isoToRealX(row, mCityModel.getWidth()) + realTopX,
+                        Common.isoToRealY(row, mCityModel.getWidth()) + realTopY, mGridPaint);
+            }
+        }
+
+        // Center line
+        // mGroundCanvas.drawLine(mWidth / 2, 0, mWidth / 2, mHeight, mGridPaint);
+        // mGroundCanvas.drawLine(0, mHeight / 2, mWidth, mHeight / 2, mGridPaint);
     }
 
     @Override
@@ -173,19 +189,6 @@ public class CityView extends View {
         invalidateAll();
     }
 
-    // Rough conversion
-    private void isoToReal(float row, float col) {
-        Point tempPt = new Point(0,0);
-        tempPt.x = (Constant.TILE_WIDTH / 2) * (col - row);
-        tempPt.y = (Constant.TILE_HEIGHT / 2) * (col + row);
-        return tempPt;
-    }
-
-    private void realToIso(float x, float y) {
-        float row = (y / Constant.TILE_HEIGHT) - (x / Constant.TILE_WIDTH);
-        float col = (y / Constant.TILE_HEIGHT) + (x / Constant.TILE_WIDTH);
-    }
-
     /**
      * Initialize and allocate the necessary components of the view, except those that depend on the view size or city size
      */
@@ -200,6 +203,11 @@ public class CityView extends View {
         mDetector.setIsLongpressEnabled(false);
 
         mScaleDetector = new ScaleGestureDetector(this.getContext(), new ScaleListener());
+
+        mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mGridPaint.setStyle(Paint.Style.STROKE);
+        mGridPaint.setStrokeWidth(0);
+        mGridPaint.setColor(Color.WHITE);
     }
 
     /**

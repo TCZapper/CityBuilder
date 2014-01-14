@@ -37,12 +37,12 @@ public class CityModel {
         mHeight = height;
 
         mTerrainMap = new TERRAIN[mHeight][mWidth];
-        for (int i = 0; i < mHeight; i++) {
-            for (int j = 0; j < mWidth; j++) {
-                if ((i + j) % 2 == 0 || i % 2 == 0) {
-                    mTerrainMap[i][j] = TERRAIN.GRASS;
+        for (int row = 0; row < mHeight; row++) {
+            for (int col = 0; col < mWidth; col++) {
+                if ((row + col) % 2 == 0 || row % 2 == 0) {
+                    mTerrainMap[row][col] = TERRAIN.GRASS;
                 } else {
-                    mTerrainMap[i][j] = TERRAIN.DIRT;
+                    mTerrainMap[row][col] = TERRAIN.DIRT;
                 }
             }
         }

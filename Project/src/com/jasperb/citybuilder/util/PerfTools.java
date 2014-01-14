@@ -16,18 +16,21 @@ public class PerfTools {
     public static final String TAG = "FPS";
 
     private static final int MAXSAMPLES = 100;
+    private static long mLastTime = 0;
     private static int mIndex = 0;
     private static int mSum = 0;
     private static int mTickList[] = new int[MAXSAMPLES];
 
-    public static double CalcAverageTick(int newtick) {
+    public static double CalcAverageTick(long newTime) {
+        int newTick = (int) (newTime - mLastTime);
         mSum -= mTickList[mIndex];
-        mSum += newtick;
-        mTickList[mIndex] = newtick;
+        mSum += newTick;
+        mTickList[mIndex] = newTick;
         if (++mIndex == MAXSAMPLES) {
             mIndex = 0;
         }
         Log.d(TAG, "" + 1 / ((double) mSum / MAXSAMPLES));
+        mLastTime = newTime;
 
         return ((double) mSum / MAXSAMPLES);
     }
