@@ -8,6 +8,8 @@
         android:minSdkVersion="16"
         android:targetSdkVersion="19" />
 
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -26,8 +28,7 @@
         <activity
             android:name="com.jasperb.citybuilder.MainViewActivity"
             android:configChanges="orientation|keyboardHidden"
-            android:label="@string/title_activity_main_view"
-             >
+            android:label="@string/title_activity_main_view" >
         </activity>
     </application>
 
