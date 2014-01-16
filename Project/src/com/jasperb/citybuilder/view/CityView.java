@@ -7,9 +7,9 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
-import android.graphics.PorterDuff;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -43,13 +43,15 @@ public class CityView extends View {
     private float mFocusRow = 0, mFocusCol = 0;
     private int mWidth = 0, mHeight = 0;
     private float mScaleFactor = Constant.MAXIMUM_SCALE_FACTOR;
-    private Bitmap mGroundCanvasBitmap = null;
-    private Canvas mGroundCanvas = null;
-    private boolean mRedrawGround = true;
+    private Bitmap mBufferBitmap = null;
+    private Canvas mBufferCanvas = null;
+    private boolean mRedrawCity = true;
     private CityModel mCityModel = null;
     private boolean mDrawGridLines = true;
-    private TileBitmaps mTileBitmaps = new TileBitmaps();
+    private TileBitmaps mTileBitmaps = null;
     private Paint mGridPaint;
+    private Paint mBitmapPaint;
+    private Matrix mMatrix;
 
     public void setCityModel(CityModel model) {
         mCityModel = model;
@@ -80,7 +82,7 @@ public class CityView extends View {
 
     public void invalidateAll() {
         Log.d(TAG, "INVALIDATE ALL");
-        mRedrawGround = true;
+        mRedrawCity = true;
         invalidate();
     }
 
@@ -110,8 +112,10 @@ public class CityView extends View {
     }
 
     /*
-     * @Override protected void onLayout(boolean changed, int l, int t, int r, int b) { // Do nothing. Do not call the superclass
-     * method--that would start a layout pass // on this view's children. }
+     * @Override protected void onLayout(boolean changed, int l, int t, int r, int b) {
+     * // Do nothing. Do not call the superclass method--that would start a layout pass
+     * // on this view's children.
+     * }
      */
     @Override
     protected void onDraw(Canvas canvas) {
@@ -119,15 +123,15 @@ public class CityView extends View {
 
         canvas.drawColor(Color.BLACK);// Blank the canvas
 
-        if (mGroundCanvas == null || mCityModel == null)
+        if (mBufferCanvas == null || mCityModel == null)
             return;
-        if (mRedrawGround) {
+        if (mRedrawCity) {
             drawGround();
         }
         // Push everything onto screen
-        canvas.drawBitmap(mGroundCanvasBitmap, 0, 0, null);
+        canvas.drawBitmap(mBufferBitmap, 0, 0, null);
 
-        mRedrawGround = false;
+        mRedrawCity = false;
         if (LOG_FPS)
             invalidateAll();
         super.onDraw(canvas);
@@ -139,38 +143,48 @@ public class CityView extends View {
             Log.d(TAG + "FPS", "" + 1000 / PerfTools.CalcAverageTick(System.currentTimeMillis()));
         }
 
-        mGroundCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);// Clear the canvas (making it transparent)
+        mBufferCanvas.drawColor(Color.BLACK);// Clear the canvas
 
         // Calculate real coordinates for the top-most tile based off the focus iso coordinates being the centre of the screen
-        float realTopX = mWidth / 2 - Common.isoToRealX(mFocusRow, mFocusCol);
-        float realTopY = mHeight / 2 - Common.isoToRealY(mFocusRow, mFocusCol);
+        float realTopX = mWidth / 2 - (Common.isoToRealX(mFocusRow, mFocusCol) * mScaleFactor);
+        float realTopY = mHeight / 2 - (Common.isoToRealY(mFocusRow, mFocusCol) * mScaleFactor);
 
         // Shift the bitmap left to horizontally center the tile around 0,0 and subtract 1 because the image isn't drawn perfectly centered
-        float bitmapOffsetX = -Constant.TILE_WIDTH / 2 - 1;
+        float bitmapOffsetX = (-Constant.TILE_WIDTH / 2 - 1) * mScaleFactor;
 
+        // Draw the terrain
+        // Technically, scaling for every tile is not ideal, but scaling at the moment we draw onto the buffer canvas has two benefits:
+        // 1. No memory allocations need when the scale factor changes
+        // 2. It does not have any issues lining up tiles, unlike all other methods tried
         for (int col = 0; col < mCityModel.getWidth(); col++) {
             for (int row = 0; row < mCityModel.getHeight(); row++) {
                 // Log.d(TAG,"Paint Tile: " + row + " : " + col);
-                mGroundCanvas.drawBitmap(mTileBitmaps.getBitmap(mCityModel.getTerrain(row, col)),
-                        Common.isoToRealX(row, col) + realTopX + bitmapOffsetX, Common.isoToRealY(row, col) + realTopY, null);
-            }
-        }
-        if (mDrawGridLines) {
-            for (int col = 0; col <= mCityModel.getWidth(); col++) {
-                mGroundCanvas.drawLine(Common.isoToRealX(0, col) + realTopX, Common.isoToRealY(0, col) + realTopY,
-                        Common.isoToRealX(mCityModel.getHeight(), col) + realTopX,
-                        Common.isoToRealY(mCityModel.getHeight(), col) + realTopY, mGridPaint);
-            }
-            for (int row = 0; row <= mCityModel.getHeight(); row++) {
-                mGroundCanvas.drawLine(Common.isoToRealX(row, 0) + realTopX, Common.isoToRealY(row, 0) + realTopY,
-                        Common.isoToRealX(row, mCityModel.getWidth()) + realTopX,
-                        Common.isoToRealY(row, mCityModel.getWidth()) + realTopY, mGridPaint);
+                mMatrix.setScale(mScaleFactor, mScaleFactor);
+                mMatrix.postTranslate(Common.isoToRealX(row, col) * mScaleFactor + realTopX + bitmapOffsetX,
+                        Common.isoToRealY(row, col) * mScaleFactor + realTopY);
+                mBufferCanvas.drawBitmap(mTileBitmaps.getBitmap(mCityModel.getTerrain(row, col)), mMatrix, mBitmapPaint);
             }
         }
 
-        // Center line
-        // mGroundCanvas.drawLine(mWidth / 2, 0, mWidth / 2, mHeight, mGridPaint);
-        // mGroundCanvas.drawLine(0, mHeight / 2, mWidth, mHeight / 2, mGridPaint);
+        // Draw grid lines
+        if (mDrawGridLines) {
+            for (int col = 0; col <= mCityModel.getWidth(); col++) {
+                mBufferCanvas.drawLine(Common.isoToRealX(0, col) * mScaleFactor + realTopX,
+                        Common.isoToRealY(0, col) * mScaleFactor + realTopY,
+                        Common.isoToRealX(mCityModel.getHeight(), col) * mScaleFactor + realTopX,
+                        Common.isoToRealY(mCityModel.getHeight(), col) * mScaleFactor + realTopY, mGridPaint);
+            }
+            for (int row = 0; row <= mCityModel.getHeight(); row++) {
+                mBufferCanvas.drawLine(Common.isoToRealX(row, 0) * mScaleFactor + realTopX,
+                        Common.isoToRealY(row, 0) * mScaleFactor + realTopY,
+                        Common.isoToRealX(row, mCityModel.getWidth()) * mScaleFactor + realTopX,
+                        Common.isoToRealY(row, mCityModel.getWidth()) * mScaleFactor + realTopY, mGridPaint);
+            }
+        }
+
+        // Draw a very thin + spanning the entire screen that indicates the middle of the screen
+        // mBufferCanvas.drawLine(mWidth / 2, 0, mWidth / 2, mHeight, mGridPaint);
+        // mBufferCanvas.drawLine(0, mHeight / 2, mWidth, mHeight / 2, mGridPaint);
     }
 
     @Override
@@ -185,6 +199,8 @@ public class CityView extends View {
         mWidth = (int) Math.ceil((float) w - xpad);
         mHeight = (int) Math.ceil((float) h - ypad);
 
+        // Debug.startMethodTracing();
+
         initCanvas();
         invalidateAll();
     }
@@ -195,7 +211,6 @@ public class CityView extends View {
     private void init() {
         setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
-        // Create a gesture detector to handle onTouch messages
         mDetector = new GestureDetector(this.getContext(), new GestureListener());
 
         // Turn off long press--this control doesn't use it, and if long press is enabled, you can't scroll for a bit, pause, then scroll
@@ -204,20 +219,31 @@ public class CityView extends View {
 
         mScaleDetector = new ScaleGestureDetector(this.getContext(), new ScaleListener());
 
+        mTileBitmaps = new TileBitmaps();
+
         mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mGridPaint.setStyle(Paint.Style.STROKE);
-        mGridPaint.setStrokeWidth(0);
+        mGridPaint.setStrokeWidth(0);// thinnest line is 0 width
         mGridPaint.setColor(Color.WHITE);
+
+        // Use for scaling bitmaps when drawing them to the canvas
+        // Anti-aliasing helps shrink small defects on the edges, while filter bitmap makes the edges much smoother
+        mBitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+
+        mMatrix = new Matrix();
     }
 
     /**
      * Initialize and allocate the necessary components of the view that relate to the size of the canvas
      */
     private void initCanvas() {
-        // mGroundCanvasBitmap = Bitmap.createBitmap((int) (mWidth / MINIMUM_SCALE_FACTOR), (int) (mHeight / MINIMUM_SCALE_FACTOR),
-        // Bitmap.Config.ARGB_8888);
-        mGroundCanvasBitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
-        mGroundCanvas = new Canvas(mGroundCanvasBitmap);
+        // Recycle the old bitmap first, hopefully preventing out of memory issues when we create its replacement
+        if (mBufferBitmap != null)
+            mBufferBitmap.recycle();
+
+        mBufferBitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
+        mBufferCanvas = new Canvas(mBufferBitmap);
+        Log.d(TAG, "MEMORY: " + mBufferBitmap.getByteCount());
     }
 
     @Override
@@ -238,6 +264,8 @@ public class CityView extends View {
                 result = true;
             }
         }
+
+        // Debug.stopMethodTracing();
         invalidateAll();// debug force redraw
         return result;
     }

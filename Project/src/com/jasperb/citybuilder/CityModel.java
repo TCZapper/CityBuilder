@@ -46,6 +46,7 @@ public class CityModel {
                 }
             }
         }
+        mTerrainMap[mHeight-1][mWidth-1] = TERRAIN.DIRT;
     }
 
     /**
