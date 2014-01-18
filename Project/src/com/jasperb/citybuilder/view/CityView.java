@@ -40,7 +40,7 @@ public class CityView extends View {
 
     private ScaleGestureDetector mScaleDetector;
     private GestureDetector mDetector;
-    private float mFocusRow = 0, mFocusCol = 0;
+    private float mFocusRow = 2, mFocusCol = -10;
     private int mWidth = 0, mHeight = 0;
     private float mScaleFactor = Constant.MAXIMUM_SCALE_FACTOR;
     private Bitmap mBufferBitmap = null;
@@ -145,6 +145,8 @@ public class CityView extends View {
 
         mBufferCanvas.drawColor(Color.BLACK);// Clear the canvas
 
+        Log.d(TAG, "FOCUS TILE: " + mFocusRow + "x" + mFocusCol);
+
         // Calculate real coordinates for the top-most tile based off the focus iso coordinates being the centre of the screen
         float realTopX = mWidth / 2 - (Common.isoToRealX(mFocusRow, mFocusCol) * mScaleFactor);
         float realTopY = mHeight / 2 - (Common.isoToRealY(mFocusRow, mFocusCol) * mScaleFactor);
@@ -152,17 +154,148 @@ public class CityView extends View {
         // Shift the bitmap left to horizontally center the tile around 0,0 and subtract 1 because the image isn't drawn perfectly centered
         float bitmapOffsetX = (-Constant.TILE_WIDTH / 2 - 1) * mScaleFactor;
 
-        // Draw the terrain
-        // Technically, scaling for every tile is not ideal, but scaling at the moment we draw onto the buffer canvas has two benefits:
-        // 1. No memory allocations need when the scale factor changes
-        // 2. It does not have any issues lining up tiles, unlike all other methods tried
-        for (int col = 0; col < mCityModel.getWidth(); col++) {
-            for (int row = 0; row < mCityModel.getHeight(); row++) {
-                // Log.d(TAG,"Paint Tile: " + row + " : " + col);
-                mMatrix.setScale(mScaleFactor, mScaleFactor);
-                mMatrix.postTranslate(Common.isoToRealX(row, col) * mScaleFactor + realTopX + bitmapOffsetX,
-                        Common.isoToRealY(row, col) * mScaleFactor + realTopY);
-                mBufferCanvas.drawBitmap(mTileBitmaps.getBitmap(mCityModel.getTerrain(row, col)), mMatrix, mBitmapPaint);
+        //Draw all tiles for testing
+//        for (int col = 0; col < mCityModel.getWidth(); col++) {
+//            for (int row = 0; row < mCityModel.getHeight(); row++) {
+//                // Log.d(TAG,"Paint Tile: " + row + " : " + col);
+//                mMatrix.setScale(mScaleFactor, mScaleFactor);
+//                mMatrix.postTranslate(Common.isoToRealX(row, col) * mScaleFactor + realTopX + bitmapOffsetX,
+//                        Common.isoToRealY(row, col) * mScaleFactor + realTopY);
+//                mBufferCanvas.drawBitmap(mTileBitmaps.getBitmap(TERRAIN.DIRT), mMatrix, mBitmapPaint);
+//            }
+//        }
+
+        int topLeftRow = (int) Math.floor(Common.realToIsoRow(-realTopX / mScaleFactor, -realTopY / mScaleFactor));
+        int topLeftCol = (int) Math.floor(Common.realToIsoCol(-realTopX / mScaleFactor, -realTopY / mScaleFactor));
+        int topRightRow = (int) Math.floor(Common.realToIsoRow((-realTopX + mWidth) / mScaleFactor, (-realTopY) / mScaleFactor));
+        int topRightCol = (int) Math.floor(Common.realToIsoCol((-realTopX + mWidth) / mScaleFactor, (-realTopY) / mScaleFactor));
+        int bottomRightRow = (int) Math.floor(Common.realToIsoRow((-realTopX + mWidth) / mScaleFactor, (-realTopY + mHeight) / mScaleFactor));
+        int bottomRightCol = (int) Math.floor(Common.realToIsoCol((-realTopX + mWidth) / mScaleFactor, (-realTopY + mHeight) / mScaleFactor));
+        Log.d(TAG, "ORIGIN TILE: " + topLeftRow + "x" + topLeftCol + " --- "
+                + Common.realToIsoRow(-realTopX, -realTopY) + "x" + Common.realToIsoCol(-realTopX, -realTopY));
+        Log.d(TAG,
+                "BOTTOM TILE: " + bottomRightRow + "x" + bottomRightCol + " - "
+                        + Common.realToIsoRow((-realTopX + mWidth) / mScaleFactor, (-realTopY + mHeight) / mScaleFactor));
+
+        // Determine the first (the top-most visible) tile to draw by the following method:
+        // 1. Is there a tile in the top left corner of the view? If so draw that first
+        // 2. Is the top-most tile (row=0, col=0) visible? If so draw that first
+        // 3. Is the top-most tile left of the left edge of the view?
+        //      If so we must locate the top-most, valid tile that shares the same x coordinate as the top left corner tile
+        //      If this tile is valid and visible within the view, then draw that first
+        // 4. If the top-most tile is above the top edge of the view?
+        //      If so we must locate the top-most, valid tile that shares the same x coordinate as the top-most tile
+        //      If this tile is valid and visible within the view, then draw that first
+        // 5. Locate the top-most tile that shares the same x coordinate as the top right corner tile
+        //      If this tile is valid and visible within the view, then draw that first
+        // 6. Otherwise there are no visible tiles
+        int firstRow = 0, firstCol = 0;
+        boolean cityVisible = false;
+        do {// Do while loop only so we can break from it when we've determined the first tile to draw
+            if (Common.isTileValid(mCityModel, topLeftRow, topLeftCol)) {//This is the most likely scenario, so we check for it first
+                firstRow = topLeftRow;
+                firstCol = topLeftCol;
+                cityVisible = true;
+                break;
+            }
+            if (Common.isTileVisible(mScaleFactor, mWidth, mHeight, realTopX, realTopY)) {
+                firstRow = 0;
+                firstCol = 0;
+                cityVisible = true;
+                break;
+            }
+            if (realTopX < 0 && topLeftRow < 0) {// if topLeftRow >= 0 we know that there can't be a valid tile on the left edge of the view
+                firstRow = 0;
+                firstCol = topLeftCol - topLeftRow;
+                if (Common.isTileValid(mCityModel, firstRow, firstCol)
+                        && Common.isTileVisible(mScaleFactor, mWidth, mHeight,
+                                Common.isoToRealX(firstRow, firstCol) * mScaleFactor + realTopX,
+                                Common.isoToRealY(firstRow, firstCol) * mScaleFactor + realTopY)) {
+                    cityVisible = true;
+                    break;
+                }
+            }
+            if (realTopY < 0) {
+                if (topLeftCol >= 0) {
+                    firstRow = mCityModel.getHeight() - 1;
+                    firstCol = topLeftCol + (topLeftRow - firstRow);
+                } else {
+                    firstRow = topLeftRow + topLeftCol;
+                    firstCol = 0;
+                }
+                if (Common.isTileValid(mCityModel, firstRow, firstCol)
+                        && Common.isTileVisible(mScaleFactor, mWidth, mHeight,
+                                Common.isoToRealX(firstRow, firstCol) * mScaleFactor + realTopX,
+                                Common.isoToRealY(firstRow, firstCol) * mScaleFactor + realTopY)) {
+                    cityVisible = true;
+                    break;
+                }
+            }
+            if (topRightCol < 0) {// if topRightCol >= 0 we know that there can't be a valid tile on the right edge of the view
+                firstRow = topRightRow - topRightCol;
+                firstCol = 0;
+                if (Common.isTileValid(mCityModel, firstRow, firstCol)
+                        && Common.isTileVisible(mScaleFactor, mWidth, mHeight,
+                                Common.isoToRealX(firstRow, firstCol) * mScaleFactor + realTopX,
+                                Common.isoToRealY(firstRow, firstCol) * mScaleFactor + realTopY)) {
+                    cityVisible = true;
+                    break;
+                }
+            }
+            // 6. No visible tiles if this is reached
+        } while (false);
+
+        int leftBoundRow = topLeftRow;
+        int leftBoundCol = topLeftCol;
+        if (Common.isoToRealX(topLeftRow, topLeftCol) * mScaleFactor + realTopX > 0) {
+            leftBoundRow++;
+        }
+
+        int rightBoundRow = bottomRightRow;
+        int rightBoundCol = bottomRightCol;
+        if (Common.isoToRealX(bottomRightRow, bottomRightCol) * mScaleFactor + realTopX < mWidth) {
+            rightBoundRow--;
+        }
+
+        int bottomBoundRow = bottomRightRow;
+        int bottomBoundCol = bottomRightCol;
+        if ((Common.isoToRealY(bottomRightRow, bottomRightCol) + (Constant.TILE_HEIGHT / 2)) * mScaleFactor + realTopY < mHeight) {
+            Log.d(TAG, "BOTTOM SHIFT");
+            bottomBoundRow++;
+        }
+
+        Log.d(TAG, "DRAW: " + cityVisible + " - " + firstRow + " : " + firstCol);
+        if (cityVisible) {
+            int lastCol;
+            if (bottomRightRow < 0) {
+                // The last column to draw is same as that of the row=0 tile that sits on the bottom edge
+                lastCol = Math.min(mCityModel.getWidth() - 1, bottomRightCol + bottomRightRow);
+            } else if (bottomRightRow >= mCityModel.getHeight()) {
+                // The last column is the same as that of the row=mCityModel.getHeight()-1 tile that sits on the right edge
+                lastCol = Math.min(mCityModel.getWidth() - 1, bottomRightCol - (bottomRightRow - (mCityModel.getHeight() - 1)));
+            } else {// The bottom right tile is last column
+                lastCol = Math.min(mCityModel.getWidth() - 1, bottomRightCol);
+            }
+
+            for (int col = firstCol; col <= lastCol; col++) {
+                // Find the last row by figuring out the rows where this column crosses the bottom and left edge,
+                // and draw up to the whichever row corresponds edge we hit first
+                int lastRow = Math.min(mCityModel.getHeight() - 1,
+                        Math.min(leftBoundRow + (col - leftBoundCol), bottomBoundRow + (bottomBoundCol - col)));
+                // Find the first row by checking against where it collides with the right and top edges
+                // The top edge is a special case as we can get it by adding one row for every column we've already drawn
+                int row = Math.max(0, Math.max(firstRow - (col - firstCol), rightBoundRow - (rightBoundCol - col)));
+                for (; row <= lastRow; row++) {
+                    // Time to draw the terrain to the buffer. Technically, scaling for every tile is not ideal, but scaling at the moment
+                    // we draw onto the buffer canvas has two benefits:
+                    // 1. No memory allocations needed when the scale factor changes
+                    // 2. It does not have any issues lining up tiles, unlike all other methods tried
+//                    Log.d(TAG, "Paint Tile: " + row + " : " + col);
+                    mMatrix.setScale(mScaleFactor, mScaleFactor);
+                    mMatrix.postTranslate(Common.isoToRealX(row, col) * mScaleFactor + realTopX + bitmapOffsetX,
+                            Common.isoToRealY(row, col) * mScaleFactor + realTopY);
+                    mBufferCanvas.drawBitmap(mTileBitmaps.getBitmap(mCityModel.getTerrain(row, col)), mMatrix, mBitmapPaint);
+                }
             }
         }
 
@@ -183,8 +316,8 @@ public class CityView extends View {
         }
 
         // Draw a very thin + spanning the entire screen that indicates the middle of the screen
-        // mBufferCanvas.drawLine(mWidth / 2, 0, mWidth / 2, mHeight, mGridPaint);
-        // mBufferCanvas.drawLine(0, mHeight / 2, mWidth, mHeight / 2, mGridPaint);
+//         mBufferCanvas.drawLine(mWidth / 2, 0, mWidth / 2, mHeight, mGridPaint);
+//         mBufferCanvas.drawLine(0, mHeight / 2, mWidth, mHeight / 2, mGridPaint);
     }
 
     @Override
@@ -265,8 +398,6 @@ public class CityView extends View {
             }
         }
 
-        // Debug.stopMethodTracing();
-        invalidateAll();// debug force redraw
         return result;
     }
 
@@ -275,8 +406,14 @@ public class CityView extends View {
      */
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
+        public boolean onDown(MotionEvent e) {
+            // Debug.stopMethodTracing();
+            invalidateAll();// debug force redraw
+            return true;
+        }
+
+        @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            invalidateAll();
             return true;
         }
     }
