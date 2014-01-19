@@ -280,13 +280,13 @@ public class CityView extends View {
                 // For simplicity we only draw the grid lines for visible rows and columns, but we only make a small effort at
                 // preventing drawing outside of the view (every line should have an on-screen section, but we may extend it too far)
                 for (int col = firstCol; col <= lastCol + 1; col++) {
-                    mBufferCanvas.drawLine(Common.isoToRealX(0, col) * mScaleFactor + realTopX,
+                    mBufferCanvas.drawLine(Common.isoToRealX(minRow, col) * mScaleFactor + realTopX,
                             Common.isoToRealY(minRow, col) * mScaleFactor + realTopY,
                             Common.isoToRealX(maxRow + 1, col) * mScaleFactor + realTopX,
                             Common.isoToRealY(maxRow + 1, col) * mScaleFactor + realTopY, mGridPaint);
                 }
                 for (int row = minRow; row <= maxRow + 1; row++) {
-                    mBufferCanvas.drawLine(Common.isoToRealX(row, 0) * mScaleFactor + realTopX,
+                    mBufferCanvas.drawLine(Common.isoToRealX(row, firstCol) * mScaleFactor + realTopX,
                             Common.isoToRealY(row, firstCol) * mScaleFactor + realTopY,
                             Common.isoToRealX(row, lastCol + 1) * mScaleFactor + realTopX,
                             Common.isoToRealY(row, lastCol + 1) * mScaleFactor + realTopY, mGridPaint);

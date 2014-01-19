@@ -16,7 +16,7 @@ public final class Constant {
     /**
      * Minimum amount of zoom for the contents of the city view
      */
-    public static final float MINIMUM_SCALE_FACTOR = 0.25f;
+    public static final float MINIMUM_SCALE_FACTOR = 0.6f;
 
     /**
      * Width of a single tile in pixels

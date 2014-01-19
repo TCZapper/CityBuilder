@@ -22,7 +22,7 @@ public class MainViewActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_view);
 
-        mCityModel = new CityModel(10, 10);
+        mCityModel = new CityModel(50, 50);
 
         mCityView = (CityView) findViewById(R.id.City);
 
