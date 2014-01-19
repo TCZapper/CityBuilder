@@ -28,7 +28,8 @@
         <activity
             android:name="com.jasperb.citybuilder.MainViewActivity"
             android:configChanges="orientation|keyboardHidden"
-            android:label="@string/title_activity_main_view" >
+            android:label="@string/title_activity_main_view"
+            android:screenOrientation="landscape" >
         </activity>
     </application>
 

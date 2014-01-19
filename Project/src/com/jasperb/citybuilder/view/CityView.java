@@ -40,7 +40,7 @@ public class CityView extends View {
 
     private ScaleGestureDetector mScaleDetector;
     private GestureDetector mDetector;
-    private float mFocusRow = -1.6f, mFocusCol = 13.2f;
+    private float mFocusRow = 0, mFocusCol = 0;
     private int mWidth = 0, mHeight = 0;
     private float mScaleFactor = Constant.MAXIMUM_SCALE_FACTOR;
     private Bitmap mBufferBitmap = null;
@@ -142,7 +142,7 @@ public class CityView extends View {
 
     private void drawGround() {
         Log.d(TAG, "DRAW GROUND");
-        
+
         mBufferCanvas.drawColor(Color.BLACK);// Clear the canvas
 
         // Calculate real coordinates for the top-most tile based off the focus iso coordinates being the centre of the screen
@@ -192,7 +192,7 @@ public class CityView extends View {
         if (Common.isoToRealX(bottomRightRow, bottomRightCol) * mScaleFactor + realTopX < mWidth) {
             rightBoundRow--;
         }
-        
+
         int topBoundRow = topLeftRow;
         int topBoundCol = topLeftCol;
         if ((Common.isoToRealY(topLeftRow, topLeftCol) + (Constant.TILE_HEIGHT / 2)) * mScaleFactor + realTopY > 0) {
@@ -204,8 +204,7 @@ public class CityView extends View {
         if ((Common.isoToRealY(bottomRightRow, bottomRightCol) + (Constant.TILE_HEIGHT / 2)) * mScaleFactor + realTopY < mHeight) {
             bottomBoundRow++;
         }
-        
-        
+
         // To calculate the first column to draw we base it off a simple idea:
         // When the topBoundRow is less than 0, the city is can only possibly cross the left edge
         // When topBoundRow is larger than the height of the model, the city can only possibly cross the top edge
@@ -219,8 +218,7 @@ public class CityView extends View {
         } else {
             firstCol = Math.max(0, topLeftCol);
         }
-        
-        
+
         int firstRow = Math.max(0, Math.max(topBoundRow - (firstCol - topBoundCol),//where does firstCol cross the bottom edge
                 rightBoundRow - (rightBoundCol - firstCol)));//where does firstCol cross the right edge
         Log.d(TAG, "DRAW: " + firstRow + " : " + firstCol);
@@ -305,13 +303,13 @@ public class CityView extends View {
     private void init() {
         setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
-        mDetector = new GestureDetector(this.getContext(), new GestureListener());
+        mDetector = new GestureDetector(getContext(), new GestureListener());
 
         // Turn off long press--this control doesn't use it, and if long press is enabled, you can't scroll for a bit, pause, then scroll
         // some more (the pause is interpreted as a long press, apparently)
         mDetector.setIsLongpressEnabled(false);
 
-        mScaleDetector = new ScaleGestureDetector(this.getContext(), new ScaleListener());
+        mScaleDetector = new ScaleGestureDetector(getContext(), new ScaleListener());
 
         mTileBitmaps = new TileBitmaps();
 
@@ -343,42 +341,36 @@ public class CityView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        // Currently we do not properly try to handle these events, rather we use them as to aid debugging by forcing a complete redraw
-
         // Let the GestureDetectors interpret this event
         boolean result = mDetector.onTouchEvent(event);
-        result = mScaleDetector.onTouchEvent(event);
+        mScaleDetector.onTouchEvent(event);
 
-        // If the GestureDetector doesn't want this event, do some custom processing.
-        // This code just tries to detect when the user is done scrolling by looking
-        // for ACTION_UP events.
-        if (!result) {
-            if (event.getAction() == MotionEvent.ACTION_UP) {
-                // User is done scrolling, it's now safe to do things like autocenter
-                // stopScrolling();
-                result = true;
-            }
-        }
-
+        // If the GestureDetectors don't want this event, do some custom processing.
+        // This code just tries to detect when the user is done scrolling by looking for ACTION_UP events.
+//        if (!result) {
+//            if (event.getAction() == MotionEvent.ACTION_UP) {
+//                // stopScrolling();
+//                result = true;
+//            }
+//        }
+        invalidateAll();
         return result;
     }
 
     /**
-     * Extends {@link GestureDetector.SimpleOnGestureListener} to provide custom gesture processing.
+     * The gesture listener, used for handling scroll and fling gestures (for panning)
      */
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
-        public boolean onDown(MotionEvent e) {
-            // Debug.stopMethodTracing();
-            invalidateAll();// debug force redraw
+        public boolean onDown(MotionEvent e) {// For some reason, scaling and scroll don't work without this
             return true;
         }
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            mFocusRow += Common.realToIsoRow(distanceX, distanceY);
-            mFocusCol += Common.realToIsoCol(distanceX, distanceY);
-            Log.d(TAG,"SCROLL: " + mFocusRow + " : " + mFocusCol);
+            mFocusRow += Common.realToIsoRow(distanceX, distanceY) / mScaleFactor;
+            mFocusCol += Common.realToIsoCol(distanceX, distanceY) / mScaleFactor;
+            
             invalidateAll();
             return true;
         }
@@ -388,42 +380,14 @@ public class CityView extends View {
      * The scale listener, used for handling multi-finger scale gestures.
      */
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-        /**
-         * This is the active focal point in terms of the viewport. Could be a local variable but kept here to minimize per-frame
-         * allocations.
-         */
-        private PointF viewportFocus = new PointF();
-        private float lastSpanX;
-        private float lastSpanY;
-
-        // Detects that new pointers are going down.
-        @Override
-        public boolean onScaleBegin(ScaleGestureDetector scaleGestureDetector) {
-            lastSpanX = scaleGestureDetector.getCurrentSpanX();
-            lastSpanY = scaleGestureDetector.getCurrentSpanY();
-            return true;
-        }
-
         @Override
         public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
-
-            float spanX = scaleGestureDetector.getCurrentSpanX();
-            float spanY = scaleGestureDetector.getCurrentSpanY();
-
             float scaleFactor = mScaleFactor * scaleGestureDetector.getScaleFactor();
 
             // Don't let the object get too small or too large.
-            mScaleFactor = Math.max(0.1f, Math.min(scaleFactor, 5.0f));
-
-            float focusX = scaleGestureDetector.getFocusX();
-            float focusY = scaleGestureDetector.getFocusY();
-            // Makes sure that the chart point is within the chart region.
-            // See the sample for the implementation of hitTest().
-
-            // constrainViewport();
-
-            lastSpanX = spanX;
-            lastSpanY = spanY;
+            mScaleFactor = Math.max(Constant.MINIMUM_SCALE_FACTOR, Math.min(scaleFactor, Constant.MAXIMUM_SCALE_FACTOR));
+            
+            invalidateAll();
             return true;
         }
 
