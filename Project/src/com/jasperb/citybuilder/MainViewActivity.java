@@ -42,7 +42,10 @@ public class MainViewActivity extends Activity {
         if (!mCityView.isAllocated()) {
             mCityView.setCityModel(mCityModel);
             mCityView.init();
-            mCityView.initCanvas();
+        }
+        
+        if(!mCityView.isThreadAllocated()) {
+            mCityView.initThread();
         }
     }
 

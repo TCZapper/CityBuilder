@@ -19,6 +19,8 @@ public class CityModel {
 
     private int mWidth, mHeight;
     private TERRAIN[][] mTerrainMap;
+    
+    private final Object mModelLock = new Object();
 
     public int getWidth() {
         return mWidth;
@@ -48,6 +50,8 @@ public class CityModel {
         }
         mTerrainMap[mHeight-1][mWidth-1] = TERRAIN.DIRT;
     }
+    
+    
 
     /**
      * Gets the type of TERRAIN located at the specified row and column
@@ -57,6 +61,8 @@ public class CityModel {
      * @return the type of tile at the specified location
      */
     public TERRAIN getTerrain(int row, int col) {
-        return mTerrainMap[row][col];
+        synchronized(mModelLock) {
+            return mTerrainMap[row][col];
+        }
     }
 }
