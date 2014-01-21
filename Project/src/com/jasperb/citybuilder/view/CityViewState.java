@@ -13,7 +13,7 @@ public class CityViewState {
     public boolean mDrawGridLines = true;
     
     public CityViewState() {
-        setScaleFactor(Constant.MAXIMUM_SCALE_FACTOR);
+        setScaleFactor(Constant.MINIMUM_SCALE_FACTOR);
     }
     
     public void copy(CityViewState state) {
@@ -28,7 +28,7 @@ public class CityViewState {
     
     public boolean setScaleFactor(float scaleFactor) {
         mScaleFactor = scaleFactor;
-        int newHeight = Math.round(scaleFactor * Constant.TILE_HEIGHT);
+        int newHeight = Math.round(scaleFactor * (Constant.TILE_HEIGHT / 2)) * 2;
         if(newHeight != mTileHeight) {
             mTileHeight = newHeight;
             mTileWidth = mTileHeight * 2;

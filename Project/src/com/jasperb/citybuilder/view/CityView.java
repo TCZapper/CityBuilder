@@ -164,8 +164,6 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            Log.d(TAG,"DIST: " + Math.round(distanceX) + ": " + Math.round(distanceY));
-            Log.d(TAG,"MV: " + mState.realToIsoRowUpscaling(Math.round(distanceX), Math.round(distanceY)) + ": " + mState.realToIsoColUpscaling(Math.round(distanceX), Math.round(distanceY)));
             mState.mFocusRow += mState.realToIsoRowUpscaling(Math.round(distanceX), Math.round(distanceY));
             mState.mFocusCol += mState.realToIsoColUpscaling(Math.round(distanceX), Math.round(distanceY));
 

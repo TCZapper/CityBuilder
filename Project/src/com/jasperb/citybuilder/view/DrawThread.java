@@ -112,7 +112,7 @@ public class DrawThread extends Thread {
     }
 
     private void drawGround(Canvas canvas) {
-        Log.d(TAG, "DRAW GROUND");
+//        Log.d(TAG, "DRAW GROUND");
         long startTime = System.currentTimeMillis();
         canvas.drawColor(Color.BLACK);// Clear the canvas
 
@@ -166,13 +166,13 @@ public class DrawThread extends Thread {
 
         int topBoundRow = topLeftRow;
         int topBoundCol = topLeftCol;
-        if ((mState.isoToRealYDownscaling(topLeftRow, topLeftCol) + (Constant.TILE_HEIGHT / 2)) + realTopY > 0) {
+        if ((mState.isoToRealYDownscaling(topLeftRow, topLeftCol) + (mState.getTileHeight() / 2)) + realTopY > 0) {
             topBoundRow--;
         }
 
         int bottomBoundRow = bottomRightRow;
         int bottomBoundCol = bottomRightCol;
-        if ((mState.isoToRealYDownscaling(bottomRightRow, bottomRightCol) + (Constant.TILE_HEIGHT / 2)) + realTopY < mState.mHeight) {
+        if ((mState.isoToRealYDownscaling(bottomRightRow, bottomRightCol) + (mState.getTileHeight() / 2)) + realTopY < mState.mHeight) {
             bottomBoundRow++;
         }
 
@@ -192,7 +192,7 @@ public class DrawThread extends Thread {
 
         int firstRow = Math.max(0, Math.max(topBoundRow - (firstCol - topBoundCol),//where does firstCol cross the bottom edge
                 rightBoundRow - (rightBoundCol - firstCol)));//where does firstCol cross the right edge
-
+        
 //        Log.d(TAG, "DRAW FIRST: " + firstRow + " : " + firstCol);
         if (mState.isTileValid(firstRow, firstCol)//is the first tile to draw even valid/visible?
                 && mState.isTileVisible(mState.isoToRealXDownscaling(firstRow, firstCol) + realTopX,
@@ -254,7 +254,7 @@ public class DrawThread extends Thread {
             }
             if (LOG_TTD) {
                 long endTime = System.currentTimeMillis();
-                Log.d(TAG + "TTD", "" + PerfTools.CalcAverageTick((int) (endTime - startTime)));
+                Log.d("TTD_" + TAG, "" + PerfTools.CalcAverageTick((int) (endTime - startTime)));
             }
         } else {
             Log.d(TAG, "NOTHING TO DRAW");
