@@ -34,15 +34,12 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
     private GestureDetector mDetector = null;
     private CityViewState mState = new CityViewState();
     private boolean mAllocated = false;
-    private boolean mThreadAllocated = false;
     private DrawThread mDrawThread = null;
+    private SurfaceHolder mSurfaceHolder = null;
+    private boolean mSurfaceExists = false;
 
-    public boolean isAllocated() {
+    public boolean isEverythingAllocated() {
         return mAllocated;
-    }
-    
-    public boolean isThreadAllocated() {
-        return mThreadAllocated;
     }
 
     public void setCityModel(CityModel model) {
@@ -73,17 +70,19 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public float getScaleFactor() {
-        return mState.mScaleFactor;
+        return mState.getScaleFactor();
     }
 
     public void setScaleFactor(float scaleFactor) {
-        mState.mScaleFactor = scaleFactor;
-        redraw();
+        if (mState.setScaleFactor(scaleFactor)) {
+            redraw();
+        }
     }
 
     public void redraw() {
         Log.d(TAG, "REDRAW");
-        if(mDrawThread != null) mDrawThread.setDrawState(mState);
+        if (mDrawThread != null)
+            mDrawThread.setDrawState(mState);
     }
 
     /**
@@ -97,6 +96,8 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
      */
     public CityView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        mSurfaceHolder = getHolder();
+        mSurfaceHolder.addCallback(this);
     }
 
     /**
@@ -107,6 +108,8 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
      */
     public CityView(Context context) {
         super(context);
+        mSurfaceHolder = getHolder();
+        mSurfaceHolder.addCallback(this);
     }
 
     /**
@@ -124,18 +127,6 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
         mScaleDetector = new ScaleGestureDetector(getContext(), new ScaleListener());
 
         mAllocated = true;
-    }
-    
-    public void initThread() {
-        SurfaceHolder holder = getHolder();
-        holder.addCallback(this);
-        mDrawThread = new DrawThread(holder);
-
-        mDrawThread.init();
-        
-        mDrawThread.start();
-        
-        mThreadAllocated = true;
     }
 
     public void cleanup() {
@@ -188,24 +179,62 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
-            float scaleFactor = mState.mScaleFactor * scaleGestureDetector.getScaleFactor();
+            float scaleFactor = mState.getScaleFactor() * scaleGestureDetector.getScaleFactor();
 
             // Don't let the object get too small or too large.
-            mState.mScaleFactor = Math.max(Constant.MINIMUM_SCALE_FACTOR, Math.min(scaleFactor, Constant.MAXIMUM_SCALE_FACTOR));
-
-            redraw();
+            if (mState.setScaleFactor(Math.max(Constant.MINIMUM_SCALE_FACTOR, Math.min(scaleFactor, Constant.MAXIMUM_SCALE_FACTOR)))) {
+                redraw();
+            }
             return true;
         }
 
     }
 
-    /**
-     * Fetches the animation thread corresponding to this LunarView.
-     * 
-     * @return the animation thread
-     */
-    public DrawThread getThread() {
+    public DrawThread getDrawThread() {
         return mDrawThread;
+    }
+
+    /**
+     * Start the drawing thread if possible
+     * 
+     * @param redraw
+     *            if true a redraw event is triggered by this call
+     */
+    public void startDrawThread(boolean redraw) {
+        // In some instances, the surface persists even when the view is stopped. We still stop the draw thread.
+        // There's no point starting the thread before the surface is created.
+        if (mSurfaceExists && mDrawThread == null) {
+            Log.d(TAG, "startDrawThread");
+
+            mDrawThread = new DrawThread(mSurfaceHolder);
+            mDrawThread.init();
+
+            mDrawThread.start();
+
+            if (redraw)
+                redraw();
+        }
+    }
+
+    /**
+     * Stop the drawing thread if it exists
+     */
+    public void stopDrawThread() {
+        if (mDrawThread != null) {
+            Log.d(TAG, "stopDrawThread");
+
+            mDrawThread.stopThread();//tell thread to finish up
+
+            boolean retry = true;
+            while (retry) {
+                try {
+                    mDrawThread.join();//block current thread until draw thread finishes execution
+                    retry = false;
+                } catch (InterruptedException e) {}
+            }
+
+            mDrawThread = null;
+        }
     }
 
     /* Callback invoked when the surface dimensions change. */
@@ -223,7 +252,8 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
      */
     public void surfaceCreated(SurfaceHolder holder) {
         Log.d(TAG, "SURFACE CREATED");
-        redraw();
+        mSurfaceExists = true;
+        startDrawThread(false);
     }
 
     /*
@@ -233,8 +263,7 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
      */
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.d(TAG, "SURFACE DESTROYED");
-        mDrawThread.stopThread();
-        mDrawThread = null;
-        mThreadAllocated = false;
+        mSurfaceExists = false;
+        stopDrawThread();
     }
 }

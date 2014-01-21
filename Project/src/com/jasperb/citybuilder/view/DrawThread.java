@@ -95,9 +95,7 @@ public class DrawThread extends Thread {
                 c = mSurfaceHolder.lockCanvas(null);
                 if (c != null) {
                     getDrawState();
-                    mState.mWidth = c.getWidth();
-                    mState.mHeight = c.getHeight();
-                    if (mState.mWidth != 0) {
+                    if (mState.mWidth != 0 && mState.mWidth == c.getWidth() && mState.mHeight == c.getHeight()) {
                         synchronized (mSurfaceHolder) {
                             if(mRun) drawGround(c);
                         }

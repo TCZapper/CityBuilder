@@ -39,21 +39,26 @@ public class MainViewActivity extends Activity {
         super.onStart();
         Log.d(TAG, "ON START");
 
-        if (!mCityView.isAllocated()) {
+        if (!mCityView.isEverythingAllocated()) {
             mCityView.setCityModel(mCityModel);
             mCityView.init();
         }
+        mCityView.startDrawThread(true);
+    }
+    
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG,"ON STOP");
         
-        if(!mCityView.isThreadAllocated()) {
-            mCityView.initThread();
-        }
+        mCityView.stopDrawThread();
     }
 
     @Override
     public void onTrimMemory(int level) {
         if (level == TRIM_MEMORY_UI_HIDDEN) {
             Log.d(TAG, "TRIM UI");
-            if (mCityView.isAllocated()) {
+            if (mCityView.isEverythingAllocated()) {
                 mCityView.cleanup();
             }
         }
