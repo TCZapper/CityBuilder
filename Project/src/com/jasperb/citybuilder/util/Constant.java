@@ -21,12 +21,12 @@ public final class Constant {
     /**
      * Width of a single tile in pixels
      */
-    public static final int TILE_WIDTH = 96;
+    public static final int TILE_WIDTH = 96;// Must be a multiple of 4
 
     /**
      * Height of a single tile in pixels
      */
-    public static final int TILE_HEIGHT = TILE_WIDTH / 2;
+    public static final int TILE_HEIGHT = TILE_WIDTH / 2;// Must be half of TILE_WIDTH
 
     public enum TERRAIN {
         GRASS, DIRT

@@ -14,7 +14,6 @@ import android.view.SurfaceView;
 import android.view.View;
 
 import com.jasperb.citybuilder.CityModel;
-import com.jasperb.citybuilder.util.Common;
 import com.jasperb.citybuilder.util.Constant;
 
 /**
@@ -165,8 +164,10 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            mState.mFocusRow += Common.realToIsoRow(distanceX, distanceY) / mState.mScaleFactor;
-            mState.mFocusCol += Common.realToIsoCol(distanceX, distanceY) / mState.mScaleFactor;
+            Log.d(TAG,"DIST: " + Math.round(distanceX) + ": " + Math.round(distanceY));
+            Log.d(TAG,"MV: " + mState.realToIsoRowUpscaling(Math.round(distanceX), Math.round(distanceY)) + ": " + mState.realToIsoColUpscaling(Math.round(distanceX), Math.round(distanceY)));
+            mState.mFocusRow += mState.realToIsoRowUpscaling(Math.round(distanceX), Math.round(distanceY));
+            mState.mFocusCol += mState.realToIsoColUpscaling(Math.round(distanceX), Math.round(distanceY));
 
             redraw();
             return true;

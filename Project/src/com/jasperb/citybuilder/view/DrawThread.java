@@ -10,7 +10,6 @@ import android.graphics.Paint;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
-import com.jasperb.citybuilder.util.Common;
 import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.PerfTools;
 import com.jasperb.citybuilder.util.TileBitmaps;
@@ -70,7 +69,7 @@ public class DrawThread extends Thread {
             mMatrix = new Matrix();
         }
     }
-    
+
     protected void stopThread() {
         synchronized (mSurfaceHolder) {
             mRun = false;
@@ -97,7 +96,8 @@ public class DrawThread extends Thread {
                     getDrawState();
                     if (mState.mWidth != 0 && mState.mWidth == c.getWidth() && mState.mHeight == c.getHeight()) {
                         synchronized (mSurfaceHolder) {
-                            if(mRun) drawGround(c);
+                            if (mRun)
+                                drawGround(c);
                         }
                     }
                 }
@@ -117,30 +117,28 @@ public class DrawThread extends Thread {
         canvas.drawColor(Color.BLACK);// Clear the canvas
 
         // Calculate real coordinates for the top-most tile based off the focus iso coordinates being the centre of the screen
-        float realTopX = mState.mWidth / 2 - (Common.isoToRealX(mState.mFocusRow, mState.mFocusCol) * mState.mScaleFactor);
-        float realTopY = mState.mHeight / 2 - (Common.isoToRealY(mState.mFocusRow, mState.mFocusCol) * mState.mScaleFactor);
+        int realTopX = mState.mWidth / 2 - mState.isoToRealXDownscaling(mState.mFocusRow, mState.mFocusCol);
+        int realTopY = mState.mHeight / 2 - mState.isoToRealYDownscaling(mState.mFocusRow, mState.mFocusCol);
 
         // Shift the bitmap left to horizontally center the tile around 0,0 and subtract 1 because the image isn't drawn perfectly centered
-        float bitmapOffsetX = (-Constant.TILE_WIDTH / 2 - 1) * mState.mScaleFactor;
+        float bitmapOffsetX = -mState.getTileWidth() / 2;
 
         //Draw all tiles for testing
 //        for (int col = 0; col < mState.mCityModel.getWidth(); col++) {
 //            for (int row = 0; row < mState.mCityModel.getHeight(); row++) {
 //                // Log.d(TAG,"Paint Tile: " + row + " : " + col);
 //                mMatrix.setScale(mState.mScaleFactor, mState.mScaleFactor);
-//                mMatrix.postTranslate(Common.isoToRealX(row, col) * mState.mScaleFactor + realTopX + bitmapOffsetX,
-//                        Common.isoToRealY(row, col) * mState.mScaleFactor + realTopY);
+//                mMatrix.postTranslate(mState.isoToRealX(row, col) * mState.mScaleFactor + realTopX + bitmapOffsetX,
+//                        mState.isoToRealY(row, col) * mState.mScaleFactor + realTopY);
 //                mBufferCanvas.drawBitmap(mTileBitmaps.getBitmap(TERRAIN.DIRT), mMatrix, mBitmapPaint);
 //            }
 //        }
 
         // Calculate the tile that is at the top left corner of the view, and the one at the bottom right corner
-        int topLeftRow = (int) Math.floor(Common.realToIsoRow(-realTopX / mState.mScaleFactor, -realTopY / mState.mScaleFactor));
-        int topLeftCol = (int) Math.floor(Common.realToIsoCol(-realTopX / mState.mScaleFactor, -realTopY / mState.mScaleFactor));
-        int bottomRightRow = (int) Math.floor(Common.realToIsoRow((-realTopX + mState.mWidth) / mState.mScaleFactor,
-                (-realTopY + mState.mHeight) / mState.mScaleFactor));
-        int bottomRightCol = (int) Math.floor(Common.realToIsoCol((-realTopX + mState.mWidth) / mState.mScaleFactor,
-                (-realTopY + mState.mHeight) / mState.mScaleFactor));
+        int topLeftRow = (int) Math.floor(mState.realToIsoRowUpscaling(-realTopX, -realTopY));
+        int topLeftCol = (int) Math.floor(mState.realToIsoColUpscaling(-realTopX, -realTopY));
+        int bottomRightRow = (int) Math.floor(mState.realToIsoRowUpscaling((-realTopX + mState.mWidth), (-realTopY + mState.mHeight)));
+        int bottomRightCol = (int) Math.floor(mState.realToIsoColUpscaling((-realTopX + mState.mWidth), (-realTopY + mState.mHeight)));
 //        Log.d(TAG, "TL TILE: " + topLeftRow + " : " + topLeftCol);
 //        Log.d(TAG, "BR TILE: " + bottomRightRow + " : " + bottomRightCol);
 
@@ -156,25 +154,25 @@ public class DrawThread extends Thread {
         // This is useful as the first tile we want to draw is always the one with the majority of its content on the non-visible side
         int leftBoundRow = topLeftRow;
         int leftBoundCol = topLeftCol;
-        if (Common.isoToRealX(topLeftRow, topLeftCol) * mState.mScaleFactor + realTopX > 0) {
+        if (mState.isoToRealXDownscaling(topLeftRow, topLeftCol) + realTopX > 0) {
             leftBoundRow++;
         }
 
         int rightBoundRow = bottomRightRow;
         int rightBoundCol = bottomRightCol;
-        if (Common.isoToRealX(bottomRightRow, bottomRightCol) * mState.mScaleFactor + realTopX < mState.mWidth) {
+        if (mState.isoToRealXDownscaling(bottomRightRow, bottomRightCol) + realTopX < mState.mWidth) {
             rightBoundRow--;
         }
 
         int topBoundRow = topLeftRow;
         int topBoundCol = topLeftCol;
-        if ((Common.isoToRealY(topLeftRow, topLeftCol) + (Constant.TILE_HEIGHT / 2)) * mState.mScaleFactor + realTopY > 0) {
+        if ((mState.isoToRealYDownscaling(topLeftRow, topLeftCol) + (Constant.TILE_HEIGHT / 2)) + realTopY > 0) {
             topBoundRow--;
         }
 
         int bottomBoundRow = bottomRightRow;
         int bottomBoundCol = bottomRightCol;
-        if ((Common.isoToRealY(bottomRightRow, bottomRightCol) + (Constant.TILE_HEIGHT / 2)) * mState.mScaleFactor + realTopY < mState.mHeight) {
+        if ((mState.isoToRealYDownscaling(bottomRightRow, bottomRightCol) + (Constant.TILE_HEIGHT / 2)) + realTopY < mState.mHeight) {
             bottomBoundRow++;
         }
 
@@ -196,10 +194,9 @@ public class DrawThread extends Thread {
                 rightBoundRow - (rightBoundCol - firstCol)));//where does firstCol cross the right edge
 
 //        Log.d(TAG, "DRAW FIRST: " + firstRow + " : " + firstCol);
-        if (Common.isTileValid(mState.mCityModel, firstRow, firstCol)//is the first tile to draw even valid/visible?
-                && Common.isTileVisible(mState.mScaleFactor, mState.mWidth, mState.mHeight,
-                        Common.isoToRealX(firstRow, firstCol) * mState.mScaleFactor + realTopX,
-                        Common.isoToRealY(firstRow, firstCol) * mState.mScaleFactor + realTopY)) {
+        if (mState.isTileValid(firstRow, firstCol)//is the first tile to draw even valid/visible?
+                && mState.isTileVisible(mState.isoToRealXDownscaling(firstRow, firstCol) + realTopX,
+                        mState.isoToRealYDownscaling(firstRow, firstCol) + realTopY)) {
             int minRow = mState.mCityModel.getHeight() - 1, maxRow = 0;
 
             int lastCol;// Calculate last column to draw by using same logic as first column (except bottom/right boundaries)
@@ -231,9 +228,9 @@ public class DrawThread extends Thread {
                     // 1. No memory allocations needed when the scale factor changes
                     // 2. It does not have any issues lining up tiles, unlike all other methods tried
 //                    Log.d(TAG, "Paint Tile: " + row + " : " + col);
-                    mMatrix.setScale(mState.mScaleFactor, mState.mScaleFactor);
-                    mMatrix.postTranslate(Common.isoToRealX(row, col) * mState.mScaleFactor + realTopX + bitmapOffsetX,
-                            Common.isoToRealY(row, col) * mState.mScaleFactor + realTopY);
+                    mMatrix.setScale(mState.getScaleFactor(), mState.getScaleFactor());
+                    mMatrix.postTranslate(mState.isoToRealXDownscaling(row, col) + realTopX + bitmapOffsetX,
+                            mState.isoToRealYDownscaling(row, col) + realTopY);
                     canvas.drawBitmap(mTileBitmaps.getBitmap(mState.mCityModel.getTerrain(row, col)), mMatrix, mBitmapPaint);
                 }
             }
@@ -243,16 +240,16 @@ public class DrawThread extends Thread {
                 // For simplicity we only draw the grid lines for visible rows and columns, but we only make a small effort at
                 // preventing drawing outside of the view (every line should have an on-screen section, but we may extend it too far)
                 for (int col = firstCol; col <= lastCol + 1; col++) {
-                    canvas.drawLine(Common.isoToRealX(minRow, col) * mState.mScaleFactor + realTopX,
-                            Common.isoToRealY(minRow, col) * mState.mScaleFactor + realTopY,
-                            Common.isoToRealX(maxRow + 1, col) * mState.mScaleFactor + realTopX,
-                            Common.isoToRealY(maxRow + 1, col) * mState.mScaleFactor + realTopY, mGridPaint);
+                    canvas.drawLine(mState.isoToRealXDownscaling(minRow, col) + realTopX,
+                            mState.isoToRealYDownscaling(minRow, col) + realTopY,
+                            mState.isoToRealXDownscaling(maxRow + 1, col) + realTopX,
+                            mState.isoToRealYDownscaling(maxRow + 1, col) + realTopY, mGridPaint);
                 }
                 for (int row = minRow; row <= maxRow + 1; row++) {
-                    canvas.drawLine(Common.isoToRealX(row, firstCol) * mState.mScaleFactor + realTopX,
-                            Common.isoToRealY(row, firstCol) * mState.mScaleFactor + realTopY,
-                            Common.isoToRealX(row, lastCol + 1) * mState.mScaleFactor + realTopX,
-                            Common.isoToRealY(row, lastCol + 1) * mState.mScaleFactor + realTopY, mGridPaint);
+                    canvas.drawLine(mState.isoToRealXDownscaling(row, firstCol) + realTopX,
+                            mState.isoToRealYDownscaling(row, firstCol) + realTopY,
+                            mState.isoToRealXDownscaling(row, lastCol + 1) + realTopX,
+                            mState.isoToRealYDownscaling(row, lastCol + 1) + realTopY, mGridPaint);
                 }
             }
             if (LOG_TTD) {
