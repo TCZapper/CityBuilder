@@ -11,13 +11,15 @@ import android.graphics.Paint;
 import android.graphics.Path;
 
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
+import com.jasperb.citybuilder.view.CityViewState;
 
 /**
  * @author Jasper
  * 
  */
 public class TileBitmaps {
-    private Bitmap[] bitmaps = new Bitmap[Constant.TERRAIN.values().length];
+    private Bitmap[] mFullBitmaps = new Bitmap[Constant.TERRAIN.values().length];
+    private Bitmap[] mScaledBitmaps = new Bitmap[Constant.TERRAIN.values().length];
 
     public TileBitmaps() {
         Canvas canvas = new Canvas();
@@ -41,8 +43,8 @@ public class TileBitmaps {
 
         // Draw every tile into their own bitmap
         for (TERRAIN terrain : TERRAIN.values()) {
-            bitmaps[terrain.ordinal()] = Bitmap.createBitmap(Constant.TILE_WIDTH + 4, Constant.TILE_HEIGHT + 2, Bitmap.Config.ARGB_8888);
-            canvas.setBitmap(bitmaps[terrain.ordinal()]);
+            mFullBitmaps[terrain.ordinal()] = Bitmap.createBitmap(Constant.TILE_WIDTH + 4, Constant.TILE_HEIGHT + 2, Bitmap.Config.ARGB_8888);
+            canvas.setBitmap(mFullBitmaps[terrain.ordinal()]);
             switch (terrain) {
             case GRASS:
                 paint.setColor(Color.GREEN);
@@ -54,8 +56,14 @@ public class TileBitmaps {
             canvas.drawPath(path, paint);
         }
     }
+    
+    public void resizeBitmaps(CityViewState state) {
+        for(int i = 0; i < mFullBitmaps.length; i++) {
+            mScaledBitmaps[i] = Bitmap.createScaledBitmap(mFullBitmaps[i], state.getTileWidth(), state.getTileHeight(), true);
+        }
+    }
 
     public Bitmap getBitmap(TERRAIN terrain) {
-        return bitmaps[terrain.ordinal()];
+        return mScaledBitmaps[terrain.ordinal()];
     }
 }

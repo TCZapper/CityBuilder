@@ -10,7 +10,6 @@ import android.graphics.Paint;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
-import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.PerfTools;
 import com.jasperb.citybuilder.util.TileBitmaps;
 
@@ -55,7 +54,10 @@ public class DrawThread extends Thread {
      */
     protected void init() {
         synchronized (mSurfaceHolder) {
-            mTileBitmaps = new TileBitmaps();
+            synchronized (mStateLock) {
+                mTileBitmaps = new TileBitmaps();
+                mTileBitmaps.resizeBitmaps(mState);
+            }
 
             mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mGridPaint.setStyle(Paint.Style.STROKE);
@@ -93,8 +95,12 @@ public class DrawThread extends Thread {
             try {
                 c = mSurfaceHolder.lockCanvas(null);
                 if (c != null) {
+                    float oldTileHeight = mState.getTileHeight();
                     getDrawState();
                     if (mState.mWidth != 0 && mState.mWidth == c.getWidth() && mState.mHeight == c.getHeight()) {
+                        if (oldTileHeight != mState.getTileHeight()) {
+                            mTileBitmaps.resizeBitmaps(mState);
+                        }
                         synchronized (mSurfaceHolder) {
                             if (mRun)
                                 drawGround(c);
@@ -121,7 +127,7 @@ public class DrawThread extends Thread {
         int realTopY = mState.mHeight / 2 - mState.isoToRealYDownscaling(mState.mFocusRow, mState.mFocusCol);
 
         // Shift the bitmap left to horizontally center the tile around 0,0 and subtract 1 because the image isn't drawn perfectly centered
-        float bitmapOffsetX = -mState.getTileWidth() / 2;
+        int bitmapOffsetX = -mState.getTileWidth() / 2;
 
         //Draw all tiles for testing
 //        for (int col = 0; col < mState.mCityModel.getWidth(); col++) {
@@ -192,7 +198,7 @@ public class DrawThread extends Thread {
 
         int firstRow = Math.max(0, Math.max(topBoundRow - (firstCol - topBoundCol),//where does firstCol cross the bottom edge
                 rightBoundRow - (rightBoundCol - firstCol)));//where does firstCol cross the right edge
-        
+
 //        Log.d(TAG, "DRAW FIRST: " + firstRow + " : " + firstCol);
         if (mState.isTileValid(firstRow, firstCol)//is the first tile to draw even valid/visible?
                 && mState.isTileVisible(mState.isoToRealXDownscaling(firstRow, firstCol) + realTopX,
@@ -228,10 +234,11 @@ public class DrawThread extends Thread {
                     // 1. No memory allocations needed when the scale factor changes
                     // 2. It does not have any issues lining up tiles, unlike all other methods tried
 //                    Log.d(TAG, "Paint Tile: " + row + " : " + col);
-                    mMatrix.setScale(mState.getScaleFactor(), mState.getScaleFactor());
-                    mMatrix.postTranslate(mState.isoToRealXDownscaling(row, col) + realTopX + bitmapOffsetX,
-                            mState.isoToRealYDownscaling(row, col) + realTopY);
-                    canvas.drawBitmap(mTileBitmaps.getBitmap(mState.mCityModel.getTerrain(row, col)), mMatrix, mBitmapPaint);
+                    //mMatrix.setScale(mState.getScaleFactor(), mState.getScaleFactor());
+                    //mMatrix.setTranslate(,);
+                    canvas.drawBitmap(mTileBitmaps.getBitmap(mState.mCityModel.getTerrain(row, col)),
+                            mState.isoToRealXDownscaling(row, col) + realTopX + bitmapOffsetX, mState.isoToRealYDownscaling(row, col)
+                                    + realTopY, mBitmapPaint);
                 }
             }
 

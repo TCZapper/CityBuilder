@@ -4,13 +4,13 @@ import com.jasperb.citybuilder.CityModel;
 import com.jasperb.citybuilder.util.Constant;
 
 public class CityViewState {
-    public float mFocusRow = 0, mFocusCol = 0;
+    public float mFocusRow = 22, mFocusCol = 22;
     public int mWidth = 0, mHeight = 0;
     private float mScaleFactor;
     private int mTileWidth;
     private int mTileHeight;
     public CityModel mCityModel = null;
-    public boolean mDrawGridLines = true;
+    public boolean mDrawGridLines = false;
     
     public CityViewState() {
         setScaleFactor(Constant.MINIMUM_SCALE_FACTOR);
@@ -42,11 +42,11 @@ public class CityViewState {
         return mScaleFactor;
     }
     
-    public float getTileWidth() {
+    public int getTileWidth() {
         return mTileWidth;
     }
     
-    public float getTileHeight() {
+    public int getTileHeight() {
         return mTileHeight;
     }
     
