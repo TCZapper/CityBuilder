@@ -11,7 +11,6 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 
 import com.jasperb.citybuilder.CityModel;
 import com.jasperb.citybuilder.util.Constant;
@@ -25,7 +24,7 @@ import com.jasperb.citybuilder.util.Constant;
 public class CityView extends SurfaceView implements SurfaceHolder.Callback {
 
     /**
-     * Identifier string for debug messages originating from this class
+     * String used for identifying this class.
      */
     public static final String TAG = "CityView";
 
@@ -73,9 +72,8 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void setScaleFactor(float scaleFactor) {
-        if (mState.setScaleFactor(scaleFactor)) {
-            redraw();
-        }
+        mState.setScaleFactor(scaleFactor);
+        redraw();
     }
 
     public void redraw() {
@@ -95,8 +93,7 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
      */
     public CityView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        mSurfaceHolder = getHolder();
-        mSurfaceHolder.addCallback(this);
+        construct();
     }
 
     /**
@@ -107,16 +104,21 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
      */
     public CityView(Context context) {
         super(context);
-        mSurfaceHolder = getHolder();
+        construct();
+    }
+
+    /**
+     * Common method for constructors
+     */
+    private void construct() {
+        mSurfaceHolder = getHolder();//Do this here because we hold onto this for the lifetime of the view
         mSurfaceHolder.addCallback(this);
     }
 
     /**
-     * Initialize and allocate the necessary components of the view, except those that depend on the view size or city size
+     * Initialize and allocate the necessary components of the view, except those related to the drawing thread
      */
     public void init() {
-        setLayerType(View.LAYER_TYPE_HARDWARE, null);
-
         mDetector = new GestureDetector(getContext(), new GestureListener());
 
         // Turn off long press--this control doesn't use it, and if long press is enabled, you can't scroll for a bit, pause, then scroll
@@ -128,6 +130,9 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
         mAllocated = true;
     }
 
+    /**
+     * Cleanup the components of the view allocated by init()
+     */
     public void cleanup() {
         mAllocated = false;
 
@@ -159,6 +164,7 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onDown(MotionEvent e) {// For some reason, scaling and scroll don't work without this
+            mState.setScaleFactor(mState.getScaleFactor() * 0.99f);
             return true;
         }
 
@@ -182,15 +188,11 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
 
             // Don't let the object get too small or too large.
             if (mState.setScaleFactor(Math.max(Constant.MINIMUM_SCALE_FACTOR, Math.min(scaleFactor, Constant.MAXIMUM_SCALE_FACTOR)))) {
-                redraw();
+                redraw();//redraw if the scale factor affected the tile size
             }
             return true;
         }
 
-    }
-
-    public DrawThread getDrawThread() {
-        return mDrawThread;
     }
 
     /**
@@ -203,10 +205,10 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
         // In some instances, the surface persists even when the view is stopped. We still stop the draw thread.
         // There's no point starting the thread before the surface is created.
         if (mSurfaceExists && mDrawThread == null) {
-            Log.d(TAG, "startDrawThread");
+            Log.v(TAG, "startDrawThread");
 
             mDrawThread = new DrawThread(mSurfaceHolder);
-            mDrawThread.init();
+            mDrawThread.init(getContext());
 
             mDrawThread.start();
 
@@ -220,7 +222,7 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
      */
     public void stopDrawThread() {
         if (mDrawThread != null) {
-            Log.d(TAG, "stopDrawThread");
+            Log.v(TAG, "stopDrawThread");
 
             mDrawThread.stopThread();//tell thread to finish up
 
@@ -239,7 +241,7 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
     /* Callback invoked when the surface dimensions change. */
     public void surfaceChanged(SurfaceHolder holder, int format, int width,
             int height) {
-        Log.d(TAG, "SURFACE CHANGED");
+        Log.v(TAG, "SURFACE CHANGED");
         mState.mWidth = width;
         mState.mHeight = height;
         redraw();
@@ -250,7 +252,7 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
      * used.
      */
     public void surfaceCreated(SurfaceHolder holder) {
-        Log.d(TAG, "SURFACE CREATED");
+        Log.v(TAG, "SURFACE CREATED");
         mSurfaceExists = true;
         startDrawThread(false);
     }
@@ -261,7 +263,7 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
      * never be touched again!
      */
     public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.d(TAG, "SURFACE DESTROYED");
+        Log.v(TAG, "SURFACE DESTROYED");
         mSurfaceExists = false;
         stopDrawThread();
     }

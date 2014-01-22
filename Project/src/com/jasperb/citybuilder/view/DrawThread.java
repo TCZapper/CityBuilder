@@ -3,9 +3,9 @@
  */
 package com.jasperb.citybuilder.view;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -18,6 +18,9 @@ import com.jasperb.citybuilder.util.TileBitmaps;
  * 
  */
 public class DrawThread extends Thread {
+    /**
+     * String used for identifying this class
+     */
     public static final String TAG = "DrawThread";
 
     public static final boolean LOG_TTD = true;//Time To Draw
@@ -25,8 +28,6 @@ public class DrawThread extends Thread {
     //CityView variables
     private TileBitmaps mTileBitmaps = null;
     private Paint mGridPaint = null;
-    private Paint mBitmapPaint = null;
-    private Matrix mMatrix = null;
     private SurfaceHolder mSurfaceHolder = null;
     private CityViewState mState = new CityViewState();
     private CityViewState mNextState = new CityViewState();
@@ -37,13 +38,21 @@ public class DrawThread extends Thread {
         mSurfaceHolder = surfaceHolder;
     }
 
+    /**
+     * Updates the state to be used for the next time we draw.
+     * Only the most recent state will be used when the thread goes to draw.
+     * @param state
+     */
     public void setDrawState(CityViewState state) {
         synchronized (mStateLock) {
             mNextState.copy(state);
         }
     }
 
-    public void getDrawState() {
+    /**
+     * Retrieve the most recent state and store it separately so other threads don't interfere with it
+     */
+    private void getDrawState() {
         synchronized (mStateLock) {
             mState.copy(mNextState);
         }
@@ -52,38 +61,36 @@ public class DrawThread extends Thread {
     /**
      * Initialize and allocate the necessary components of the view, except those that depend on the view size or city size
      */
-    protected void init() {
+    protected void init(Context context) {
         synchronized (mSurfaceHolder) {
             synchronized (mStateLock) {
-                mTileBitmaps = new TileBitmaps();
-                mTileBitmaps.resizeBitmaps(mState);
+                mTileBitmaps = new TileBitmaps(context);
+                mTileBitmaps.remakeBitmaps(mState);
             }
 
             mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mGridPaint.setStyle(Paint.Style.STROKE);
             mGridPaint.setStrokeWidth(0);// thinnest line is 0 width
-            mGridPaint.setColor(Color.WHITE);
-
-            // Use for scaling bitmaps when drawing them to the canvas
-            // Anti-aliasing helps shrink small defects on the edges, while filter bitmap makes the edges much smoother
-            mBitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
-
-            mMatrix = new Matrix();
+            mGridPaint.setARGB(255, 225, 225, 225);
         }
     }
 
+    /**
+     * Stop the thread after the current drawing finishes
+     */
     protected void stopThread() {
         synchronized (mSurfaceHolder) {
             mRun = false;
         }
     }
 
+    /**
+     * Cleanup the components allocated by init()
+     */
     protected void cleanup() {
         synchronized (mSurfaceHolder) {
             mTileBitmaps = null;
             mGridPaint = null;
-            mBitmapPaint = null;
-            mMatrix = null;
         }
     }
 
@@ -99,7 +106,7 @@ public class DrawThread extends Thread {
                     getDrawState();
                     if (mState.mWidth != 0 && mState.mWidth == c.getWidth() && mState.mHeight == c.getHeight()) {
                         if (oldTileHeight != mState.getTileHeight()) {
-                            mTileBitmaps.resizeBitmaps(mState);
+                            mTileBitmaps.remakeBitmaps(mState);
                         }
                         synchronized (mSurfaceHolder) {
                             if (mRun)
@@ -117,8 +124,12 @@ public class DrawThread extends Thread {
         Log.d(TAG, "DONE RUN");
     }
 
+    /**
+     * Draw the ground (e.g. grass, water, gridlines) onto the provided canvas.
+     * The canvas should have the same dimensions as defined by mState.mWidth and mState.mHeight
+     * @param canvas the canvas to draw onto
+     */
     private void drawGround(Canvas canvas) {
-//        Log.d(TAG, "DRAW GROUND");
         long startTime = System.currentTimeMillis();
         canvas.drawColor(Color.BLACK);// Clear the canvas
 
@@ -126,19 +137,8 @@ public class DrawThread extends Thread {
         int realTopX = mState.mWidth / 2 - mState.isoToRealXDownscaling(mState.mFocusRow, mState.mFocusCol);
         int realTopY = mState.mHeight / 2 - mState.isoToRealYDownscaling(mState.mFocusRow, mState.mFocusCol);
 
-        // Shift the bitmap left to horizontally center the tile around 0,0 and subtract 1 because the image isn't drawn perfectly centered
+        // Shift the bitmap left to horizontally center the tile around 0,0
         int bitmapOffsetX = -mState.getTileWidth() / 2;
-
-        //Draw all tiles for testing
-//        for (int col = 0; col < mState.mCityModel.getWidth(); col++) {
-//            for (int row = 0; row < mState.mCityModel.getHeight(); row++) {
-//                // Log.d(TAG,"Paint Tile: " + row + " : " + col);
-//                mMatrix.setScale(mState.mScaleFactor, mState.mScaleFactor);
-//                mMatrix.postTranslate(mState.isoToRealX(row, col) * mState.mScaleFactor + realTopX + bitmapOffsetX,
-//                        mState.isoToRealY(row, col) * mState.mScaleFactor + realTopY);
-//                mBufferCanvas.drawBitmap(mTileBitmaps.getBitmap(TERRAIN.DIRT), mMatrix, mBitmapPaint);
-//            }
-//        }
 
         // Calculate the tile that is at the top left corner of the view, and the one at the bottom right corner
         int topLeftRow = (int) Math.floor(mState.realToIsoRowUpscaling(-realTopX, -realTopY));
@@ -229,40 +229,31 @@ public class DrawThread extends Thread {
                     maxRow = lastRow;
 
                 for (; row <= lastRow; row++) {
-                    // Time to draw the terrain to the buffer. Technically, scaling for every tile is not ideal, but scaling at the moment
-                    // we draw onto the buffer canvas has two benefits:
-                    // 1. No memory allocations needed when the scale factor changes
-                    // 2. It does not have any issues lining up tiles, unlike all other methods tried
+                    // Time to draw the terrain to the buffer. TileBitmaps handles resizing the tiles, we just draw/position them
 //                    Log.d(TAG, "Paint Tile: " + row + " : " + col);
-                    //mMatrix.setScale(mState.getScaleFactor(), mState.getScaleFactor());
-                    //mMatrix.setTranslate(,);
                     canvas.drawBitmap(mTileBitmaps.getBitmap(mState.mCityModel.getTerrain(row, col)),
-                            mState.isoToRealXDownscaling(row, col) + realTopX + bitmapOffsetX, mState.isoToRealYDownscaling(row, col)
-                                    + realTopY, mBitmapPaint);
+                            mState.isoToRealXDownscaling(row, col) + realTopX + bitmapOffsetX,
+                            mState.isoToRealYDownscaling(row, col) + realTopY, null);
                 }
             }
 
-            // Draw grid lines
-            if (mState.mDrawGridLines) {
-                // For simplicity we only draw the grid lines for visible rows and columns, but we only make a small effort at
-                // preventing drawing outside of the view (every line should have an on-screen section, but we may extend it too far)
-                for (int col = firstCol; col <= lastCol + 1; col++) {
-                    canvas.drawLine(mState.isoToRealXDownscaling(minRow, col) + realTopX,
-                            mState.isoToRealYDownscaling(minRow, col) + realTopY,
-                            mState.isoToRealXDownscaling(maxRow + 1, col) + realTopX,
-                            mState.isoToRealYDownscaling(maxRow + 1, col) + realTopY, mGridPaint);
-                }
-                for (int row = minRow; row <= maxRow + 1; row++) {
-                    canvas.drawLine(mState.isoToRealXDownscaling(row, firstCol) + realTopX,
-                            mState.isoToRealYDownscaling(row, firstCol) + realTopY,
-                            mState.isoToRealXDownscaling(row, lastCol + 1) + realTopX,
-                            mState.isoToRealYDownscaling(row, lastCol + 1) + realTopY, mGridPaint);
-                }
-            }
-            if (LOG_TTD) {
-                long endTime = System.currentTimeMillis();
-                Log.d("TTD_" + TAG, "" + PerfTools.CalcAverageTick((int) (endTime - startTime)));
-            }
+            // Draw grid lines (legacy)
+//            if (mState.mDrawGridLines) {
+//                // For simplicity we only draw the grid lines for visible rows and columns, but we only make a small effort at
+//                // preventing drawing outside of the view (every line should have an on-screen section, but we may extend it too far)
+//                for (int col = firstCol; col <= lastCol + 1; col++) {
+//                    canvas.drawLine(mState.isoToRealXDownscaling(minRow, col) + realTopX,
+//                            mState.isoToRealYDownscaling(minRow, col) + realTopY,
+//                            mState.isoToRealXDownscaling(maxRow + 1, col) + realTopX,
+//                            mState.isoToRealYDownscaling(maxRow + 1, col) + realTopY, mGridPaint);
+//                }
+//                for (int row = minRow; row <= maxRow + 1; row++) {
+//                    canvas.drawLine(mState.isoToRealXDownscaling(row, firstCol) + realTopX,
+//                            mState.isoToRealYDownscaling(row, firstCol) + realTopY,
+//                            mState.isoToRealXDownscaling(row, lastCol + 1) + realTopX,
+//                            mState.isoToRealYDownscaling(row, lastCol + 1) + realTopY, mGridPaint);
+//                }
+//            }
         } else {
             Log.d(TAG, "NOTHING TO DRAW");
         }
@@ -270,5 +261,10 @@ public class DrawThread extends Thread {
         // Draw a very thin plus sign spanning the entire screen that indicates the middle of the screen
 //         mBufferCanvas.drawLine(mState.mWidth / 2, 0, mState.mWidth / 2, mState.mHeight, mGridPaint);
 //         mBufferCanvas.drawLine(0, mState.mHeight / 2, mState.mWidth, mState.mHeight / 2, mGridPaint);
+        
+        if (LOG_TTD) {
+            long endTime = System.currentTimeMillis();
+            Log.v("TTD_" + TAG, "" + PerfTools.CalcAverageTick((int) (endTime - startTime)));
+        }
     }
 }

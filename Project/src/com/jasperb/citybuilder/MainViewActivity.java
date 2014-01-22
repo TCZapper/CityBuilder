@@ -8,6 +8,9 @@ import android.view.Menu;
 import com.jasperb.citybuilder.view.CityView;
 
 public class MainViewActivity extends Activity {
+    /**
+     * String used for identifying this class
+     */
     private static final String TAG = "MainView";
     private static final String STATE_FOCUS_ROW = "focusRow";
     private static final String STATE_FOCUS_COL = "focusCol";
@@ -37,7 +40,7 @@ public class MainViewActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d(TAG, "ON START");
+        Log.v(TAG, "ON START");
 
         if (!mCityView.isEverythingAllocated()) {
             mCityView.setCityModel(mCityModel);
@@ -49,7 +52,7 @@ public class MainViewActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
-        Log.d(TAG,"ON STOP");
+        Log.v(TAG,"ON STOP");
         
         mCityView.stopDrawThread();
     }
@@ -57,7 +60,7 @@ public class MainViewActivity extends Activity {
     @Override
     public void onTrimMemory(int level) {
         if (level == TRIM_MEMORY_UI_HIDDEN) {
-            Log.d(TAG, "TRIM UI");
+            Log.v(TAG, "TRIM UI");
             if (mCityView.isEverythingAllocated()) {
                 mCityView.cleanup();
             }

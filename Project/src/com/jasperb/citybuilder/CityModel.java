@@ -13,13 +13,13 @@ import android.util.Log;
  */
 public class CityModel {
     /**
-     * Identifier string for debug messages originating from this class
+     * String used for identifying this class.
      */
     public static final String TAG = "CityModel";
 
     private int mWidth, mHeight;
     private TERRAIN[][] mTerrainMap;
-    
+
     private final Object mModelLock = new Object();
 
     public int getWidth() {
@@ -31,10 +31,10 @@ public class CityModel {
     }
 
     @SuppressWarnings("unused")
-    private CityModel() {}
+    private CityModel() {}// Prevent constructing without a width and height
 
     public CityModel(int width, int height) {
-        Log.d(TAG, "Create City: " + width + "x" + height);
+        Log.v(TAG, "Create City: " + width + "x" + height);
         mWidth = width;
         mHeight = height;
 
@@ -48,20 +48,18 @@ public class CityModel {
                 }
             }
         }
-        mTerrainMap[mHeight-1][mWidth-1] = TERRAIN.DIRT;
+        mTerrainMap[mHeight - 1][mWidth - 1] = TERRAIN.DIRT;
     }
-    
-    
 
     /**
-     * Gets the type of TERRAIN located at the specified row and column
+     * Gets the type of TERRAIN located at the specified row and column.
      * 
      * @param row
      * @param col
      * @return the type of tile at the specified location
      */
     public TERRAIN getTerrain(int row, int col) {
-        synchronized(mModelLock) {
+        synchronized (mModelLock) {
             return mTerrainMap[row][col];
         }
     }

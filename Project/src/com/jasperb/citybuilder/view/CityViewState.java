@@ -3,19 +3,29 @@ package com.jasperb.citybuilder.view;
 import com.jasperb.citybuilder.CityModel;
 import com.jasperb.citybuilder.util.Constant;
 
+/**
+ * @author Jasper
+ * 
+ */
 public class CityViewState {
-    public float mFocusRow = 22, mFocusCol = 22;
+    public float mFocusRow = 0, mFocusCol = 0;
     public int mWidth = 0, mHeight = 0;
     private float mScaleFactor;
     private int mTileWidth;
     private int mTileHeight;
     public CityModel mCityModel = null;
     public boolean mDrawGridLines = false;
-    
+
     public CityViewState() {
-        setScaleFactor(Constant.MINIMUM_SCALE_FACTOR);
+        setScaleFactor(Constant.MAXIMUM_SCALE_FACTOR);
     }
-    
+
+    /**
+     * Copy the contents of a CityViewState object into this one.
+     * 
+     * @param state
+     *            the CityViewState object to copy from
+     */
     public void copy(CityViewState state) {
         mFocusRow = state.mFocusRow;
         mFocusCol = state.mFocusCol;
@@ -25,11 +35,18 @@ public class CityViewState {
         mCityModel = state.mCityModel;
         mDrawGridLines = state.mDrawGridLines;
     }
-    
+
+    /**
+     * Changes the scale factor and potentially the tile width and height.
+     * 
+     * @param scaleFactor
+     *            the new value to set the scale factor to
+     * @return true if the size of a tile changed
+     */
     public boolean setScaleFactor(float scaleFactor) {
         mScaleFactor = scaleFactor;
         int newHeight = Math.round(scaleFactor * (Constant.TILE_HEIGHT / 2)) * 2;
-        if(newHeight != mTileHeight) {
+        if (newHeight != mTileHeight) {
             mTileHeight = newHeight;
             mTileWidth = mTileHeight * 2;
             return true;
@@ -37,66 +54,79 @@ public class CityViewState {
             return false;
         }
     }
-    
+
+    /**
+     * Get the real scale factor, unaffected by the size requirements placed on the tile dimensions.
+     */
     public float getScaleFactor() {
         return mScaleFactor;
     }
-    
+
+    /**
+     * Get the tile width accounting for the scale factor and maintaining the property that tile height is divisible by 2.
+     */
     public int getTileWidth() {
         return mTileWidth;
     }
-    
+
+    /**
+     * Get the tile width accounting for the scale factor and maintaining the property that tile height is divisible by 2.
+     */
     public int getTileHeight() {
         return mTileHeight;
     }
-    
+
     /**
-     * Calculate the real X coordinate relative to the real coordinates of the top-most tile using the isometric coordinates
+     * Calculate the real X coordinate relative to the real coordinates of the top-most tile using the isometric coordinates.
+     * Takes row/column unscaled and returns the real X coordinate scaled down by the scale factor.
      */
     public int isoToRealXDownscaling(int row, int col) {
         return (mTileWidth / 2) * (col - row);
     }
 
     /**
-     * Calculate the real Y coordinate relative to the real coordinates of the top-most tile using the isometric coordinates
+     * Calculate the real Y coordinate relative to the real coordinates of the top-most tile using the isometric coordinates.
+     * Takes row/column unscaled and returns the real Y coordinate scaled down by the scale factor.
      */
     public int isoToRealYDownscaling(int row, int col) {
         return (mTileHeight / 2) * (col + row);
     }
-    
+
     /**
-     * Calculate the real X coordinate relative to the real coordinates of the top-most tile using the isometric coordinates
+     * Calculate the real X coordinate relative to the real coordinates of the top-most tile using the isometric coordinates.
+     * Takes row/column unscaled and returns the real X coordinate scaled down by the scale factor.
      */
     public int isoToRealXDownscaling(float row, float col) {
         return Math.round((mTileWidth / 2) * (col - row));
     }
 
     /**
-     * Calculate the real Y coordinate relative to the real coordinates of the top-most tile using the isometric coordinates
+     * Calculate the real Y coordinate relative to the real coordinates of the top-most tile using the isometric coordinates.
+     * Takes row/column unscaled and returns the real Y coordinate scaled down by the scale factor.
      */
     public int isoToRealYDownscaling(float row, float col) {
         return Math.round((mTileHeight / 2) * (col + row));
     }
 
     /**
-     * Calculate the isometric row coordinate using the real coordinates relative to those of the top-most tile
+     * Calculate the isometric row coordinate using the real coordinates relative to those of the top-most tile.
+     * Takes the real coordinates and scales them up by the scale factor.
      */
     public float realToIsoRowUpscaling(int x, int y) {
-        return (y / (float)mTileHeight) - (x / (float)mTileWidth);
+        return (y / (float) mTileHeight) - (x / (float) mTileWidth);
     }
 
     /**
-     * Calculate the isometric column coordinate using the real coordinates relative to those of the top-most tile
+     * Calculate the isometric column coordinate using the real coordinates relative to those of the top-most tile.
+     * Takes the real coordinates and scales them up by the scale factor.
      */
     public float realToIsoColUpscaling(int x, int y) {
-        return (y / (float)mTileHeight) + (x / (float)mTileWidth);
+        return (y / (float) mTileHeight) + (x / (float) mTileWidth);
     }
 
     /**
-     * Returns true if and only if the tile exists in the model
+     * Returns true if the tile exists in the city model.
      * 
-     * @param model
-     *            the city model that knows the dimensions of the city
      * @param row
      *            the row of the tile to test
      * @param col
@@ -107,14 +137,8 @@ public class CityViewState {
     }
 
     /**
-     * Return true if and only if a tile with its top corner drawn at real coordinates (x,y) would be visible in the view
+     * Return true if and only if a tile with its top corner drawn at real coordinates (x,y) would be visible in the view.
      * 
-     * @param scaleFactor
-     *            the amount to scale the width and height of the tile by
-     * @param viewWidth
-     *            the width of the view in pixels
-     * @param viewHeight
-     *            the height of the view in pixels
      * @param x
      *            the x coordinate for where the tile would be drawn in the view's canvas
      * @param y

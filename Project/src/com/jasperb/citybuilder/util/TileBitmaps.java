@@ -3,12 +3,17 @@
  */
 package com.jasperb.citybuilder.util;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Path;
+import android.util.Log;
 
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
 import com.jasperb.citybuilder.view.CityViewState;
@@ -18,51 +23,72 @@ import com.jasperb.citybuilder.view.CityViewState;
  * 
  */
 public class TileBitmaps {
-    private Bitmap[] mFullBitmaps = new Bitmap[Constant.TERRAIN.values().length];
+    /**
+     * String used for identifying this class.
+     */
+    public static final String TAG = "TileBitmaps";
+
+    private final Bitmap[] mFullBitmaps = new Bitmap[Constant.TERRAIN.values().length];
     private Bitmap[] mScaledBitmaps = new Bitmap[Constant.TERRAIN.values().length];
 
-    public TileBitmaps() {
-        Canvas canvas = new Canvas();
-        Matrix m = new Matrix();
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);// Anti-aliasing helps make smoother edges
-        paint.setStyle(Paint.Style.FILL);
+    /**
+     * Create a TileBitmaps objects, loading the full-sized bitmaps from the assets into memory.
+     * 
+     * @param context
+     */
+    public TileBitmaps(Context context) {
+        AssetManager assets = context.getAssets();
+        try {
+            InputStream ims = assets.open("TERRAIN/TileGrass.png");
+            Bitmap tempBitmap = BitmapFactory.decodeStream(ims);
+            mFullBitmaps[TERRAIN.GRASS.ordinal()] = tempBitmap.copy(Config.ARGB_8888, true);
+            ims.close();
 
-        // Draw the tile to fit into the bitmap
-        Path path = new Path();
-        path.moveTo(Constant.TILE_WIDTH / 2, 0);
-        path.lineTo(Constant.TILE_WIDTH, Constant.TILE_HEIGHT / 2);
-        path.lineTo(Constant.TILE_WIDTH / 2, Constant.TILE_HEIGHT);
-        path.lineTo(0, Constant.TILE_HEIGHT / 2);
+            ims = assets.open("TERRAIN/TileDirt.png");
+            tempBitmap = BitmapFactory.decodeStream(ims);
+            mFullBitmaps[TERRAIN.DIRT.ordinal()] = tempBitmap.copy(Config.ARGB_8888, true);
+            ims.close();
 
-        // To eliminate lines between tiles, we extend the length of the edges/size of a tile by 2 pixels
-        double edgeLength = Math.sqrt((Constant.TILE_WIDTH / 2) * (Constant.TILE_WIDTH / 2)
-                + (Constant.TILE_HEIGHT / 2) * (Constant.TILE_HEIGHT / 2));
-        edgeLength = (edgeLength + 2) / edgeLength;
-        m.setScale((float) edgeLength, (float) edgeLength);
-        path.transform(m);
+            Log.d(TAG, "DONE LOADING");
+        } catch (IOException ex) {
+            Log.e(TAG, ex.toString());
+        }
+    }
 
-        // Draw every tile into their own bitmap
-        for (TERRAIN terrain : TERRAIN.values()) {
-            mFullBitmaps[terrain.ordinal()] = Bitmap.createBitmap(Constant.TILE_WIDTH + 4, Constant.TILE_HEIGHT + 2, Bitmap.Config.ARGB_8888);
-            canvas.setBitmap(mFullBitmaps[terrain.ordinal()]);
-            switch (terrain) {
-            case GRASS:
-                paint.setColor(Color.GREEN);
-                break;
-            case DIRT:
-                paint.setColor(Color.DKGRAY);
-                break;
+    /**
+     * Recreate the bitmaps that getBitmap returns based off the state.
+     * That includes drawing gridlines and scaling based off the scale factor.
+     * 
+     * @param state
+     *            the state that dictates the properties of the tiles
+     */
+    public void remakeBitmaps(CityViewState state) {
+        Log.v(TAG, "REMAKE BITMAPS");
+        if (state.mDrawGridLines) {
+            Canvas canvas = new Canvas();
+            Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setARGB(255, 225, 225, 225);
+            paint.setStrokeWidth(0);
+            for (int i = 0; i < mFullBitmaps.length; i++) {
+                mScaledBitmaps[i] = Bitmap.createScaledBitmap(mFullBitmaps[i], state.getTileWidth(), state.getTileHeight(), true);
+                canvas.setBitmap(mScaledBitmaps[i]);
+                canvas.drawLine(state.getTileWidth() / 2, 0, state.getTileWidth(), state.getTileHeight() / 2, paint);
+                canvas.drawLine(state.getTileWidth() / 2, 0, 0, state.getTileHeight() / 2, paint);
             }
-            canvas.drawPath(path, paint);
-        }
-    }
-    
-    public void resizeBitmaps(CityViewState state) {
-        for(int i = 0; i < mFullBitmaps.length; i++) {
-            mScaledBitmaps[i] = Bitmap.createScaledBitmap(mFullBitmaps[i], state.getTileWidth(), state.getTileHeight(), true);
+        } else {
+            for (int i = 0; i < mFullBitmaps.length; i++) {
+                mScaledBitmaps[i] = Bitmap.createScaledBitmap(mFullBitmaps[i], state.getTileWidth(), state.getTileHeight(), true);
+            }
         }
     }
 
+    /**
+     * Fetch the saved bitmap for a specific terrain type. The bitmap should have already been modified for use by calling remakeBitmaps.
+     * 
+     * @param terrain
+     *            the type of terrain to fetch
+     */
     public Bitmap getBitmap(TERRAIN terrain) {
         return mScaledBitmaps[terrain.ordinal()];
     }
