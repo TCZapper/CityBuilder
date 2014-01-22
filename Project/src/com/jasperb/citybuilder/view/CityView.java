@@ -164,7 +164,7 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onDown(MotionEvent e) {// For some reason, scaling and scroll don't work without this
-            mState.setScaleFactor(mState.getScaleFactor() * 0.99f);
+            //mState.setScaleFactor(mState.getScaleFactor() * 0.99f);
             return true;
         }
 
