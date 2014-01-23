@@ -27,6 +27,11 @@ public class Constant {
      * Height of a single, full-sized tile in pixels.
      */
     public static final int TILE_HEIGHT = TILE_WIDTH / 2;// Must be half of TILE_WIDTH
+    
+    /*
+     * Friction to be applied when flinging. Larger values correspond to more friction.
+     */
+    public static final float FLING_FRICTION = 0.05f;
 
     /**
      * Types of available terrain.

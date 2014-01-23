@@ -41,6 +41,7 @@ public class DrawThread extends Thread {
     /**
      * Updates the state to be used for the next time we draw.
      * Only the most recent state will be used when the thread goes to draw.
+     * 
      * @param state
      */
     public void setDrawState(CityViewState state) {
@@ -108,6 +109,7 @@ public class DrawThread extends Thread {
                         if (oldTileHeight != mState.getTileHeight()) {
                             mTileBitmaps.remakeBitmaps(mState);
                         }
+                        
                         synchronized (mSurfaceHolder) {
                             if (mRun)
                                 drawGround(c);
@@ -127,7 +129,9 @@ public class DrawThread extends Thread {
     /**
      * Draw the ground (e.g. grass, water, gridlines) onto the provided canvas.
      * The canvas should have the same dimensions as defined by mState.mWidth and mState.mHeight
-     * @param canvas the canvas to draw onto
+     * 
+     * @param canvas
+     *            the canvas to draw onto
      */
     private void drawGround(Canvas canvas) {
         long startTime = System.currentTimeMillis();
@@ -261,7 +265,7 @@ public class DrawThread extends Thread {
         // Draw a very thin plus sign spanning the entire screen that indicates the middle of the screen
 //         mBufferCanvas.drawLine(mState.mWidth / 2, 0, mState.mWidth / 2, mState.mHeight, mGridPaint);
 //         mBufferCanvas.drawLine(0, mState.mHeight / 2, mState.mWidth, mState.mHeight / 2, mGridPaint);
-        
+
         if (LOG_TTD) {
             long endTime = System.currentTimeMillis();
             Log.v("TTD_" + TAG, "" + Math.round(PerfTools.CalcAverageTick((int) (endTime - startTime))));

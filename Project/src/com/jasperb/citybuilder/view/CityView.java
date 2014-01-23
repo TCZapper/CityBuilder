@@ -11,6 +11,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.Scroller;
 
 import com.jasperb.citybuilder.CityModel;
 import com.jasperb.citybuilder.util.Constant;
@@ -165,6 +166,8 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
         @Override
         public boolean onDown(MotionEvent e) {// For some reason, scaling and scroll don't work without this
             //mState.setScaleFactor(mState.getScaleFactor() * 0.99f);
+            if (mState.mScroller != null)
+                mState.mScroller.forceFinished(true);
             return true;
         }
 
@@ -176,6 +179,26 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
             redraw();
             return true;
         }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            fling((int) -velocityX, (int) -velocityY);
+            return true;
+        }
+
+    }
+
+    private void fling(int velocityX, int velocityY) {
+        mState.mScroller = new Scroller(getContext(), null, false);
+        mState.mScroller.setFriction(Constant.FLING_FRICTION);
+        mState.mScroller.fling(
+                Math.round(mState.mFocusRow * Constant.TILE_WIDTH),
+                Math.round(mState.mFocusCol * Constant.TILE_WIDTH),
+                Math.round(mState.realToIsoRowUpscaling(velocityX, velocityY) * Constant.TILE_WIDTH),
+                Math.round(mState.realToIsoColUpscaling(velocityX, velocityY) * Constant.TILE_WIDTH),
+                0, mState.mCityModel.getHeight() * Constant.TILE_WIDTH,
+                0, mState.mCityModel.getWidth() * Constant.TILE_WIDTH);
+        redraw();
     }
 
     /**

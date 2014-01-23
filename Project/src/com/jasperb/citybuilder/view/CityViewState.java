@@ -1,5 +1,7 @@
 package com.jasperb.citybuilder.view;
 
+import android.widget.Scroller;
+
 import com.jasperb.citybuilder.CityModel;
 import com.jasperb.citybuilder.util.Constant;
 
@@ -15,6 +17,7 @@ public class CityViewState {
     private int mTileHeight;
     public CityModel mCityModel = null;
     public boolean mDrawGridLines = true;
+    public Scroller mScroller = null;
 
     public CityViewState() {
         setScaleFactor(Constant.MAXIMUM_SCALE_FACTOR);
@@ -34,6 +37,15 @@ public class CityViewState {
         setScaleFactor(state.getScaleFactor());
         mCityModel = state.mCityModel;
         mDrawGridLines = state.mDrawGridLines;
+        mScroller = state.mScroller;
+        if(state.mScroller != null) {
+            state.mScroller.computeScrollOffset();
+            state.mFocusRow = state.mScroller.getCurrX() / Constant.TILE_WIDTH;
+            state.mFocusCol = state.mScroller.getCurrY() / Constant.TILE_WIDTH;
+            if(state.mScroller.isFinished()) {
+                state.mScroller = null;
+            }
+        }
     }
 
     /**
