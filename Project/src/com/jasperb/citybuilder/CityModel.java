@@ -18,7 +18,7 @@ public class CityModel {
     public static final String TAG = "CityModel";
 
     private int mWidth, mHeight;
-    private TERRAIN[][] mTerrainMap;
+    private byte[][] mTerrainMap;
 
     private final Object mModelLock = new Object();
 
@@ -38,17 +38,16 @@ public class CityModel {
         mWidth = width;
         mHeight = height;
 
-        mTerrainMap = new TERRAIN[mHeight][mWidth];
+        mTerrainMap = new byte[mHeight][mWidth];
         for (int row = 0; row < mHeight; row++) {
             for (int col = 0; col < mWidth; col++) {
-                if ((row + col) % 2 == 0 || row % 2 == 0) {
+                if ((row + col) % 4 < 2 || row % 2 == 0) {
                     mTerrainMap[row][col] = TERRAIN.GRASS;
                 } else {
                     mTerrainMap[row][col] = TERRAIN.DIRT;
                 }
             }
         }
-        mTerrainMap[mHeight - 1][mWidth - 1] = TERRAIN.DIRT;
     }
 
     /**
@@ -58,7 +57,7 @@ public class CityModel {
      * @param col
      * @return the type of tile at the specified location
      */
-    public TERRAIN getTerrain(int row, int col) {
+    public byte getTerrain(int row, int col) {
         synchronized (mModelLock) {
             return mTerrainMap[row][col];
         }

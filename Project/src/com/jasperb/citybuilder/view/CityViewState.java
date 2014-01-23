@@ -14,7 +14,7 @@ public class CityViewState {
     private int mTileWidth;
     private int mTileHeight;
     public CityModel mCityModel = null;
-    public boolean mDrawGridLines = false;
+    public boolean mDrawGridLines = true;
 
     public CityViewState() {
         setScaleFactor(Constant.MAXIMUM_SCALE_FACTOR);

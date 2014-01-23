@@ -27,11 +27,11 @@
         </activity>
         <activity
             android:name="com.jasperb.citybuilder.MainViewActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|layoutDirection"
+            android:configChanges="orientation"
             android:hardwareAccelerated="true"
             android:label="@string/title_activity_main_view"
             android:parentActivityName="@string/app_name"
-            android:screenOrientation="landscape" >
+            android:screenOrientation="sensorLandscape" >
         </activity>
     </application>
 

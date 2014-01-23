@@ -9,7 +9,7 @@ package com.jasperb.citybuilder.util;
  * 
  */
 public class PerfTools {
-    private static final int MAXSAMPLES = 20;
+    private static final int MAXSAMPLES = 75;
     private static int mIndex = 0;
     private static int mSum = 0;
     private static int mTickList[] = new int[MAXSAMPLES];

@@ -7,7 +7,7 @@ package com.jasperb.citybuilder.util;
  * @author Jasper
  * 
  */
-public final class Constant {
+public class Constant {
     /**
      * Maximum amount of zoom for the contents of the city view.
      */
@@ -31,8 +31,9 @@ public final class Constant {
     /**
      * Types of available terrain.
      */
-    public enum TERRAIN {
-        GRASS, DIRT
-    };
+    public static class TERRAIN {
+        public static final int GRASS = 0, DIRT = 1;
+        public static final int count = 2;
+    }
 
 }

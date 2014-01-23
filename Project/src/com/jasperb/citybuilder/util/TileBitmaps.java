@@ -28,8 +28,8 @@ public class TileBitmaps {
      */
     public static final String TAG = "TileBitmaps";
 
-    private final Bitmap[] mFullBitmaps = new Bitmap[Constant.TERRAIN.values().length];
-    private Bitmap[] mScaledBitmaps = new Bitmap[Constant.TERRAIN.values().length];
+    private final Bitmap[] mFullBitmaps = new Bitmap[Constant.TERRAIN.count];
+    private Bitmap[] mScaledBitmaps = new Bitmap[Constant.TERRAIN.count];
 
     /**
      * Create a TileBitmaps objects, loading the full-sized bitmaps from the assets into memory.
@@ -41,12 +41,12 @@ public class TileBitmaps {
         try {
             InputStream ims = assets.open("TERRAIN/TileGrass.png");
             Bitmap tempBitmap = BitmapFactory.decodeStream(ims);
-            mFullBitmaps[TERRAIN.GRASS.ordinal()] = tempBitmap.copy(Config.ARGB_8888, true);
+            mFullBitmaps[TERRAIN.GRASS] = tempBitmap.copy(Config.ARGB_8888, true);
             ims.close();
 
             ims = assets.open("TERRAIN/TileDirt.png");
             tempBitmap = BitmapFactory.decodeStream(ims);
-            mFullBitmaps[TERRAIN.DIRT.ordinal()] = tempBitmap.copy(Config.ARGB_8888, true);
+            mFullBitmaps[TERRAIN.DIRT] = tempBitmap.copy(Config.ARGB_8888, true);
             ims.close();
 
             Log.d(TAG, "DONE LOADING");
@@ -64,6 +64,7 @@ public class TileBitmaps {
      */
     public void remakeBitmaps(CityViewState state) {
         Log.v(TAG, "REMAKE BITMAPS");
+        
         if (state.mDrawGridLines) {
             Canvas canvas = new Canvas();
             Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -89,7 +90,7 @@ public class TileBitmaps {
      * @param terrain
      *            the type of terrain to fetch
      */
-    public Bitmap getBitmap(TERRAIN terrain) {
-        return mScaledBitmaps[terrain.ordinal()];
+    public Bitmap getBitmap(int terrain) {
+        return mScaledBitmaps[terrain];
     }
 }

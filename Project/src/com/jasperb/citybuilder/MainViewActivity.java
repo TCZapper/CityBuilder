@@ -25,7 +25,7 @@ public class MainViewActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_view);
 
-        mCityModel = new CityModel(50, 50);
+        mCityModel = new CityModel(200, 200);
 
         mCityView = (CityView) findViewById(R.id.City);
 
@@ -47,6 +47,19 @@ public class MainViewActivity extends Activity {
             mCityView.init();
         }
         mCityView.startDrawThread(true);
+    }
+    
+    
+    @Override
+    protected void onResume() {
+        super.onStart();
+        Log.v(TAG, "ON RESUME");
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onStart();
+        Log.v(TAG, "ON PAUSE");
     }
     
     @Override

@@ -264,7 +264,7 @@ public class DrawThread extends Thread {
         
         if (LOG_TTD) {
             long endTime = System.currentTimeMillis();
-            Log.v("TTD_" + TAG, "" + PerfTools.CalcAverageTick((int) (endTime - startTime)));
+            Log.v("TTD_" + TAG, "" + Math.round(PerfTools.CalcAverageTick((int) (endTime - startTime))));
         }
     }
 }
