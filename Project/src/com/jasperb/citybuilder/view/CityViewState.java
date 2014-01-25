@@ -1,7 +1,5 @@
 package com.jasperb.citybuilder.view;
 
-import android.widget.Scroller;
-
 import com.jasperb.citybuilder.CityModel;
 import com.jasperb.citybuilder.util.Constant;
 
@@ -17,7 +15,6 @@ public class CityViewState {
     private int mTileHeight;
     public CityModel mCityModel = null;
     public boolean mDrawGridLines = true;
-    public Scroller mScroller = null;
 
     public CityViewState() {
         setScaleFactor(Constant.MAXIMUM_SCALE_FACTOR);
@@ -29,7 +26,7 @@ public class CityViewState {
      * @param state
      *            the CityViewState object to copy from
      */
-    public void copy(CityViewState state) {
+    public void copyFrom(CityViewState state) {
         mFocusRow = state.mFocusRow;
         mFocusCol = state.mFocusCol;
         mWidth = state.mWidth;
@@ -37,15 +34,6 @@ public class CityViewState {
         setScaleFactor(state.getScaleFactor());
         mCityModel = state.mCityModel;
         mDrawGridLines = state.mDrawGridLines;
-        mScroller = state.mScroller;
-        if(state.mScroller != null) {
-            state.mScroller.computeScrollOffset();
-            state.mFocusRow = state.mScroller.getCurrX() / Constant.TILE_WIDTH;
-            state.mFocusCol = state.mScroller.getCurrY() / Constant.TILE_WIDTH;
-            if(state.mScroller.isFinished()) {
-                state.mScroller = null;
-            }
-        }
     }
 
     /**
@@ -145,6 +133,18 @@ public class CityViewState {
      *            the column of the tile to test
      */
     public boolean isTileValid(int row, int col) {
+        return row >= 0 && col >= 0 && row < mCityModel.getHeight() && col < mCityModel.getWidth();
+    }
+
+    /**
+     * Returns true if the tile exists in the city model.
+     * 
+     * @param row
+     *            the row of the tile to test
+     * @param col
+     *            the column of the tile to test
+     */
+    public boolean isTileValid(float row, float col) {
         return row >= 0 && col >= 0 && row < mCityModel.getHeight() && col < mCityModel.getWidth();
     }
 

@@ -30,33 +30,12 @@ public class DrawThread extends Thread {
     private Paint mGridPaint = null;
     private SurfaceHolder mSurfaceHolder = null;
     private CityViewState mState = new CityViewState();
-    private CityViewState mNextState = new CityViewState();
-    private final Object mStateLock = new Object();
+    private CityView mCityView;
     private boolean mRun = true;
 
-    public DrawThread(SurfaceHolder surfaceHolder) {
+    public DrawThread(SurfaceHolder surfaceHolder, CityView cityView) {
         mSurfaceHolder = surfaceHolder;
-    }
-
-    /**
-     * Updates the state to be used for the next time we draw.
-     * Only the most recent state will be used when the thread goes to draw.
-     * 
-     * @param state
-     */
-    public void setDrawState(CityViewState state) {
-        synchronized (mStateLock) {
-            mNextState.copy(state);
-        }
-    }
-
-    /**
-     * Retrieve the most recent state and store it separately so other threads don't interfere with it
-     */
-    private void getDrawState() {
-        synchronized (mStateLock) {
-            mState.copy(mNextState);
-        }
+        mCityView = cityView;
     }
 
     /**
@@ -64,10 +43,8 @@ public class DrawThread extends Thread {
      */
     protected void init(Context context) {
         synchronized (mSurfaceHolder) {
-            synchronized (mStateLock) {
-                mTileBitmaps = new TileBitmaps(context);
-                mTileBitmaps.remakeBitmaps(mState);
-            }
+            mTileBitmaps = new TileBitmaps(context);
+            mTileBitmaps.remakeBitmaps(mState);
 
             mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mGridPaint.setStyle(Paint.Style.STROKE);
@@ -104,12 +81,12 @@ public class DrawThread extends Thread {
                 c = mSurfaceHolder.lockCanvas(null);
                 if (c != null) {
                     float oldTileHeight = mState.getTileHeight();
-                    getDrawState();
+                    mCityView.updateAndCopyState(mState);
                     if (mState.mWidth != 0 && mState.mWidth == c.getWidth() && mState.mHeight == c.getHeight()) {
                         if (oldTileHeight != mState.getTileHeight()) {
                             mTileBitmaps.remakeBitmaps(mState);
                         }
-                        
+                        // Log.d(TAG,"DRAW AT: " + mState.mFocusRow + " : " + mState.mFocusRow);
                         synchronized (mSurfaceHolder) {
                             if (mRun)
                                 drawGround(c);
@@ -259,7 +236,7 @@ public class DrawThread extends Thread {
 //                }
 //            }
         } else {
-            Log.d(TAG, "NOTHING TO DRAW");
+            Log.v(TAG, "NOTHING TO DRAW");
         }
 
         // Draw a very thin plus sign spanning the entire screen that indicates the middle of the screen

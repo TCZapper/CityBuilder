@@ -28,10 +28,20 @@ public class Constant {
      */
     public static final int TILE_HEIGHT = TILE_WIDTH / 2;// Must be half of TILE_WIDTH
     
-    /*
+    /**
      * Friction to be applied when flinging. Larger values correspond to more friction.
      */
     public static final float FLING_FRICTION = 0.05f;
+    
+    /**
+     * Time it takes to constrain the focus within the valid range when the focus is outside of that range
+     */
+    public static final int FOCUS_CONSTRAIN_TIME = 500;
+    
+    /**
+     * Defines the permitted range for the focus as the valid range +/- this many tiles
+     */
+    public static final int FOCUS_EXTENDED_BOUNDARY = 8;
 
     /**
      * Types of available terrain.

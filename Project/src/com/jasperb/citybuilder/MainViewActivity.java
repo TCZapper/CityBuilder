@@ -46,7 +46,7 @@ public class MainViewActivity extends Activity {
             mCityView.setCityModel(mCityModel);
             mCityView.init();
         }
-        mCityView.startDrawThread(true);
+        mCityView.startDrawThread();
     }
     
     
