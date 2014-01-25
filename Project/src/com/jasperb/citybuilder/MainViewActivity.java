@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.ImageView;
 
 import com.jasperb.citybuilder.view.CityView;
 
@@ -19,6 +22,7 @@ public class MainViewActivity extends Activity {
 
     private CityModel mCityModel;
     private CityView mCityView;
+    private ImageView mGridButton, mTerrainButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +32,22 @@ public class MainViewActivity extends Activity {
         mCityModel = new CityModel(200, 200);
 
         mCityView = (CityView) findViewById(R.id.City);
+        mGridButton = (ImageView) findViewById(R.id.Grid);
+        mTerrainButton = (ImageView) findViewById(R.id.Terrain);
+        
+        OnClickListener clickListener = new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(v.equals(mGridButton)) {
+                    mCityView.setDrawGridLines(!mCityView.getDrawGridLines());
+                }
+            }
+        };
+        mGridButton.setClickable(true);
+        mGridButton.setOnClickListener(clickListener);
+        mTerrainButton.setClickable(true);
+        mTerrainButton.setOnClickListener(clickListener);
+        
 
         if (savedInstanceState != null) {
             // Restore state of the city view

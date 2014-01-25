@@ -1,8 +1,28 @@
-<merge xmlns:android="http://schemas.android.com/apk/res/android" >
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
 
     <com.jasperb.citybuilder.view.CityView
         android:id="@+id/City"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-</merge>
+    <ImageView
+        android:id="@+id/Terrain"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="5dp"
+        android:contentDescription="Terrain Editor"
+        android:src="@drawable/grass" />
+
+    <ImageView
+        android:id="@+id/Grid"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginLeft="50dp"
+        android:layout_marginTop="5dp"
+        android:contentDescription="Toggle Gridlines"
+        android:src="@drawable/grid_button" />
+
+</FrameLayout>
