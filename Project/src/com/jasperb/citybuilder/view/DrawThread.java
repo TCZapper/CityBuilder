@@ -48,8 +48,8 @@ public class DrawThread extends Thread {
 
             mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             mGridPaint.setStyle(Paint.Style.STROKE);
-            mGridPaint.setStrokeWidth(0);// thinnest line is 0 width
-            mGridPaint.setARGB(255, 225, 225, 225);
+            mGridPaint.setStrokeWidth(1.5f);// thinnest line is 0 width
+            mGridPaint.setARGB(255, 255, 255, 255);//whiter than those we paint on the tiles
         }
     }
 
@@ -218,23 +218,34 @@ public class DrawThread extends Thread {
                 }
             }
 
-            // Draw grid lines (legacy)
-//            if (mState.mDrawGridLines) {
-//                // For simplicity we only draw the grid lines for visible rows and columns, but we only make a small effort at
-//                // preventing drawing outside of the view (every line should have an on-screen section, but we may extend it too far)
-//                for (int col = firstCol; col <= lastCol + 1; col++) {
-//                    canvas.drawLine(mState.isoToRealXDownscaling(minRow, col) + realTopX,
-//                            mState.isoToRealYDownscaling(minRow, col) + realTopY,
-//                            mState.isoToRealXDownscaling(maxRow + 1, col) + realTopX,
-//                            mState.isoToRealYDownscaling(maxRow + 1, col) + realTopY, mGridPaint);
-//                }
-//                for (int row = minRow; row <= maxRow + 1; row++) {
-//                    canvas.drawLine(mState.isoToRealXDownscaling(row, firstCol) + realTopX,
-//                            mState.isoToRealYDownscaling(row, firstCol) + realTopY,
-//                            mState.isoToRealXDownscaling(row, lastCol + 1) + realTopX,
-//                            mState.isoToRealYDownscaling(row, lastCol + 1) + realTopY, mGridPaint);
-//                }
-//            }
+            // Draw grid lines for the outer edges of the world
+            // We have to offset the bottom edge lines because of the extra bits of every tile that stick out from the bottom edges
+            if (mState.mDrawGridLines) {
+                if(firstCol == 0) {
+                    canvas.drawLine(mState.isoToRealXDownscaling(minRow, 0) + realTopX,
+                            mState.isoToRealYDownscaling(minRow, 0) + realTopY,
+                            mState.isoToRealXDownscaling(maxRow + 1, 0) + realTopX,
+                            mState.isoToRealYDownscaling(maxRow + 1, 0) + realTopY, mGridPaint);
+                }
+                if(lastCol == mState.mCityModel.getWidth() - 1) {
+                    canvas.drawLine(mState.isoToRealXDownscaling(minRow, lastCol + 1) + realTopX + 1,
+                            mState.isoToRealYDownscaling(minRow, lastCol + 1) + realTopY,
+                            mState.isoToRealXDownscaling(maxRow + 1, lastCol + 1) + realTopX,
+                            mState.isoToRealYDownscaling(maxRow + 1, lastCol + 1) + realTopY + 1, mGridPaint);
+                }
+                if(minRow == 0){
+                    canvas.drawLine(mState.isoToRealXDownscaling(0, firstCol) + realTopX,
+                            mState.isoToRealYDownscaling(0, firstCol) + realTopY,
+                            mState.isoToRealXDownscaling(0, lastCol + 1) + realTopX,
+                            mState.isoToRealYDownscaling(0, lastCol + 1) + realTopY, mGridPaint);
+                }
+                if(maxRow == mState.mCityModel.getHeight() - 1){
+                    canvas.drawLine(mState.isoToRealXDownscaling(maxRow + 1, firstCol) + realTopX - 1,
+                            mState.isoToRealYDownscaling(maxRow + 1, firstCol) + realTopY,
+                            mState.isoToRealXDownscaling(maxRow + 1, lastCol + 1) + realTopX,
+                            mState.isoToRealYDownscaling(maxRow + 1, lastCol + 1) + realTopY + 1, mGridPaint);
+                }
+            }
         } else {
             Log.v(TAG, "NOTHING TO DRAW");
         }
