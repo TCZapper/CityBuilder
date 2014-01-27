@@ -93,4 +93,8 @@ public class TileBitmaps {
     public Bitmap getBitmap(int terrain) {
         return mScaledBitmaps[terrain];
     }
+    
+    public Bitmap getFullBitmap(int terrain) {
+        return mFullBitmaps[terrain];
+    }
 }

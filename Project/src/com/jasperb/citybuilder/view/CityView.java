@@ -3,6 +3,8 @@
  */
 package com.jasperb.citybuilder.view;
 
+import java.util.LinkedList;
+
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -15,6 +17,10 @@ import android.widget.OverScroller;
 
 import com.jasperb.citybuilder.CityModel;
 import com.jasperb.citybuilder.util.Constant;
+import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
+import com.jasperb.citybuilder.util.Constant.TERRAIN;
+import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
+import com.jasperb.citybuilder.util.TerrainEdit;
 
 /**
  * Custom view for handling rendering the city model. Includes the ability to pan, fling and scale within the view.
@@ -32,62 +38,96 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
     private GestureDetector mDetector = null;
     public OverScroller mScroller = null;
     private CityViewState mState = new CityViewState();
-    private final Object mStateLock = new Object();
     private DrawThread mDrawThread = null;
     private SurfaceHolder mSurfaceHolder = null;
     private boolean mSurfaceExists = false;
     private boolean mInputActive = false;
+    private boolean mInputClick = false;
     private boolean mAllocated = false;
+    private int mTerrainTypeSelected = TERRAIN.GRASS;
+    private LinkedList<TerrainEdit> mTerrainEdits = new LinkedList<TerrainEdit>();
 
     public boolean isEverythingAllocated() {
         return mAllocated;
     }
 
     public void setCityModel(CityModel model) {
-        synchronized (mStateLock) {
+        synchronized (mState) {
             mState.mCityModel = model;
         }
     }
 
+    public int getTerrainTypeSelected() {
+        return mTerrainTypeSelected;
+    }
+
+    public void setTerrainTypeSelected(int terrain) {
+        mTerrainTypeSelected = terrain;
+    }
+
     public boolean getDrawGridLines() {
-        synchronized (mStateLock) {
+        synchronized (mState) {
             return mState.mDrawGridLines;
         }
     }
 
     public void setDrawGridLines(boolean drawGridLines) {
-        synchronized (mStateLock) {
+        synchronized (mState) {
             mState.mDrawGridLines = drawGridLines;
         }
     }
 
+    public int getMode() {
+        synchronized (mState) {
+            return mState.mMode;
+        }
+    }
+
+    public void setMode(int mode) {
+        synchronized (mState) {
+            mState.mMode = mode;
+        }
+    }
+
+    public int getTool() {
+        synchronized (mState) {
+            return mState.mTool;
+        }
+    }
+
+    public void setTool(int tool) {
+        synchronized (mState) {
+            mState.mTool = tool;
+        }
+    }
+
     public float getFocusRow() {
-        synchronized (mStateLock) {
+        synchronized (mState) {
             return mState.mFocusRow;
         }
     }
 
     public float getFocusCol() {
-        synchronized (mStateLock) {
+        synchronized (mState) {
             return mState.mFocusCol;
         }
     }
 
     public void setFocusCoords(float row, float col) {
-        synchronized (mStateLock) {
+        synchronized (mState) {
             mState.mFocusRow = row;
             mState.mFocusCol = col;
         }
     }
 
     public float getScaleFactor() {
-        synchronized (mStateLock) {
+        synchronized (mState) {
             return mState.getScaleFactor();
         }
     }
 
     public void setScaleFactor(float scaleFactor) {
-        synchronized (mStateLock) {
+        synchronized (mState) {
             mState.setScaleFactor(scaleFactor);
         }
     }
@@ -99,9 +139,14 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
      *            the object to copy the state into
      */
     protected void updateAndCopyState(CityViewState to) {
+        synchronized (mTerrainEdits) {
+            for (TerrainEdit edit : mTerrainEdits)
+                edit.setTerrain(mState);
+        }
+
         // The purpose of this method is to be used by the draw thread to update the CityView's state and then retrieve that state
         // This lets us easily continuously update the CityView's state and keep the update rate synced with the FPS of the draw thread
-        synchronized (mStateLock) {
+        synchronized (mState) {
             if (mScroller == null)// Happens if cleanup was called but the draw thread is still active
                 return;
 
@@ -171,7 +216,7 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
      * Initialize and allocate the necessary components of the view, except those related to the drawing thread
      */
     public void init() {
-        synchronized (mStateLock) {
+        synchronized (mState) {
             mScroller = new OverScroller(getContext());
         }
         mDetector = new GestureDetector(getContext(), new GestureListener());
@@ -191,18 +236,25 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
     public void cleanup() {
         mAllocated = false;
 
-        synchronized (mStateLock) {
+        synchronized (mState) {
             mScroller = null;
         }
         mScaleDetector = null;
         mDetector = null;
     }
 
+    public void addTerrainEdit(TerrainEdit edit) {
+        synchronized (mTerrainEdits) {
+            mTerrainEdits.add(edit);
+        }
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        synchronized (mStateLock) {//Keep track of when user is supplying input
+        synchronized (mState) {//Keep track of when user is supplying input
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 mInputActive = true;
+                mInputClick = true;
             } else if (event.getAction() == MotionEvent.ACTION_UP) {
                 mInputActive = false;
             }
@@ -210,6 +262,19 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
         // Let the GestureDetectors interpret this event
         boolean result = mDetector.onTouchEvent(event);
         mScaleDetector.onTouchEvent(event);
+        if (!result) {
+            if (event.getAction() == MotionEvent.ACTION_UP && mInputClick) {
+                Log.d(TAG, "RELEASE");
+                if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.mTool == TERRAIN_TOOLS.BRUSH) {
+                    int posX = (int) event.getX() - mState.getOriginX();
+                    int posY = (int) event.getY() - mState.getOriginY();
+                    int row = (int) mState.realToIsoRowUpscaling(posX, posY);
+                    int col = (int) mState.realToIsoColUpscaling(posX, posY);
+                    if (mState.isTileValid(row, col))
+                        addTerrainEdit(new TerrainEdit(row, col, mTerrainTypeSelected));
+                }
+            }
+        }
         return result;
     }
 
@@ -235,7 +300,7 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onDown(MotionEvent e) {
-            synchronized (mStateLock) {
+            synchronized (mState) {
                 if (!mScroller.isFinished()) {
                     mScroller.computeScrollOffset();//compute current offset before forcing finish
                     mState.mFocusRow = mScroller.getCurrX() / Constant.TILE_WIDTH;
@@ -248,28 +313,48 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            synchronized (mStateLock) {
-                mState.mFocusRow += mState.realToIsoRowUpscaling(Math.round(distanceX), Math.round(distanceY));
-                mState.mFocusCol += mState.realToIsoColUpscaling(Math.round(distanceX), Math.round(distanceY));
-                constrainFocus();
+            //e1 defines start of the scroll, e2 is the destination of the scroll
+            if (e2.getPointerCount() == 1) {
+                mInputClick = false;
+                synchronized (mState) {
+                    if (mState.mMode == CITY_VIEW_MODES.VIEW || mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.mTool == TERRAIN_TOOLS.SELECT) {
+                        mState.mFocusRow += mState.realToIsoRowUpscaling(Math.round(distanceX), Math.round(distanceY));
+                        mState.mFocusCol += mState.realToIsoColUpscaling(Math.round(distanceX), Math.round(distanceY));
+                        constrainFocus();
+                    } else {
+//                    Log.d(TAG,"SCROLL: " + e1.getX() + " : " + e1.getY() + " --- " + e2.getX() + " : " + e2.getY() + " --- " + distanceX + " : " + distanceY);
+                        int posX = (int) e2.getX() - mState.getOriginX();
+                        int posY = (int) e2.getY() - mState.getOriginY();
+                        int row = (int) mState.realToIsoRowUpscaling(posX, posY);
+                        int col = (int) mState.realToIsoColUpscaling(posX, posY);
+                        if (mState.isTileValid(row, col))
+                            addTerrainEdit(new TerrainEdit(row, col, mTerrainTypeSelected));
+                    }
+                }
+                return true;
+            } else {
+                return false;
             }
-            return true;
         }
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            fling((int) -velocityX, (int) -velocityY);
+            if (!(mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.mTool == TERRAIN_TOOLS.BRUSH)) {
+                fling((int) -velocityX, (int) -velocityY);
+            }
             return true;
         }
 
     }
 
     private boolean fling(int velocityX, int velocityY) {
+        mInputClick = false;
+
         int minRow = 0;
         int minCol = 0;
         int maxRow = mState.mCityModel.getHeight() * Constant.TILE_WIDTH - 1;
         int maxCol = mState.mCityModel.getWidth() * Constant.TILE_WIDTH - 1;
-        synchronized (mStateLock) {
+        synchronized (mState) {
             mScroller.fling(
                     Math.round(mState.mFocusRow * Constant.TILE_WIDTH),
                     Math.round(mState.mFocusCol * Constant.TILE_WIDTH),
@@ -287,9 +372,9 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
-            float scaleFactor = mState.getScaleFactor() * scaleGestureDetector.getScaleFactor();
-
-            synchronized (mStateLock) {
+            mInputClick = false;
+            synchronized (mState) {
+                float scaleFactor = mState.getScaleFactor() * scaleGestureDetector.getScaleFactor();
                 // Don't let the object get too small or too large.
                 mState.setScaleFactor(Math.max(Constant.MINIMUM_SCALE_FACTOR, Math.min(scaleFactor, Constant.MAXIMUM_SCALE_FACTOR)));
             }
@@ -338,7 +423,7 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
     public void surfaceChanged(SurfaceHolder holder, int format, int width,
             int height) {
         Log.v(TAG, "SURFACE CHANGED");
-        synchronized (mStateLock) {
+        synchronized (mState) {
             mState.mWidth = width;
             mState.mHeight = height;
         }

@@ -29,6 +29,10 @@ public class CityModel {
     public int getHeight() {
         return mHeight;
     }
+    
+    public Object getModelLock() {
+        return mModelLock;
+    }
 
     @SuppressWarnings("unused")
     private CityModel() {}// Prevent constructing without a width and height
@@ -60,6 +64,18 @@ public class CityModel {
     public byte getTerrain(int row, int col) {
         synchronized (mModelLock) {
             return mTerrainMap[row][col];
+        }
+    }
+    
+    public void setTerrain(int startRow, int startCol, int endRow, int endCol, int terrain) {
+        synchronized (mModelLock) {
+            mTerrainMap[startRow][startCol] = (byte)terrain;
+        }
+    }
+    
+    public void setTerrain(int row, int col, int terrain) {
+        synchronized (mModelLock) {
+            mTerrainMap[row][col] = (byte)terrain;
         }
     }
 }

@@ -51,4 +51,17 @@ public class Constant {
         public static final int count = 2;
     }
 
+    /**
+     * Types of available modes for the city viewer
+     */
+    public static class CITY_VIEW_MODES {
+        public static final int VIEW = 0, EDIT_TERRAIN = 1;
+    }
+    
+    /**
+     * Types of available terrain editing tools.
+     */
+    public static class TERRAIN_TOOLS {
+        public static final int BRUSH = 0, SELECT = 1;
+    }
 }

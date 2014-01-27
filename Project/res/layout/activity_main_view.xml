@@ -1,6 +1,4 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+<merge xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <com.jasperb.citybuilder.view.CityView
         android:id="@+id/City"
@@ -8,21 +6,68 @@
         android:layout_height="match_parent" />
 
     <ImageView
-        android:id="@+id/Terrain"
+        android:id="@+id/TerrainButton"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginLeft="5dp"
         android:layout_marginTop="5dp"
-        android:contentDescription="Terrain Editor"
+        android:clickable="true"
         android:src="@drawable/grass" />
 
     <ImageView
-        android:id="@+id/Grid"
+        android:id="@+id/GridButton"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginLeft="50dp"
         android:layout_marginTop="5dp"
-        android:contentDescription="Toggle Gridlines"
+        android:clickable="true"
         android:src="@drawable/grid_button" />
 
-</FrameLayout>
+    <LinearLayout
+        android:id="@+id/TerrainTools"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="right"
+        android:orientation="vertical" >
+
+        <FrameLayout
+            android:id="@+id/TileStyleButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:clickable="true" >
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/blank_unpressed" />
+            
+            <ImageView
+                android:id="@+id/TileStyleIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp" />
+
+        </FrameLayout>
+
+        <ImageView
+            android:id="@+id/PaintButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:clickable="true"
+            android:src="@drawable/pencil_unpressed" />
+
+        <ImageView
+            android:id="@+id/SelectButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:clickable="true"
+            android:src="@drawable/select_unpressed" />
+    </LinearLayout>
+
+</merge>

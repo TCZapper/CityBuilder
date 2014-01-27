@@ -6,8 +6,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
+import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
+import com.jasperb.citybuilder.util.Constant.TERRAIN;
+import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
+import com.jasperb.citybuilder.util.TileBitmaps;
 import com.jasperb.citybuilder.view.CityView;
 
 public class MainViewActivity extends Activity {
@@ -22,7 +28,10 @@ public class MainViewActivity extends Activity {
 
     private CityModel mCityModel;
     private CityView mCityView;
-    private ImageView mGridButton, mTerrainButton;
+    private ImageView mGridButton, mTerrainButton, mPaintButton, mSelectButton, mTileSyleIcon;
+    private FrameLayout mTileStyleButton;
+    private LinearLayout mTerrainTools;
+    private TileBitmaps mTileBitmaps;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,23 +39,52 @@ public class MainViewActivity extends Activity {
         setContentView(R.layout.activity_main_view);
 
         mCityModel = new CityModel(200, 200);
+        mTileBitmaps = new TileBitmaps(this);
 
         mCityView = (CityView) findViewById(R.id.City);
-        mGridButton = (ImageView) findViewById(R.id.Grid);
-        mTerrainButton = (ImageView) findViewById(R.id.Terrain);
+        mGridButton = (ImageView) findViewById(R.id.GridButton);
+        mTerrainButton = (ImageView) findViewById(R.id.TerrainButton);
+        mTileStyleButton = (FrameLayout) findViewById(R.id.TileStyleButton);
+        mPaintButton = (ImageView) findViewById(R.id.PaintButton);
+        mSelectButton = (ImageView) findViewById(R.id.SelectButton);
+        mTileSyleIcon = (ImageView) findViewById(R.id.TileStyleIcon);
+        mTerrainTools = (LinearLayout) findViewById(R.id.TerrainTools);
+        
+        mTerrainTools.setVisibility(View.GONE);
+        mTileSyleIcon.setImageBitmap(mTileBitmaps.getFullBitmap(mCityView.getTerrainTypeSelected()));
         
         OnClickListener clickListener = new OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(v.equals(mGridButton)) {
                     mCityView.setDrawGridLines(!mCityView.getDrawGridLines());
+                } else if(v.equals(mTerrainButton)) {
+                    if(mCityView.getMode() == CITY_VIEW_MODES.EDIT_TERRAIN) {
+                        mCityView.setMode(CITY_VIEW_MODES.VIEW);
+                        mTerrainTools.setVisibility(View.GONE);
+                    } else {
+                        mCityView.setMode( CITY_VIEW_MODES.EDIT_TERRAIN);
+                        mTerrainTools.setVisibility(View.VISIBLE);
+                    }
+                } else if(v.equals(mTileStyleButton)) {
+                    int terrain = mCityView.getTerrainTypeSelected() + 1;
+                    if(terrain == TERRAIN.count) {
+                        terrain = 0;
+                    }
+                    mCityView.setTerrainTypeSelected(terrain);
+                    mTileSyleIcon.setImageBitmap(mTileBitmaps.getFullBitmap(terrain));
+                } else if(v.equals(mPaintButton)) {
+                    mCityView.setTool(TERRAIN_TOOLS.BRUSH);
+                } else if(v.equals(mSelectButton)) {
+                    mCityView.setTool(TERRAIN_TOOLS.SELECT);
                 }
             }
         };
-        mGridButton.setClickable(true);
         mGridButton.setOnClickListener(clickListener);
-        mTerrainButton.setClickable(true);
         mTerrainButton.setOnClickListener(clickListener);
+        mTileStyleButton.setOnClickListener(clickListener);
+        mPaintButton.setOnClickListener(clickListener);
+        mSelectButton.setOnClickListener(clickListener);
         
 
         if (savedInstanceState != null) {

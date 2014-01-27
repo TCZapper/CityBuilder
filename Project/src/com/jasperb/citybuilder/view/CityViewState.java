@@ -2,6 +2,8 @@ package com.jasperb.citybuilder.view;
 
 import com.jasperb.citybuilder.CityModel;
 import com.jasperb.citybuilder.util.Constant;
+import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
+import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
 
 /**
  * @author Jasper
@@ -15,6 +17,8 @@ public class CityViewState {
     private int mTileHeight;
     public CityModel mCityModel = null;
     public boolean mDrawGridLines = true;
+    public int mMode = CITY_VIEW_MODES.VIEW;
+    public int mTool = TERRAIN_TOOLS.BRUSH;
 
     public CityViewState() {
         setScaleFactor(Constant.MAXIMUM_SCALE_FACTOR);
@@ -34,6 +38,8 @@ public class CityViewState {
         setScaleFactor(state.getScaleFactor());
         mCityModel = state.mCityModel;
         mDrawGridLines = state.mDrawGridLines;
+        mMode = state.mMode;
+        mTool = state.mTool;
     }
 
     /**
@@ -161,5 +167,13 @@ public class CityViewState {
                 || y + mTileHeight < 0
                 || x + mTileWidth / 2 < 0
                 || x - mTileWidth / 2 >= mWidth);
+    }
+    
+    public int getOriginX() {
+        return mWidth / 2 - isoToRealXDownscaling(mFocusRow, mFocusCol);
+    }
+    
+    public int getOriginY() {
+        return mHeight / 2 - isoToRealYDownscaling(mFocusRow, mFocusCol);
     }
 }
