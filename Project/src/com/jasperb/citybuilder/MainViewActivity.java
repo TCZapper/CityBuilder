@@ -5,16 +5,16 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.OverScroller;
+import android.widget.RelativeLayout;
 
-import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
-import com.jasperb.citybuilder.util.Constant.TERRAIN;
-import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
 import com.jasperb.citybuilder.util.TileBitmaps;
 import com.jasperb.citybuilder.view.CityView;
+import com.jasperb.citybuilder.view.CityViewController;
+import com.jasperb.citybuilder.view.CityViewState;
 
 public class MainViewActivity extends Activity {
     /**
@@ -26,12 +26,14 @@ public class MainViewActivity extends Activity {
     private static final String STATE_SCALE_FACTOR = "scaleFactor";
     private static final String STATE_DRAW_GRID_LINES = "drawGridLines";
 
+    private CityViewState mState;
+    private CityViewController mCityViewController;
+    private OverlayController mOverlayController;
     private CityModel mCityModel;
+
+    private boolean mAllocated = false;
+
     private CityView mCityView;
-    private ImageView mGridButton, mTerrainButton, mPaintButton, mSelectButton, mTileSyleIcon;
-    private FrameLayout mTileStyleButton;
-    private LinearLayout mTerrainTools;
-    private TileBitmaps mTileBitmaps;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,59 +41,42 @@ public class MainViewActivity extends Activity {
         setContentView(R.layout.activity_main_view);
 
         mCityModel = new CityModel(200, 200);
-        mTileBitmaps = new TileBitmaps(this);
+        TileBitmaps.loadFullBitmaps(this);
+        mState = new CityViewState();
+        mState.mScroller = new OverScroller(this);
+        mCityViewController = new CityViewController();
+        mOverlayController = new OverlayController();
 
         mCityView = (CityView) findViewById(R.id.City);
-        mGridButton = (ImageView) findViewById(R.id.GridButton);
-        mTerrainButton = (ImageView) findViewById(R.id.TerrainButton);
-        mTileStyleButton = (FrameLayout) findViewById(R.id.TileStyleButton);
-        mPaintButton = (ImageView) findViewById(R.id.PaintButton);
-        mSelectButton = (ImageView) findViewById(R.id.SelectButton);
-        mTileSyleIcon = (ImageView) findViewById(R.id.TileStyleIcon);
-        mTerrainTools = (LinearLayout) findViewById(R.id.TerrainTools);
-        
-        mTerrainTools.setVisibility(View.GONE);
-        mTileSyleIcon.setImageBitmap(mTileBitmaps.getFullBitmap(mCityView.getTerrainTypeSelected()));
-        
-        OnClickListener clickListener = new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(v.equals(mGridButton)) {
-                    mCityView.setDrawGridLines(!mCityView.getDrawGridLines());
-                } else if(v.equals(mTerrainButton)) {
-                    if(mCityView.getMode() == CITY_VIEW_MODES.EDIT_TERRAIN) {
-                        mCityView.setMode(CITY_VIEW_MODES.VIEW);
-                        mTerrainTools.setVisibility(View.GONE);
-                    } else {
-                        mCityView.setMode( CITY_VIEW_MODES.EDIT_TERRAIN);
-                        mTerrainTools.setVisibility(View.VISIBLE);
-                    }
-                } else if(v.equals(mTileStyleButton)) {
-                    int terrain = mCityView.getTerrainTypeSelected() + 1;
-                    if(terrain == TERRAIN.count) {
-                        terrain = 0;
-                    }
-                    mCityView.setTerrainTypeSelected(terrain);
-                    mTileSyleIcon.setImageBitmap(mTileBitmaps.getFullBitmap(terrain));
-                } else if(v.equals(mPaintButton)) {
-                    mCityView.setTool(TERRAIN_TOOLS.BRUSH);
-                } else if(v.equals(mSelectButton)) {
-                    mCityView.setTool(TERRAIN_TOOLS.SELECT);
-                }
-            }
-        };
-        mGridButton.setOnClickListener(clickListener);
-        mTerrainButton.setOnClickListener(clickListener);
-        mTileStyleButton.setOnClickListener(clickListener);
-        mPaintButton.setOnClickListener(clickListener);
-        mSelectButton.setOnClickListener(clickListener);
-        
+
+        mOverlayController.mGridButton = (ImageView) findViewById(R.id.GridButton);
+        mOverlayController.mTerrainButton = (ImageView) findViewById(R.id.TerrainButton);
+
+        mOverlayController.mTileStyleButton = (FrameLayout) findViewById(R.id.TileStyleButton);
+        mOverlayController.mPaintButton = (ImageView) findViewById(R.id.PaintButton);
+        mOverlayController.mSelectButton = (ImageView) findViewById(R.id.SelectButton);
+        mOverlayController.mTileSyleIcon = (ImageView) findViewById(R.id.TileStyleIcon);
+
+        mOverlayController.mTerrainTools = (LinearLayout) findViewById(R.id.TerrainTools);
+
+        mOverlayController.mLeftButton = (ImageView) findViewById(R.id.LeftButton);
+        mOverlayController.mUpButton = (ImageView) findViewById(R.id.UpButton);
+        mOverlayController.mDownButton = (ImageView) findViewById(R.id.DownButton);
+        mOverlayController.mRightButton = (ImageView) findViewById(R.id.RightButton);
+        mOverlayController.mMoveButtons = (RelativeLayout) findViewById(R.id.MoveButtons);
+
+        mOverlayController.mTerrainTools.setVisibility(View.GONE);
+        mOverlayController.mMoveButtons.setVisibility(View.GONE);
+        mOverlayController.mTileSyleIcon.setImageBitmap(TileBitmaps.getFullBitmap(mState.mTerrainTypeSelected));
 
         if (savedInstanceState != null) {
             // Restore state of the city view
-            mCityView.setFocusCoords(savedInstanceState.getFloat(STATE_FOCUS_ROW), savedInstanceState.getFloat(STATE_FOCUS_COL));
-            mCityView.setScaleFactor(savedInstanceState.getFloat(STATE_SCALE_FACTOR));
-            mCityView.setDrawGridLines(savedInstanceState.getBoolean(STATE_DRAW_GRID_LINES));
+            synchronized (mState) {
+                mState.mFocusRow = savedInstanceState.getFloat(STATE_FOCUS_ROW);
+                mState.mFocusCol = savedInstanceState.getFloat(STATE_FOCUS_COL);
+                mState.setScaleFactor(savedInstanceState.getFloat(STATE_SCALE_FACTOR));
+                mState.mDrawGridLines = savedInstanceState.getBoolean(STATE_DRAW_GRID_LINES);
+            }
         }
     }
 
@@ -100,31 +85,33 @@ public class MainViewActivity extends Activity {
         super.onStart();
         Log.v(TAG, "ON START");
 
-        if (!mCityView.isEverythingAllocated()) {
-            mCityView.setCityModel(mCityModel);
-            mCityView.init();
+        if (!mAllocated) {
+            mCityViewController.init(this, mState);
+            mOverlayController.init(this, mState);
+            mState.mCityModel = mCityModel;
+            mCityView.init(mCityViewController, mState);
+            mAllocated = true;
         }
         mCityView.startDrawThread();
     }
-    
-    
+
     @Override
     protected void onResume() {
         super.onStart();
         Log.v(TAG, "ON RESUME");
     }
-    
+
     @Override
     protected void onPause() {
         super.onStart();
         Log.v(TAG, "ON PAUSE");
     }
-    
+
     @Override
     protected void onStop() {
         super.onStop();
-        Log.v(TAG,"ON STOP");
-        
+        Log.v(TAG, "ON STOP");
+
         mCityView.stopDrawThread();
     }
 
@@ -132,19 +119,23 @@ public class MainViewActivity extends Activity {
     public void onTrimMemory(int level) {
         if (level == TRIM_MEMORY_UI_HIDDEN) {
             Log.v(TAG, "TRIM UI");
-            if (mCityView.isEverythingAllocated()) {
+            if (mAllocated) {
+                mCityViewController.cleanup();
+                mOverlayController.cleanup();
                 mCityView.cleanup();
+                mAllocated = false;
             }
         }
     }
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        // Save the state of the city view
-        savedInstanceState.putFloat(STATE_FOCUS_ROW, mCityView.getFocusRow());
-        savedInstanceState.putFloat(STATE_FOCUS_COL, mCityView.getFocusCol());
-        savedInstanceState.putFloat(STATE_SCALE_FACTOR, mCityView.getScaleFactor());
-        savedInstanceState.putBoolean(STATE_DRAW_GRID_LINES, mCityView.getDrawGridLines());
+        synchronized (mState) {
+            savedInstanceState.putFloat(STATE_FOCUS_ROW, mState.mFocusRow);
+            savedInstanceState.putFloat(STATE_FOCUS_COL, mState.mFocusRow);
+            savedInstanceState.putFloat(STATE_SCALE_FACTOR, mState.getScaleFactor());
+            savedInstanceState.putBoolean(STATE_DRAW_GRID_LINES, mState.mDrawGridLines);
+        }
 
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -154,5 +145,4 @@ public class MainViewActivity extends Activity {
         getMenuInflater().inflate(R.menu.main_view, menu);
         return true;
     }
-
 }

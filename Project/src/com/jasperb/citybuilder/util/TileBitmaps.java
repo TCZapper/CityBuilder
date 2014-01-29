@@ -28,7 +28,7 @@ public class TileBitmaps {
      */
     public static final String TAG = "TileBitmaps";
 
-    private final Bitmap[] mFullBitmaps = new Bitmap[Constant.TERRAIN.count];
+    private static Bitmap[] mFullBitmaps = null;
     private Bitmap[] mScaledBitmaps = new Bitmap[Constant.TERRAIN.count];
 
     /**
@@ -36,22 +36,25 @@ public class TileBitmaps {
      * 
      * @param context
      */
-    public TileBitmaps(Context context) {
-        AssetManager assets = context.getAssets();
-        try {
-            InputStream ims = assets.open("TERRAIN/TileGrass.png");
-            Bitmap tempBitmap = BitmapFactory.decodeStream(ims);
-            mFullBitmaps[TERRAIN.GRASS] = tempBitmap.copy(Config.ARGB_8888, true);
-            ims.close();
+    public static void loadFullBitmaps(Context context) {
+        if (mFullBitmaps == null) {
+            mFullBitmaps = new Bitmap[Constant.TERRAIN.count];
+            AssetManager assets = context.getAssets();
+            try {
+                InputStream ims = assets.open("TERRAIN/TileGrass.png");
+                Bitmap tempBitmap = BitmapFactory.decodeStream(ims);
+                mFullBitmaps[TERRAIN.GRASS] = tempBitmap.copy(Config.ARGB_8888, true);
+                ims.close();
 
-            ims = assets.open("TERRAIN/TileDirt.png");
-            tempBitmap = BitmapFactory.decodeStream(ims);
-            mFullBitmaps[TERRAIN.DIRT] = tempBitmap.copy(Config.ARGB_8888, true);
-            ims.close();
+                ims = assets.open("TERRAIN/TileDirt.png");
+                tempBitmap = BitmapFactory.decodeStream(ims);
+                mFullBitmaps[TERRAIN.DIRT] = tempBitmap.copy(Config.ARGB_8888, true);
+                ims.close();
 
-            Log.d(TAG, "DONE LOADING");
-        } catch (IOException ex) {
-            Log.e(TAG, ex.toString());
+                Log.d(TAG, "DONE LOADING");
+            } catch (IOException ex) {
+                Log.e(TAG, ex.toString());
+            }
         }
     }
 
@@ -64,7 +67,7 @@ public class TileBitmaps {
      */
     public void remakeBitmaps(CityViewState state) {
         Log.v(TAG, "REMAKE BITMAPS");
-        
+
         if (state.mDrawGridLines) {
             Canvas canvas = new Canvas();
             Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -93,8 +96,8 @@ public class TileBitmaps {
     public Bitmap getBitmap(int terrain) {
         return mScaledBitmaps[terrain];
     }
-    
-    public Bitmap getFullBitmap(int terrain) {
+
+    public static Bitmap getFullBitmap(int terrain) {
         return mFullBitmaps[terrain];
     }
 }

@@ -1,4 +1,6 @@
-<merge xmlns:android="http://schemas.android.com/apk/res/android" >
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
 
     <com.jasperb.citybuilder.view.CityView
         android:id="@+id/City"
@@ -26,9 +28,27 @@
     <LinearLayout
         android:id="@+id/TerrainTools"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_gravity="right"
-        android:orientation="vertical" >
+        android:orientation="horizontal" >
+
+        <ImageView
+            android:id="@+id/SelectButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:clickable="true"
+            android:src="@drawable/select_unpressed" />
+
+        <ImageView
+            android:id="@+id/PaintButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:clickable="true"
+            android:src="@drawable/pencil_unpressed" />
 
         <FrameLayout
             android:id="@+id/TileStyleButton"
@@ -42,32 +62,106 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:src="@drawable/blank_unpressed" />
-            
+
             <ImageView
                 android:id="@+id/TileStyleIcon"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_margin="2dp" />
-
         </FrameLayout>
-
-        <ImageView
-            android:id="@+id/PaintButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginRight="5dp"
-            android:layout_marginTop="5dp"
-            android:clickable="true"
-            android:src="@drawable/pencil_unpressed" />
-
-        <ImageView
-            android:id="@+id/SelectButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginRight="5dp"
-            android:layout_marginTop="5dp"
-            android:clickable="true"
-            android:src="@drawable/select_unpressed" />
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/GeneralTools"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:orientation="horizontal" >
+
+        <ImageView
+            android:id="@+id/OkButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="5dp"
+            android:clickable="true"
+            android:src="@drawable/ok" />
+
+        <ImageView
+            android:id="@+id/CancelButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="5dp"
+            android:clickable="true"
+            android:src="@drawable/cancel" />
+
+        <ImageView
+            android:id="@+id/UndoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="5dp"
+            android:clickable="true"
+            android:src="@drawable/refresh" />
+
+        <ImageView
+            android:id="@+id/RedoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="5dp"
+            android:clickable="true"
+            android:src="@drawable/gears" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/MoveButtons"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <ImageView
+            android:id="@+id/LeftButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="5dp"
+            android:clickable="true"
+            android:src="@drawable/leftmove" />
+
+        <ImageView
+            android:id="@+id/UpButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="5dp"
+            android:clickable="true"
+            android:src="@drawable/upmove" />
+
+        <ImageView
+            android:id="@+id/DownButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="5dp"
+            android:adjustViewBounds="true"
+            android:clickable="true"
+            android:src="@drawable/downmove" />
+
+        <ImageView
+            android:id="@+id/RightButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="5dp"
+            android:adjustViewBounds="true"
+            android:clickable="true"
+            android:src="@drawable/rightmove" />
+
+    </RelativeLayout>
 
 </merge>

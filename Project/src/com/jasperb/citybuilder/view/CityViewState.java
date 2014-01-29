@@ -1,8 +1,14 @@
 package com.jasperb.citybuilder.view;
 
+import java.util.LinkedList;
+
+import android.widget.OverScroller;
+
 import com.jasperb.citybuilder.CityModel;
 import com.jasperb.citybuilder.util.Constant;
+import com.jasperb.citybuilder.util.TerrainEdit;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
+import com.jasperb.citybuilder.util.Constant.TERRAIN;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
 
 /**
@@ -10,15 +16,22 @@ import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
  * 
  */
 public class CityViewState {
+    // Thread safe member variables (read from and written to by multiple threads)
     public float mFocusRow = 0, mFocusCol = 0;
+    public OverScroller mScroller = null;
+    private LinkedList<TerrainEdit> mTerrainEdits = new LinkedList<TerrainEdit>();
+
+    // Thread safe member variables (read from by multiple threads, but only written to by UI thread)
     public int mWidth = 0, mHeight = 0;
     private float mScaleFactor;
     private int mTileWidth;
     private int mTileHeight;
     public CityModel mCityModel = null;
     public boolean mDrawGridLines = true;
+    public int mTerrainTypeSelected = TERRAIN.GRASS;
     public int mMode = CITY_VIEW_MODES.VIEW;
     public int mTool = TERRAIN_TOOLS.BRUSH;
+    public boolean mInputActive = false;
 
     public CityViewState() {
         setScaleFactor(Constant.MAXIMUM_SCALE_FACTOR);
@@ -40,6 +53,57 @@ public class CityViewState {
         mDrawGridLines = state.mDrawGridLines;
         mMode = state.mMode;
         mTool = state.mTool;
+    }
+
+    /**
+     * Updates the CityView's state and then copies the state into the passed argument
+     * 
+     * @param to
+     *            the object to copy the state into
+     */
+    protected void updateThenCopyState(CityViewState to) {
+        // The purpose of this method is to be used by the draw thread to update the CityView's state and then retrieve that state
+        // This lets us easily continuously update the CityView's state and keep the update rate synced with the FPS of the draw thread
+        synchronized (this) {
+            //Process all of the terrain edits since our last update
+            for (TerrainEdit edit : mTerrainEdits)
+                edit.setTerrain(this);
+            mTerrainEdits.clear();
+
+            if (mScroller == null)// Happens if cleanup was called but the draw thread is still active
+                return;
+
+            // Update the focus based off an active scroller
+            // Or if the user input is not active and we are out of bounds, create a new scroller to put us in bounds
+            if (!mScroller.isFinished()) {
+                mScroller.computeScrollOffset();
+                mFocusRow = mScroller.getCurrX() / Constant.TILE_WIDTH;
+                mFocusCol = mScroller.getCurrY() / Constant.TILE_WIDTH;
+            } else if (!mInputActive && !isTileValid(mFocusRow, mFocusCol)) {
+                int startRow = Math.round(mFocusRow * Constant.TILE_WIDTH);
+                int startCol = Math.round(mFocusCol * Constant.TILE_WIDTH);
+                int endRow = startRow;
+                int endCol = startCol;
+
+                if (mFocusRow < 0) {
+                    endRow = 0;
+                } else if (mFocusRow >= mCityModel.getHeight()) {
+                    endRow = mCityModel.getHeight() * Constant.TILE_WIDTH - 1;
+                }
+                if (mFocusCol < 0) {
+                    endCol = 0;
+                } else if (mFocusCol >= mCityModel.getWidth()) {
+                    endCol = mCityModel.getWidth() * Constant.TILE_WIDTH - 1;
+                }
+                mScroller.startScroll(startRow, startCol, endRow - startRow, endCol - startCol, Constant.FOCUS_CONSTRAIN_TIME);
+            }
+
+            to.copyFrom(this);
+        }
+    }
+
+    public void addTerrainEdit(TerrainEdit edit) {
+        mTerrainEdits.add(edit);
     }
 
     /**
@@ -168,11 +232,11 @@ public class CityViewState {
                 || x + mTileWidth / 2 < 0
                 || x - mTileWidth / 2 >= mWidth);
     }
-    
+
     public int getOriginX() {
         return mWidth / 2 - isoToRealXDownscaling(mFocusRow, mFocusCol);
     }
-    
+
     public int getOriginY() {
         return mHeight / 2 - isoToRealYDownscaling(mFocusRow, mFocusCol);
     }
