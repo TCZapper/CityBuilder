@@ -6,10 +6,10 @@ import android.widget.OverScroller;
 
 import com.jasperb.citybuilder.CityModel;
 import com.jasperb.citybuilder.util.Constant;
-import com.jasperb.citybuilder.util.TerrainEdit;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
+import com.jasperb.citybuilder.util.TerrainEdit;
 
 /**
  * @author Jasper
@@ -239,5 +239,14 @@ public class CityViewState {
 
     public int getOriginY() {
         return mHeight / 2 - isoToRealYDownscaling(mFocusRow, mFocusCol);
+    }
+
+    public void forceStopScroller() {
+        if (!mScroller.isFinished()) {
+            mScroller.computeScrollOffset();//compute current offset before forcing finish
+            mFocusRow = mScroller.getCurrX() / Constant.TILE_WIDTH;
+            mFocusCol = mScroller.getCurrY() / Constant.TILE_WIDTH;
+            mScroller.forceFinished(true);
+        }
     }
 }

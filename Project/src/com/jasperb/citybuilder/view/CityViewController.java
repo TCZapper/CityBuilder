@@ -107,12 +107,7 @@ public class CityViewController {
         @Override
         public boolean onDown(MotionEvent e) {
             synchronized (mState) {
-                if (!mState.mScroller.isFinished()) {
-                    mState.mScroller.computeScrollOffset();//compute current offset before forcing finish
-                    mState.mFocusRow = mState.mScroller.getCurrX() / Constant.TILE_WIDTH;
-                    mState.mFocusCol = mState.mScroller.getCurrY() / Constant.TILE_WIDTH;
-                    mState.mScroller.forceFinished(true);
-                }
+                mState.forceStopScroller();
             }
             return true;
         }

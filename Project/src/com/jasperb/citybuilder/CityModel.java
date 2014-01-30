@@ -45,7 +45,7 @@ public class CityModel {
         mTerrainMap = new byte[mHeight][mWidth];
         for (int row = 0; row < mHeight; row++) {
             for (int col = 0; col < mWidth; col++) {
-                if ((row + col) % 4 < 2 || row % 2 == 0) {
+                if ((row + col) % 8 < 4 || row % 20 == 0) {
                     mTerrainMap[row][col] = TERRAIN.GRASS;
                 } else {
                     mTerrainMap[row][col] = TERRAIN.DIRT;

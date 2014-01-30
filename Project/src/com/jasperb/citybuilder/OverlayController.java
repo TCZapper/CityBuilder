@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
@@ -88,7 +89,8 @@ public class OverlayController {
                         mState.mMode = CITY_VIEW_MODES.EDIT_TERRAIN;
                     }
                     mTerrainTools.setVisibility(View.VISIBLE);
-                    mMoveButtons.setVisibility(View.VISIBLE);
+                    if (mState.mTool == TERRAIN_TOOLS.BRUSH)
+                        mMoveButtons.setVisibility(View.VISIBLE);
                 }
             } else if (v.equals(mTileStyleButton)) {
                 int terrain = mState.mTerrainTypeSelected + 1;
@@ -117,24 +119,64 @@ public class OverlayController {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             if (v.equals(mLeftButton)) {
-                synchronized (mState) {
-                    mState.mFocusRow++;
-                    mState.mFocusCol--;
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    synchronized (mState) {
+                        float min = Math.min(mState.mCityModel.getHeight() - mState.mFocusRow, mState.mFocusCol);
+                        int duration = (int) min * Constant.MOVE_BUTTON_DURATION;
+                        mState.mScroller.startScroll((int) mState.mFocusRow * Constant.TILE_WIDTH, (int) mState.mFocusCol
+                                * Constant.TILE_WIDTH,
+                                (int) (min) * Constant.TILE_WIDTH, (int) (-min) * Constant.TILE_WIDTH,
+                                duration);
+                    }
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    synchronized (mState) {
+                        mState.forceStopScroller();
+                    }
                 }
             } else if (v.equals(mUpButton)) {
-                synchronized (mState) {
-                    mState.mFocusRow--;
-                    mState.mFocusCol--;
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    synchronized (mState) {
+                        float min = Math.min(mState.mFocusRow, mState.mFocusCol);
+                        int duration = (int) min * Constant.MOVE_BUTTON_DURATION;
+                        mState.mScroller.startScroll((int) mState.mFocusRow * Constant.TILE_WIDTH, (int) mState.mFocusCol
+                                * Constant.TILE_WIDTH,
+                                (int) (-min) * Constant.TILE_WIDTH, (int) (-min) * Constant.TILE_WIDTH,
+                                duration);
+                    }
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    synchronized (mState) {
+                        mState.forceStopScroller();
+                    }
                 }
             } else if (v.equals(mDownButton)) {
-                synchronized (mState) {
-                    mState.mFocusRow++;
-                    mState.mFocusCol++;
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    synchronized (mState) {
+                        float min = Math.min(mState.mCityModel.getHeight() - mState.mFocusRow, mState.mCityModel.getWidth() - mState.mFocusCol);
+                        int duration = (int) min * Constant.MOVE_BUTTON_DURATION;
+                        mState.mScroller.startScroll((int) mState.mFocusRow * Constant.TILE_WIDTH, (int) mState.mFocusCol
+                                * Constant.TILE_WIDTH,
+                                (int) (min) * Constant.TILE_WIDTH, (int) (min) * Constant.TILE_WIDTH,
+                                duration);
+                    }
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    synchronized (mState) {
+                        mState.forceStopScroller();
+                    }
                 }
             } else if (v.equals(mRightButton)) {
-                synchronized (mState) {
-                    mState.mFocusRow--;
-                    mState.mFocusCol++;
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    synchronized (mState) {
+                        float min = Math.min(mState.mFocusRow, mState.mCityModel.getWidth() - mState.mFocusCol);
+                        int duration = (int) min * Constant.MOVE_BUTTON_DURATION;
+                        mState.mScroller.startScroll((int) mState.mFocusRow * Constant.TILE_WIDTH, (int) mState.mFocusCol
+                                * Constant.TILE_WIDTH,
+                                (int) (-min) * Constant.TILE_WIDTH, (int) (min) * Constant.TILE_WIDTH,
+                                duration);
+                    }
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    synchronized (mState) {
+                        mState.forceStopScroller();
+                    }
                 }
             }
             return false;

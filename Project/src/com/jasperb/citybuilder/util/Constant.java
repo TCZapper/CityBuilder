@@ -34,6 +34,16 @@ public class Constant {
     public static final float FLING_FRICTION = 0.05f;
     
     /**
+     * Friction to be applied when flinging. Larger values correspond to more friction.
+     */
+    public static final int MOVE_BUTTON_DURATION = 35;
+    
+    /**
+     * Friction to be applied when flinging. Larger values correspond to more friction.
+     */
+    public static final float INTERPOLATE_ACCELERATION = 0.8f;
+    
+    /**
      * Time it takes to constrain the focus within the valid range when the focus is outside of that range
      */
     public static final int FOCUS_CONSTRAIN_TIME = 500;
