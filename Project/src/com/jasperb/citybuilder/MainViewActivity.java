@@ -71,6 +71,11 @@ public class MainViewActivity extends Activity {
         mOverlayController.mDownButton = (ImageView) findViewById(R.id.DownButton);
         mOverlayController.mRightButton = (ImageView) findViewById(R.id.RightButton);
         mOverlayController.mMoveButtons = (RelativeLayout) findViewById(R.id.MoveButtons);
+        
+        mOverlayController.mAcceptButton = (ImageView) findViewById(R.id.AcceptButton);
+        mOverlayController.mCancelButton = (ImageView) findViewById(R.id.CancelButton);
+        mOverlayController.mUndoButton = (ImageView) findViewById(R.id.UndoButton);
+        mOverlayController.mRedoButton = (ImageView) findViewById(R.id.RedoButton);
 
         mOverlayController.mTerrainTools.setVisibility(View.GONE);
         mOverlayController.mMoveButtons.setVisibility(View.GONE);

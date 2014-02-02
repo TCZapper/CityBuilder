@@ -41,6 +41,7 @@ public class OverlayController {
     public ImageView mPaintButton, mSelectButton, mTileSyleIcon;
     public ImageView mBrushSquare1x1, mBrushSquare3x3, mBrushSquare5x5;
     public ImageView mLeftButton, mUpButton, mDownButton, mRightButton;
+    public ImageView mAcceptButton, mCancelButton, mUndoButton, mRedoButton;
     public FrameLayout mTileStyleButton;
     public RelativeLayout mMoveButtons;
     public LinearLayout mTerrainTools, mBrushTools;
@@ -60,6 +61,10 @@ public class OverlayController {
         mBrushSquare1x1.setOnClickListener(mClickListener);
         mBrushSquare3x3.setOnClickListener(mClickListener);
         mBrushSquare5x5.setOnClickListener(mClickListener);
+        mAcceptButton.setOnClickListener(mClickListener);
+        mCancelButton.setOnClickListener(mClickListener);
+        mUndoButton.setOnClickListener(mClickListener);
+        mRedoButton.setOnClickListener(mClickListener);
 
         mTouchListener = new MainViewTouchListener();
         mLeftButton.setOnTouchListener(mTouchListener);
@@ -116,8 +121,7 @@ public class OverlayController {
                 synchronized (mState) {
                     mState.mTool = TERRAIN_TOOLS.SELECT;
                     mMoveButtons.setVisibility(View.GONE);
-                    mState.resetFirstSelectedTile();
-                    mState.resetSecondSelectedTile();
+                    mState.resetSelectTool();
                 }
             } else if (v.equals(mBrushSquare1x1)) {
                 synchronized (mState) {
@@ -131,6 +135,15 @@ public class OverlayController {
                 synchronized (mState) {
                     mState.mBrushType = BRUSH_TYPES.SQUARE5X5;
                 }
+            } else if (v.equals(mAcceptButton)) {
+                mState.addSelectedTerrainEdit();
+                mState.resetSelectTool();
+            } else if (v.equals(mCancelButton)) {
+                mState.resetSelectTool();
+            } else if (v.equals(mUndoButton)) {
+
+            } else if (v.equals(mRedoButton)) {
+
             }
         }
     };

@@ -34,6 +34,7 @@ public class CityViewState {
     public int mTool = TERRAIN_TOOLS.BRUSH;
     public int mBrushType = BRUSH_TYPES.SQUARE1X1;
     public int mFirstSelectedRow = -1, mFirstSelectedCol = -1, mSecondSelectedRow = -1, mSecondSelectedCol = -1;
+    public boolean mSelectingFirstTile = true;
     public boolean mInputActive = false;
 
     public CityViewState() {
@@ -60,6 +61,7 @@ public class CityViewState {
         mFirstSelectedCol = state.mFirstSelectedCol;
         mSecondSelectedRow = state.mSecondSelectedRow;
         mSecondSelectedCol = state.mSecondSelectedCol;
+        mSelectingFirstTile = state.mSelectingFirstTile;
     }
 
     /**
@@ -113,6 +115,25 @@ public class CityViewState {
 
     public void addTerrainEdit(TerrainEdit edit) {
         mTerrainEdits.add(edit);
+    }
+    
+    public void addSelectedTerrainEdit() {
+        int minRow, maxRow, minCol, maxCol;
+        if(mFirstSelectedRow < mSecondSelectedRow) {
+            minRow = mFirstSelectedRow;
+            maxRow = mSecondSelectedRow;
+        } else {
+            minRow = mSecondSelectedRow;
+            maxRow = mFirstSelectedRow;
+        }
+        if(mFirstSelectedCol < mSecondSelectedCol) {
+            minCol = mFirstSelectedCol;
+            maxCol = mSecondSelectedCol;
+        } else {
+            minCol = mSecondSelectedCol;
+            maxCol = mFirstSelectedCol;
+        }
+        mTerrainEdits.add(new TerrainEdit(minRow, minCol, maxRow, maxCol, mTerrainTypeSelected));
     }
 
     /**
@@ -267,5 +288,11 @@ public class CityViewState {
     public void resetSecondSelectedTile() {
         mSecondSelectedRow = -1;
         mSecondSelectedCol = -1;
+    }
+    
+    public void resetSelectTool() {
+        resetFirstSelectedTile();
+        resetSecondSelectedTile();
+        mSelectingFirstTile = true;
     }
 }

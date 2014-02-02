@@ -66,14 +66,42 @@ public class CityViewController {
         // Let the GestureDetectors interpret this event
         boolean result = mPanDetector.onTouchEvent(event);
         mScaleDetector.onTouchEvent(event);
-        if (!result) {
-            if (event.getAction() == MotionEvent.ACTION_UP && mInputClick) {
-                Log.d(TAG, "RELEASE");
-                if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN) {
-                    if (mState.mTool == TERRAIN_TOOLS.BRUSH) {
-                        paintWithBrush(event);
-                    } else if (mState.mTool == TERRAIN_TOOLS.SELECT) {
-
+        if (!result && event.getAction() == MotionEvent.ACTION_UP && mInputClick) {
+            Log.d(TAG, "RELEASE");
+            if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN) {
+                if (mState.mTool == TERRAIN_TOOLS.BRUSH) {
+                    paintWithBrush(event);
+                } else if (mState.mTool == TERRAIN_TOOLS.SELECT) {
+                    synchronized (mState) {
+                        int posX = (int) event.getX() - mState.getOriginX();
+                        int posY = (int) event.getY() - mState.getOriginY();
+                        int row = (int) mState.realToIsoRowUpscaling(posX, posY);
+                        int col = (int) mState.realToIsoColUpscaling(posX, posY);
+                        if (row == mState.mFirstSelectedRow && col == mState.mFirstSelectedCol) {
+                            mState.mSelectingFirstTile = true;
+                        } else if (row == mState.mSecondSelectedRow && col == mState.mSecondSelectedCol) {
+                            mState.mSelectingFirstTile = false;
+                        } else if (row == mState.mFirstSelectedRow && col == mState.mSecondSelectedCol) {
+                            int temp = mState.mFirstSelectedRow;
+                            mState.mFirstSelectedRow = mState.mSecondSelectedRow;
+                            mState.mSecondSelectedRow = temp;
+                            mState.mSelectingFirstTile = false;
+                        } else if (row == mState.mSecondSelectedRow && col == mState.mFirstSelectedCol) {
+                            int temp = mState.mFirstSelectedRow;
+                            mState.mFirstSelectedRow = mState.mSecondSelectedRow;
+                            mState.mSecondSelectedRow = temp;
+                            mState.mSelectingFirstTile = true;
+                        } else {
+                            if (mState.mSelectingFirstTile) {
+                                mState.mFirstSelectedRow = row;
+                                mState.mFirstSelectedCol = col;
+                                if (mState.mSecondSelectedRow == -1)
+                                    mState.mSelectingFirstTile = false;
+                            } else {
+                                mState.mSecondSelectedRow = row;
+                                mState.mSecondSelectedCol = col;
+                            }
+                        }
                     }
                 }
             }
