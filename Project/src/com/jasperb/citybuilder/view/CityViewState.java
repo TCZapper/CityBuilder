@@ -6,6 +6,7 @@ import android.widget.OverScroller;
 
 import com.jasperb.citybuilder.CityModel;
 import com.jasperb.citybuilder.util.Constant;
+import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
@@ -31,6 +32,8 @@ public class CityViewState {
     public int mTerrainTypeSelected = TERRAIN.GRASS;
     public int mMode = CITY_VIEW_MODES.VIEW;
     public int mTool = TERRAIN_TOOLS.BRUSH;
+    public int mBrushType = BRUSH_TYPES.SQUARE1X1;
+    public int mFirstSelectedRow = -1, mFirstSelectedCol = -1, mSecondSelectedRow = -1, mSecondSelectedCol = -1;
     public boolean mInputActive = false;
 
     public CityViewState() {
@@ -53,6 +56,10 @@ public class CityViewState {
         mDrawGridLines = state.mDrawGridLines;
         mMode = state.mMode;
         mTool = state.mTool;
+        mFirstSelectedRow = state.mFirstSelectedRow;
+        mFirstSelectedCol = state.mFirstSelectedCol;
+        mSecondSelectedRow = state.mSecondSelectedRow;
+        mSecondSelectedCol = state.mSecondSelectedCol;
     }
 
     /**
@@ -66,8 +73,10 @@ public class CityViewState {
         // This lets us easily continuously update the CityView's state and keep the update rate synced with the FPS of the draw thread
         synchronized (this) {
             //Process all of the terrain edits since our last update
-            for (TerrainEdit edit : mTerrainEdits)
-                edit.setTerrain(this);
+            synchronized (mCityModel) {
+                for (TerrainEdit edit : mTerrainEdits)
+                    edit.setTerrain(mCityModel);
+            }
             mTerrainEdits.clear();
 
             if (mScroller == null)// Happens if cleanup was called but the draw thread is still active
@@ -248,5 +257,15 @@ public class CityViewState {
             mFocusCol = mScroller.getCurrY() / Constant.TILE_WIDTH;
             mScroller.forceFinished(true);
         }
+    }
+    
+    public void resetFirstSelectedTile() {
+        mFirstSelectedRow = -1;
+        mFirstSelectedCol = -1;
+    }
+    
+    public void resetSecondSelectedTile() {
+        mSecondSelectedRow = -1;
+        mSecondSelectedCol = -1;
     }
 }

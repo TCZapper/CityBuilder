@@ -10,6 +10,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
 import com.jasperb.citybuilder.util.Constant;
+import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
 import com.jasperb.citybuilder.util.TerrainEdit;
@@ -68,20 +69,58 @@ public class CityViewController {
         if (!result) {
             if (event.getAction() == MotionEvent.ACTION_UP && mInputClick) {
                 Log.d(TAG, "RELEASE");
-                if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.mTool == TERRAIN_TOOLS.BRUSH) {
-                    synchronized (mState) {
-                        int posX = (int) event.getX() - mState.getOriginX();
-                        int posY = (int) event.getY() - mState.getOriginY();
-                        int row = (int) mState.realToIsoRowUpscaling(posX, posY);
-                        int col = (int) mState.realToIsoColUpscaling(posX, posY);
-                        if (mState.isTileValid(row, col)) {
-                            mState.addTerrainEdit(new TerrainEdit(row, col, mState.mTerrainTypeSelected));
-                        }
+                if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN) {
+                    if (mState.mTool == TERRAIN_TOOLS.BRUSH) {
+                        paintWithBrush(event);
+                    } else if (mState.mTool == TERRAIN_TOOLS.SELECT) {
+
                     }
                 }
             }
         }
         return result;
+    }
+
+    private void paintWithBrush(MotionEvent event) {
+        synchronized (mState) {
+            int posX = (int) event.getX() - mState.getOriginX();
+            int posY = (int) event.getY() - mState.getOriginY();
+            int row = (int) mState.realToIsoRowUpscaling(posX, posY);
+            int col = (int) mState.realToIsoColUpscaling(posX, posY);
+            if (mState.isTileValid(row, col)) {
+                if (mState.mBrushType == BRUSH_TYPES.SQUARE1X1) {
+                    mState.addTerrainEdit(new TerrainEdit(row, col, mState.mTerrainTypeSelected));
+                } else if (mState.mBrushType == BRUSH_TYPES.SQUARE3X3) {
+                    int minRow = row - 1;
+                    if (minRow < 0)
+                        minRow = 0;
+                    int minCol = col - 1;
+                    if (minCol < 0)
+                        minCol = 0;
+                    int maxRow = row + 1;
+                    if (maxRow > mState.mCityModel.getHeight())
+                        maxRow = 0;
+                    int maxCol = col + 1;
+                    if (maxCol > mState.mCityModel.getWidth())
+                        maxCol = 0;
+                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mTerrainTypeSelected));
+                } else if (mState.mBrushType == BRUSH_TYPES.SQUARE5X5) {
+                    int minRow = row - 2;
+                    if (minRow < 0)
+                        minRow = 0;
+                    int minCol = col - 2;
+                    if (minCol < 0)
+                        minCol = 0;
+                    int maxRow = row + 2;
+                    if (maxRow > mState.mCityModel.getHeight())
+                        maxRow = 0;
+                    int maxCol = col + 2;
+                    if (maxCol > mState.mCityModel.getWidth())
+                        maxCol = 0;
+                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mTerrainTypeSelected));
+                }
+            }
+        }
     }
 
     /**
@@ -127,15 +166,7 @@ public class CityViewController {
                     }
                 } else {
 //                    Log.d(TAG,"SCROLL: " + e1.getX() + " : " + e1.getY() + " --- " + e2.getX() + " : " + e2.getY() + " --- " + distanceX + " : " + distanceY);
-                    synchronized (mState) {
-                        int posX = (int) e2.getX() - mState.getOriginX();
-                        int posY = (int) e2.getY() - mState.getOriginY();
-                        int row = (int) mState.realToIsoRowUpscaling(posX, posY);
-                        int col = (int) mState.realToIsoColUpscaling(posX, posY);
-                        if (mState.isTileValid(row, col)) {
-                            mState.addTerrainEdit(new TerrainEdit(row, col, mState.mTerrainTypeSelected));
-                        }
-                    }
+                    paintWithBrush(e2);
                 }
                 return true;
             } else {

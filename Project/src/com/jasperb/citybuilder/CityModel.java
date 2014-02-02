@@ -20,18 +20,12 @@ public class CityModel {
     private int mWidth, mHeight;
     private byte[][] mTerrainMap;
 
-    private final Object mModelLock = new Object();
-
     public int getWidth() {
         return mWidth;
     }
 
     public int getHeight() {
         return mHeight;
-    }
-    
-    public Object getModelLock() {
-        return mModelLock;
     }
 
     @SuppressWarnings("unused")
@@ -62,20 +56,18 @@ public class CityModel {
      * @return the type of tile at the specified location
      */
     public byte getTerrain(int row, int col) {
-        synchronized (mModelLock) {
+        synchronized (this) {
             return mTerrainMap[row][col];
         }
     }
-    
+
     public void setTerrain(int startRow, int startCol, int endRow, int endCol, int terrain) {
-        synchronized (mModelLock) {
-            mTerrainMap[startRow][startCol] = (byte)terrain;
-        }
+        for(int row = startRow; row <= endRow; row++)
+            for(int col = startCol; col <= endCol; col++)
+                mTerrainMap[row][col] = (byte) terrain;
     }
-    
+
     public void setTerrain(int row, int col, int terrain) {
-        synchronized (mModelLock) {
-            mTerrainMap[row][col] = (byte)terrain;
-        }
+        mTerrainMap[row][col] = (byte) terrain;
     }
 }

@@ -3,7 +3,7 @@
  */
 package com.jasperb.citybuilder.util;
 
-import com.jasperb.citybuilder.view.CityViewState;
+import com.jasperb.citybuilder.CityModel;
 
 /**
  * @author Jasper
@@ -32,11 +32,11 @@ public class TerrainEdit {
         mTerrain = terrain;
     }
     
-    public void setTerrain(CityViewState state) {
+    public void setTerrain(CityModel model) {
         if(mStartRow == mEndRow && mStartCol == mEndCol) {
-            state.mCityModel.setTerrain(mStartRow, mStartCol, mTerrain);
+            model.setTerrain(mStartRow, mStartCol, mTerrain);
         } else {
-            state.mCityModel.setTerrain(mStartRow, mStartCol, mEndRow, mEndCol, mTerrain);
+            model.setTerrain(mStartRow, mStartCol, mEndRow, mEndCol, mTerrain);
         }
     }
 }

@@ -14,6 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.jasperb.citybuilder.util.Constant;
+import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
@@ -36,11 +37,13 @@ public class OverlayController {
     private MainViewTouchListener mTouchListener = null;
 
     //Main View buttons and layouts
-    public ImageView mGridButton, mTerrainButton, mPaintButton, mSelectButton, mTileSyleIcon;
+    public ImageView mGridButton, mTerrainButton;
+    public ImageView mPaintButton, mSelectButton, mTileSyleIcon;
+    public ImageView mBrushSquare1x1, mBrushSquare3x3, mBrushSquare5x5;
     public ImageView mLeftButton, mUpButton, mDownButton, mRightButton;
     public FrameLayout mTileStyleButton;
     public RelativeLayout mMoveButtons;
-    public LinearLayout mTerrainTools;
+    public LinearLayout mTerrainTools, mBrushTools;
 
     /**
      * Initialize and allocate the necessary components of the view, except those related to the drawing thread
@@ -54,6 +57,9 @@ public class OverlayController {
         mTileStyleButton.setOnClickListener(mClickListener);
         mPaintButton.setOnClickListener(mClickListener);
         mSelectButton.setOnClickListener(mClickListener);
+        mBrushSquare1x1.setOnClickListener(mClickListener);
+        mBrushSquare3x3.setOnClickListener(mClickListener);
+        mBrushSquare5x5.setOnClickListener(mClickListener);
 
         mTouchListener = new MainViewTouchListener();
         mLeftButton.setOnTouchListener(mTouchListener);
@@ -110,6 +116,20 @@ public class OverlayController {
                 synchronized (mState) {
                     mState.mTool = TERRAIN_TOOLS.SELECT;
                     mMoveButtons.setVisibility(View.GONE);
+                    mState.resetFirstSelectedTile();
+                    mState.resetSecondSelectedTile();
+                }
+            } else if (v.equals(mBrushSquare1x1)) {
+                synchronized (mState) {
+                    mState.mBrushType = BRUSH_TYPES.SQUARE1X1;
+                }
+            } else if (v.equals(mBrushSquare3x3)) {
+                synchronized (mState) {
+                    mState.mBrushType = BRUSH_TYPES.SQUARE3X3;
+                }
+            } else if (v.equals(mBrushSquare5x5)) {
+                synchronized (mState) {
+                    mState.mBrushType = BRUSH_TYPES.SQUARE5X5;
                 }
             }
         }
@@ -151,7 +171,8 @@ public class OverlayController {
             } else if (v.equals(mDownButton)) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     synchronized (mState) {
-                        float min = Math.min(mState.mCityModel.getHeight() - mState.mFocusRow, mState.mCityModel.getWidth() - mState.mFocusCol);
+                        float min = Math.min(mState.mCityModel.getHeight() - mState.mFocusRow, mState.mCityModel.getWidth()
+                                - mState.mFocusCol);
                         int duration = (int) min * Constant.MOVE_BUTTON_DURATION;
                         mState.mScroller.startScroll((int) mState.mFocusRow * Constant.TILE_WIDTH, (int) mState.mFocusCol
                                 * Constant.TILE_WIDTH,

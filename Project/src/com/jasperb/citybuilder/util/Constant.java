@@ -74,4 +74,8 @@ public class Constant {
     public static class TERRAIN_TOOLS {
         public static final int BRUSH = 0, SELECT = 1;
     }
+    
+    public static class BRUSH_TYPES {
+        public static final int SQUARE1X1 = 0, SQUARE3X3 = 1, SQUARE5X5 = 2;
+    }
 }

@@ -78,12 +78,10 @@ public class DrawThread extends Thread {
                         if (oldTileHeight != mMyState.getTileHeight() || oldDrawGridLines != mMyState.mDrawGridLines) {
                             mTileBitmaps.remakeBitmaps(mMyState);
                         }
-                        // Log.d(TAG,"DRAW AT: " + mState.mFocusRow + " : " + mState.mFocusRow);
+                        // Log.v(TAG,"DRAW AT: " + mState.mFocusRow + " : " + mState.mFocusRow);
                         synchronized (mSurfaceHolder) {
                             if (mRun) {
-                                synchronized (mMyState.mCityModel.getModelLock()) {
-                                    drawGround(c);
-                                }
+                                drawGround(c);
                             }
                         }
                     }

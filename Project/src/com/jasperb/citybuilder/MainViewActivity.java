@@ -55,12 +55,16 @@ public class MainViewActivity extends Activity {
         mOverlayController.mGridButton = (ImageView) findViewById(R.id.GridButton);
         mOverlayController.mTerrainButton = (ImageView) findViewById(R.id.TerrainButton);
 
+        mOverlayController.mTerrainTools = (LinearLayout) findViewById(R.id.TerrainTools);
         mOverlayController.mTileStyleButton = (FrameLayout) findViewById(R.id.TileStyleButton);
         mOverlayController.mPaintButton = (ImageView) findViewById(R.id.PaintButton);
         mOverlayController.mSelectButton = (ImageView) findViewById(R.id.SelectButton);
         mOverlayController.mTileSyleIcon = (ImageView) findViewById(R.id.TileStyleIcon);
 
-        mOverlayController.mTerrainTools = (LinearLayout) findViewById(R.id.TerrainTools);
+        mOverlayController.mBrushTools = (LinearLayout) findViewById(R.id.BrushTools);
+        mOverlayController.mBrushSquare1x1 = (ImageView) findViewById(R.id.Brush1x1);
+        mOverlayController.mBrushSquare3x3 = (ImageView) findViewById(R.id.Brush3x3);
+        mOverlayController.mBrushSquare5x5 = (ImageView) findViewById(R.id.Brush5x5);
 
         mOverlayController.mLeftButton = (ImageView) findViewById(R.id.LeftButton);
         mOverlayController.mUpButton = (ImageView) findViewById(R.id.UpButton);
@@ -70,6 +74,7 @@ public class MainViewActivity extends Activity {
 
         mOverlayController.mTerrainTools.setVisibility(View.GONE);
         mOverlayController.mMoveButtons.setVisibility(View.GONE);
+
         mOverlayController.mTileSyleIcon.setImageBitmap(TileBitmaps.getFullBitmap(mState.mTerrainTypeSelected));
 
         if (savedInstanceState != null) {
