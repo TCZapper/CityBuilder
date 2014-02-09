@@ -18,6 +18,7 @@ import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
+import com.jasperb.citybuilder.util.Observer;
 import com.jasperb.citybuilder.util.TileBitmaps;
 import com.jasperb.citybuilder.view.CityViewState;
 
@@ -25,7 +26,7 @@ import com.jasperb.citybuilder.view.CityViewState;
  * @author Jasper
  * 
  */
-public class OverlayController {
+public class OverlayController implements Observer {
     /**
      * String used for identifying this class.
      */
@@ -44,7 +45,7 @@ public class OverlayController {
     public ImageView mAcceptButton, mCancelButton, mUndoButton, mRedoButton;
     public FrameLayout mTileStyleButton;
     public RelativeLayout mMoveButtons;
-    public LinearLayout mTerrainTools, mBrushTools;
+    public LinearLayout mTerrainTools, mBrushTools, mGeneralTools;
 
     /**
      * Initialize and allocate the necessary components of the view, except those related to the drawing thread
@@ -77,10 +78,15 @@ public class OverlayController {
      * Cleanup the components of the view allocated by init()
      */
     public void cleanup() {
+        //It's not really worth the effort removing the listeners properly
         mClickListener = null;
         mTouchListener = null;
+        mState = null;
     }
 
+    /**
+     * Handles click events on the overlay
+     */
     private class MainViewClickListener implements OnClickListener {
         @Override
         public void onClick(View v) {
@@ -89,20 +95,13 @@ public class OverlayController {
                     mState.mDrawGridLines = !mState.mDrawGridLines;
                 }
             } else if (v.equals(mTerrainButton)) {
-                if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN) {
-                    synchronized (mState) {
+                synchronized (mState) {
+                    if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN)
                         mState.mMode = CITY_VIEW_MODES.VIEW;
-                    }
-                    mTerrainTools.setVisibility(View.GONE);
-                    mMoveButtons.setVisibility(View.GONE);
-                } else {
-                    synchronized (mState) {
+                    else
                         mState.mMode = CITY_VIEW_MODES.EDIT_TERRAIN;
-                    }
-                    mTerrainTools.setVisibility(View.VISIBLE);
-                    if (mState.mTool == TERRAIN_TOOLS.BRUSH)
-                        mMoveButtons.setVisibility(View.VISIBLE);
                 }
+                update();
             } else if (v.equals(mTileStyleButton)) {
                 int terrain = mState.mTerrainTypeSelected + 1;
                 if (terrain == TERRAIN.count) {
@@ -115,14 +114,14 @@ public class OverlayController {
             } else if (v.equals(mPaintButton)) {
                 synchronized (mState) {
                     mState.mTool = TERRAIN_TOOLS.BRUSH;
-                    mMoveButtons.setVisibility(View.VISIBLE);
                 }
+                update();
             } else if (v.equals(mSelectButton)) {
                 synchronized (mState) {
                     mState.mTool = TERRAIN_TOOLS.SELECT;
-                    mMoveButtons.setVisibility(View.GONE);
                     mState.resetSelectTool();
                 }
+                update();
             } else if (v.equals(mBrushSquare1x1)) {
                 synchronized (mState) {
                     mState.mBrushType = BRUSH_TYPES.SQUARE1X1;
@@ -138,8 +137,10 @@ public class OverlayController {
             } else if (v.equals(mAcceptButton)) {
                 mState.addSelectedTerrainEdit();
                 mState.resetSelectTool();
+                update();
             } else if (v.equals(mCancelButton)) {
                 mState.resetSelectTool();
+                update();
             } else if (v.equals(mUndoButton)) {
 
             } else if (v.equals(mRedoButton)) {
@@ -148,9 +149,14 @@ public class OverlayController {
         }
     };
 
+    /**
+     * Handles touch events on the overlay
+     */
     private class MainViewTouchListener implements OnTouchListener {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
+            // The directional buttons allow panning when the standard scrolling gesture is used for something else.
+            // We use an accelerating scroller to pan the view progressively the longer the user holds down a button.
             if (v.equals(mLeftButton)) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     synchronized (mState) {
@@ -216,4 +222,44 @@ public class OverlayController {
             return false;
         }
     };
+
+    /**
+     * Overlay component visibility is dictated by the associated city view state.
+     * When the state is altered in such a way that the overlay visibility needs updating, this method is called.
+     */
+    public void update() {
+        switch (mState.mMode) {
+        case CITY_VIEW_MODES.VIEW:
+            mTerrainTools.setVisibility(View.GONE);
+            mGeneralTools.setVisibility(View.GONE);
+            mBrushTools.setVisibility(View.GONE);
+            mMoveButtons.setVisibility(View.GONE);
+            break;
+        case CITY_VIEW_MODES.EDIT_TERRAIN:
+            mTerrainTools.setVisibility(View.VISIBLE);
+            mTileSyleIcon.setImageBitmap(TileBitmaps.getFullBitmap(mState.mTerrainTypeSelected));
+            mUndoButton.setVisibility(View.GONE);
+            mRedoButton.setVisibility(View.GONE);
+            switch (mState.mTool) {
+            case TERRAIN_TOOLS.BRUSH:
+                mMoveButtons.setVisibility(View.VISIBLE);
+                mGeneralTools.setVisibility(View.GONE);
+                mBrushTools.setVisibility(View.VISIBLE);
+                break;
+            case TERRAIN_TOOLS.SELECT:
+                mMoveButtons.setVisibility(View.GONE);
+                mGeneralTools.setVisibility(View.VISIBLE);
+                mBrushTools.setVisibility(View.GONE);
+                if (mState.mFirstSelectedRow != -1) {
+                    mAcceptButton.setVisibility(View.VISIBLE);
+                    mCancelButton.setVisibility(View.VISIBLE);
+                } else {
+                    mAcceptButton.setVisibility(View.GONE);
+                    mCancelButton.setVisibility(View.GONE);
+                }
+                break;
+            }
+            break;
+        }
+    }
 }

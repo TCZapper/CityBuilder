@@ -4,7 +4,6 @@
 package com.jasperb.citybuilder.view;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -52,8 +51,12 @@ public class CityViewController {
     public void cleanup() {
         mScaleDetector = null;
         mPanDetector = null;
+        mState = null;
     }
 
+    /**
+     * Touch events from the city view get passed to this
+     */
     public boolean onTouchEvent(MotionEvent event) {
         synchronized (mState) {//Keep track of when user is supplying input
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -67,7 +70,6 @@ public class CityViewController {
         boolean result = mPanDetector.onTouchEvent(event);
         mScaleDetector.onTouchEvent(event);
         if (!result && event.getAction() == MotionEvent.ACTION_UP && mInputClick) {
-            Log.d(TAG, "RELEASE");
             if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN) {
                 if (mState.mTool == TERRAIN_TOOLS.BRUSH) {
                     paintWithBrush(event);
@@ -95,8 +97,10 @@ public class CityViewController {
                             if (mState.mSelectingFirstTile) {
                                 mState.mFirstSelectedRow = row;
                                 mState.mFirstSelectedCol = col;
-                                if (mState.mSecondSelectedRow == -1)
+                                if (mState.mSecondSelectedRow == -1) {
                                     mState.mSelectingFirstTile = false;
+                                    mState.notifyOverlay();
+                                }
                             } else {
                                 mState.mSecondSelectedRow = row;
                                 mState.mSecondSelectedCol = col;
@@ -109,6 +113,10 @@ public class CityViewController {
         return result;
     }
 
+    /**
+     * Process a touch event as though the user were painting with a brush
+     * @param event
+     */
     private void paintWithBrush(MotionEvent event) {
         synchronized (mState) {
             int posX = (int) event.getX() - mState.getOriginX();

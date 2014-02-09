@@ -10,11 +10,14 @@ import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
+import com.jasperb.citybuilder.util.Observer;
 import com.jasperb.citybuilder.util.TerrainEdit;
 
 /**
- * @author Jasper
+ * NOTE: No methods within this class are thread-safe with regards to this class's content.
+ * Modifications to the city model however are synchronized on the model.
  * 
+ * @author Jasper
  */
 public class CityViewState {
     // Thread safe member variables (read from and written to by multiple threads)
@@ -36,6 +39,9 @@ public class CityViewState {
     public int mFirstSelectedRow = -1, mFirstSelectedCol = -1, mSecondSelectedRow = -1, mSecondSelectedCol = -1;
     public boolean mSelectingFirstTile = true;
     public boolean mInputActive = false;
+    
+    // Only ever read
+    public Observer mOverlay;
 
     public CityViewState() {
         setScaleFactor(Constant.MAXIMUM_SCALE_FACTOR);
@@ -73,65 +79,79 @@ public class CityViewState {
     protected void updateThenCopyState(CityViewState to) {
         // The purpose of this method is to be used by the draw thread to update the CityView's state and then retrieve that state
         // This lets us easily continuously update the CityView's state and keep the update rate synced with the FPS of the draw thread
-        synchronized (this) {
-            //Process all of the terrain edits since our last update
-            synchronized (mCityModel) {
-                for (TerrainEdit edit : mTerrainEdits)
-                    edit.setTerrain(mCityModel);
-            }
-            mTerrainEdits.clear();
-
-            if (mScroller == null)// Happens if cleanup was called but the draw thread is still active
-                return;
-
-            // Update the focus based off an active scroller
-            // Or if the user input is not active and we are out of bounds, create a new scroller to put us in bounds
-            if (!mScroller.isFinished()) {
-                mScroller.computeScrollOffset();
-                mFocusRow = mScroller.getCurrX() / Constant.TILE_WIDTH;
-                mFocusCol = mScroller.getCurrY() / Constant.TILE_WIDTH;
-            } else if (!mInputActive && !isTileValid(mFocusRow, mFocusCol)) {
-                int startRow = Math.round(mFocusRow * Constant.TILE_WIDTH);
-                int startCol = Math.round(mFocusCol * Constant.TILE_WIDTH);
-                int endRow = startRow;
-                int endCol = startCol;
-
-                if (mFocusRow < 0) {
-                    endRow = 0;
-                } else if (mFocusRow >= mCityModel.getHeight()) {
-                    endRow = mCityModel.getHeight() * Constant.TILE_WIDTH - 1;
-                }
-                if (mFocusCol < 0) {
-                    endCol = 0;
-                } else if (mFocusCol >= mCityModel.getWidth()) {
-                    endCol = mCityModel.getWidth() * Constant.TILE_WIDTH - 1;
-                }
-                mScroller.startScroll(startRow, startCol, endRow - startRow, endCol - startCol, Constant.FOCUS_CONSTRAIN_TIME);
-            }
-
-            to.copyFrom(this);
+        
+        // Process all of the terrain edits since our last update
+        // Doing all modifications to the model on the draw thread means the draw thread doesn't need to waste time with
+        // thread-safety on reading from the model (which it must do many, many times).
+        synchronized (mCityModel) {
+            for (TerrainEdit edit : mTerrainEdits)
+                edit.setTerrain(mCityModel);
         }
+        mTerrainEdits.clear();
+
+        if (mScroller == null)// Happens if cleanup was called but the draw thread is still active
+            return;
+
+        // Update the focus based off an active scroller
+        // Or if the user input is not active and we are out of bounds, create a new scroller to put us in bounds
+        if (!mScroller.isFinished()) {
+            mScroller.computeScrollOffset();
+            mFocusRow = mScroller.getCurrX() / Constant.TILE_WIDTH;
+            mFocusCol = mScroller.getCurrY() / Constant.TILE_WIDTH;
+        } else if (!mInputActive && !isTileValid(mFocusRow, mFocusCol)) {
+            int startRow = Math.round(mFocusRow * Constant.TILE_WIDTH);
+            int startCol = Math.round(mFocusCol * Constant.TILE_WIDTH);
+            int endRow = startRow;
+            int endCol = startCol;
+
+            if (mFocusRow < 0) {
+                endRow = 0;
+            } else if (mFocusRow >= mCityModel.getHeight()) {
+                endRow = mCityModel.getHeight() * Constant.TILE_WIDTH - 1;
+            }
+            if (mFocusCol < 0) {
+                endCol = 0;
+            } else if (mFocusCol >= mCityModel.getWidth()) {
+                endCol = mCityModel.getWidth() * Constant.TILE_WIDTH - 1;
+            }
+            mScroller.startScroll(startRow, startCol, endRow - startRow, endCol - startCol, Constant.FOCUS_CONSTRAIN_TIME);
+        }
+
+        to.copyFrom(this);
     }
 
+    /**
+     * Queue a terrain edit of any type
+     * @param edit the terrain edit to queue up
+     */
     public void addTerrainEdit(TerrainEdit edit) {
         mTerrainEdits.add(edit);
     }
-    
+
+    /**
+     * Creates and queues up a terrain edit that fills the selected region with the selected tile type
+     */
     public void addSelectedTerrainEdit() {
+        if (mFirstSelectedRow == -1)
+            return;
         int minRow, maxRow, minCol, maxCol;
-        if(mFirstSelectedRow < mSecondSelectedRow) {
+        if (mFirstSelectedRow < mSecondSelectedRow) {
             minRow = mFirstSelectedRow;
             maxRow = mSecondSelectedRow;
         } else {
             minRow = mSecondSelectedRow;
             maxRow = mFirstSelectedRow;
         }
-        if(mFirstSelectedCol < mSecondSelectedCol) {
+        if (mFirstSelectedCol < mSecondSelectedCol) {
             minCol = mFirstSelectedCol;
             maxCol = mSecondSelectedCol;
         } else {
             minCol = mSecondSelectedCol;
             maxCol = mFirstSelectedCol;
+        }
+        if (mSecondSelectedRow == -1) {
+            minRow = maxRow;
+            minCol = maxCol;
         }
         mTerrainEdits.add(new TerrainEdit(minRow, minCol, maxRow, maxCol, mTerrainTypeSelected));
     }
@@ -263,14 +283,23 @@ public class CityViewState {
                 || x - mTileWidth / 2 >= mWidth);
     }
 
+    /**
+     * Get the real X coordinate for the origin tile (row 0, column 0).
+     */
     public int getOriginX() {
         return mWidth / 2 - isoToRealXDownscaling(mFocusRow, mFocusCol);
     }
 
+    /**
+     * Get the real Y coordinate for the origin tile (row 0, column 0).
+     */
     public int getOriginY() {
         return mHeight / 2 - isoToRealYDownscaling(mFocusRow, mFocusCol);
     }
 
+    /**
+     * Force the scroller to stop, but not before updating the current location
+     */
     public void forceStopScroller() {
         if (!mScroller.isFinished()) {
             mScroller.computeScrollOffset();//compute current offset before forcing finish
@@ -279,20 +308,22 @@ public class CityViewState {
             mScroller.forceFinished(true);
         }
     }
-    
-    public void resetFirstSelectedTile() {
+
+    /**
+     * Reset the components of the terrain selection tool
+     */
+    public void resetSelectTool() {
         mFirstSelectedRow = -1;
         mFirstSelectedCol = -1;
-    }
-    
-    public void resetSecondSelectedTile() {
         mSecondSelectedRow = -1;
         mSecondSelectedCol = -1;
-    }
-    
-    public void resetSelectTool() {
-        resetFirstSelectedTile();
-        resetSecondSelectedTile();
         mSelectingFirstTile = true;
+    }
+
+    /**
+     * Notify the associated overlay that it should update
+     */
+    public void notifyOverlay() {
+        mOverlay.update();
     }
 }

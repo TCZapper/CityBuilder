@@ -24,13 +24,13 @@ public class DrawThread extends Thread {
 
     public static final boolean LOG_TTD = false;//Time To Draw
 
-    //CityView variables
     private TileBitmaps mTileBitmaps = null;
     private Paint mGridPaint = null, mSelectionPaint = null, mSelectedTilePaint = null;
     private SurfaceHolder mSurfaceHolder = null;
     private CityViewState mDrawState = new CityViewState();
     private CityViewState mMainState = null;
     private boolean mRun = true;
+    //Boundary calculations are costly, so we store them and reuse them during a single drawing pass
     private int mOriginX, mOriginY, mBitmapOffsetX, mTopLeftRow, mTopLeftCol, mBottomRightRow, mBottomRightCol, mFirstRow, mFirstCol,
             mLastCol, mLeftBoundRow, mLeftBoundCol, mRightBoundRow, mRightBoundCol, mTopBoundRow, mTopBoundCol, mBottomBoundRow,
             mBottomBoundCol, mMinRow, mMaxRow;
@@ -47,7 +47,7 @@ public class DrawThread extends Thread {
         mGridPaint.setStyle(Paint.Style.STROKE);
         mGridPaint.setStrokeWidth(1.5f);// thinnest line is 0 width
         mGridPaint.setARGB(255, 170, 170, 170);
-        
+
         mSelectedTilePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mSelectedTilePaint.setStyle(Paint.Style.STROKE);
         mSelectedTilePaint.setStrokeWidth(1.5f);
@@ -67,34 +67,27 @@ public class DrawThread extends Thread {
         }
     }
 
-    /**
-     * Cleanup the components allocated by init()
-     */
-    protected void cleanup() {
-        synchronized (mSurfaceHolder) {
-            mTileBitmaps = null;
-            mGridPaint = null;
-        }
-    }
-
     @Override
     public void run() {
-        Log.d(TAG, "RUN");
+        Log.v(TAG, "RUN");
         while (mRun) {
             Canvas c = null;
             try {
-                c = mSurfaceHolder.lockCanvas(null);
+                c = mSurfaceHolder.lockCanvas();
                 if (c != null) {
-                    float oldTileHeight = mDrawState.getTileHeight();
-                    boolean oldDrawGridLines = mDrawState.mDrawGridLines;
-                    mMainState.updateThenCopyState(mDrawState);
-                    if (mDrawState.mWidth != 0 && mDrawState.mWidth == c.getWidth() && mDrawState.mHeight == c.getHeight()) {
-                        if (oldTileHeight != mDrawState.getTileHeight() || oldDrawGridLines != mDrawState.mDrawGridLines) {
-                            mTileBitmaps.remakeBitmaps(mDrawState);
-                        }
-                        // Log.v(TAG,"DRAW AT: " + mState.mFocusRow + " : " + mState.mFocusRow);
-                        synchronized (mSurfaceHolder) {
-                            if (mRun) {
+                    synchronized (mSurfaceHolder) {
+                        if (mRun) {
+                            float oldTileHeight = mDrawState.getTileHeight();
+                            boolean oldDrawGridLines = mDrawState.mDrawGridLines;
+                            synchronized (mMainState) {
+                                mMainState.updateThenCopyState(mDrawState);
+                            }
+                            if (mDrawState.mWidth != 0 && mDrawState.mWidth == c.getWidth() && mDrawState.mHeight == c.getHeight()) {
+                                if (oldTileHeight != mDrawState.getTileHeight() || oldDrawGridLines != mDrawState.mDrawGridLines) {
+                                    mTileBitmaps.remakeBitmaps(mDrawState);
+                                }
+                                // Log.v(TAG,"DRAW AT: " + mState.mFocusRow + " : " + mState.mFocusRow);
+
                                 setStartTime();
 
                                 c.drawARGB(255, 38, 76, 45);// Clear the canvas
@@ -112,14 +105,13 @@ public class DrawThread extends Thread {
                         }
                     }
                 }
-            } finally {
+            } finally {// Ensure we actually release the lock
                 if (c != null) {
                     mSurfaceHolder.unlockCanvasAndPost(c);
                 }
             }
         }
-        cleanup();
-        Log.d(TAG, "DONE RUN");
+        Log.v(TAG, "DONE RUN");
     }
 
     private void calculateBoundaries() {
@@ -281,7 +273,7 @@ public class DrawThread extends Thread {
                     minCol = mDrawState.mSecondSelectedCol;
                     maxCol = mDrawState.mFirstSelectedCol + 1;
                 }
-                
+
                 int topX, topY;
                 if (mDrawState.mSelectingFirstTile) {
                     topX = mDrawState.isoToRealXDownscaling(mDrawState.mFirstSelectedRow, mDrawState.mFirstSelectedCol) + mOriginX;

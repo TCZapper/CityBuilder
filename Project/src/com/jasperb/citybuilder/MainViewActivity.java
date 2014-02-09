@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
-import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -43,12 +42,12 @@ public class MainViewActivity extends Activity {
         setContentView(R.layout.activity_main_view);
 
         mCityModel = new CityModel(200, 200);
-        TileBitmaps.loadFullBitmaps(this);
         mState = new CityViewState();
         mState.mScroller = new OverScroller(this, new AccelerateInterpolator(Constant.INTERPOLATE_ACCELERATION));
         mState.mScroller.setFriction(Constant.FLING_FRICTION);
         mCityViewController = new CityViewController();
         mOverlayController = new OverlayController();
+        mState.mOverlay = mOverlayController;
 
         mCityView = (CityView) findViewById(R.id.City);
 
@@ -72,15 +71,12 @@ public class MainViewActivity extends Activity {
         mOverlayController.mRightButton = (ImageView) findViewById(R.id.RightButton);
         mOverlayController.mMoveButtons = (RelativeLayout) findViewById(R.id.MoveButtons);
         
+        mOverlayController.mGeneralTools = (LinearLayout) findViewById(R.id.GeneralTools);
         mOverlayController.mAcceptButton = (ImageView) findViewById(R.id.AcceptButton);
         mOverlayController.mCancelButton = (ImageView) findViewById(R.id.CancelButton);
         mOverlayController.mUndoButton = (ImageView) findViewById(R.id.UndoButton);
         mOverlayController.mRedoButton = (ImageView) findViewById(R.id.RedoButton);
-
-        mOverlayController.mTerrainTools.setVisibility(View.GONE);
-        mOverlayController.mMoveButtons.setVisibility(View.GONE);
-
-        mOverlayController.mTileSyleIcon.setImageBitmap(TileBitmaps.getFullBitmap(mState.mTerrainTypeSelected));
+        
 
         if (savedInstanceState != null) {
             // Restore state of the city view
@@ -99,9 +95,11 @@ public class MainViewActivity extends Activity {
         Log.v(TAG, "ON START");
 
         if (!mAllocated) {
+            TileBitmaps.loadFullBitmaps(this);
+            mState.mCityModel = mCityModel;
             mCityViewController.init(this, mState);
             mOverlayController.init(this, mState);
-            mState.mCityModel = mCityModel;
+            mOverlayController.update();
             mCityView.init(mCityViewController, mState);
             mAllocated = true;
         }
@@ -136,6 +134,8 @@ public class MainViewActivity extends Activity {
                 mCityViewController.cleanup();
                 mOverlayController.cleanup();
                 mCityView.cleanup();
+                mCityView.stopDrawThread();//blocks until draw thread is done drawing
+                TileBitmaps.freeFullBitmaps();
                 mAllocated = false;
             }
         }

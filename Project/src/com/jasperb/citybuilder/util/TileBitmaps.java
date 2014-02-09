@@ -57,6 +57,13 @@ public class TileBitmaps {
             }
         }
     }
+    
+    /**
+     * Free the memory used by the full bitmaps
+     */
+    public static void freeFullBitmaps() {
+        mFullBitmaps = null;
+    }
 
     /**
      * Recreate the bitmaps that getBitmap returns based off the state.
@@ -67,7 +74,6 @@ public class TileBitmaps {
      */
     public void remakeBitmaps(CityViewState state) {
         Log.v(TAG, "REMAKE BITMAPS");
-
         if (state.mDrawGridLines) {
             Canvas canvas = new Canvas();
             Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
