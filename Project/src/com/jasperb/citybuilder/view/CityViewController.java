@@ -79,31 +79,33 @@ public class CityViewController {
                         int posY = (int) event.getY() - mState.getOriginY();
                         int row = (int) mState.realToIsoRowUpscaling(posX, posY);
                         int col = (int) mState.realToIsoColUpscaling(posX, posY);
-                        if (row == mState.mFirstSelectedRow && col == mState.mFirstSelectedCol) {
-                            mState.mSelectingFirstTile = true;
-                        } else if (row == mState.mSecondSelectedRow && col == mState.mSecondSelectedCol) {
-                            mState.mSelectingFirstTile = false;
-                        } else if (row == mState.mFirstSelectedRow && col == mState.mSecondSelectedCol) {
-                            int temp = mState.mFirstSelectedRow;
-                            mState.mFirstSelectedRow = mState.mSecondSelectedRow;
-                            mState.mSecondSelectedRow = temp;
-                            mState.mSelectingFirstTile = false;
-                        } else if (row == mState.mSecondSelectedRow && col == mState.mFirstSelectedCol) {
-                            int temp = mState.mFirstSelectedRow;
-                            mState.mFirstSelectedRow = mState.mSecondSelectedRow;
-                            mState.mSecondSelectedRow = temp;
-                            mState.mSelectingFirstTile = true;
-                        } else {
-                            if (mState.mSelectingFirstTile) {
-                                mState.mFirstSelectedRow = row;
-                                mState.mFirstSelectedCol = col;
-                                if (mState.mSecondSelectedRow == -1) {
-                                    mState.mSelectingFirstTile = false;
-                                    mState.notifyOverlay();
-                                }
+                        if (mState.isTileValid(row, col)) {
+                            if (row == mState.mFirstSelectedRow && col == mState.mFirstSelectedCol) {
+                                mState.mSelectingFirstTile = true;
+                            } else if (row == mState.mSecondSelectedRow && col == mState.mSecondSelectedCol) {
+                                mState.mSelectingFirstTile = false;
+                            } else if (row == mState.mFirstSelectedRow && col == mState.mSecondSelectedCol) {
+                                int temp = mState.mFirstSelectedRow;
+                                mState.mFirstSelectedRow = mState.mSecondSelectedRow;
+                                mState.mSecondSelectedRow = temp;
+                                mState.mSelectingFirstTile = false;
+                            } else if (row == mState.mSecondSelectedRow && col == mState.mFirstSelectedCol) {
+                                int temp = mState.mFirstSelectedRow;
+                                mState.mFirstSelectedRow = mState.mSecondSelectedRow;
+                                mState.mSecondSelectedRow = temp;
+                                mState.mSelectingFirstTile = true;
                             } else {
-                                mState.mSecondSelectedRow = row;
-                                mState.mSecondSelectedCol = col;
+                                if (mState.mSelectingFirstTile) {
+                                    mState.mFirstSelectedRow = row;
+                                    mState.mFirstSelectedCol = col;
+                                    if (mState.mSecondSelectedRow == -1) {
+                                        mState.mSelectingFirstTile = false;
+                                        mState.notifyOverlay();
+                                    }
+                                } else {
+                                    mState.mSecondSelectedRow = row;
+                                    mState.mSecondSelectedCol = col;
+                                }
                             }
                         }
                     }
@@ -115,6 +117,7 @@ public class CityViewController {
 
     /**
      * Process a touch event as though the user were painting with a brush
+     * 
      * @param event
      */
     private void paintWithBrush(MotionEvent event) {
