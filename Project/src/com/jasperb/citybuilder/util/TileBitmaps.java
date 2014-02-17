@@ -50,6 +50,11 @@ public class TileBitmaps {
                 tempBitmap = BitmapFactory.decodeStream(ims);
                 mFullBitmaps[TERRAIN.DIRT] = tempBitmap.copy(Config.ARGB_8888, true);
                 ims.close();
+                
+                ims = assets.open("TERRAIN/TileRounded.png");
+                tempBitmap = BitmapFactory.decodeStream(ims);
+                mFullBitmaps[TERRAIN.DIRT_ROUNDED] = tempBitmap.copy(Config.ARGB_8888, true);
+                ims.close();
 
                 Log.d(TAG, "DONE LOADING");
             } catch (IOException ex) {

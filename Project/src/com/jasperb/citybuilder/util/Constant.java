@@ -57,8 +57,8 @@ public class Constant {
      * Types of available terrain.
      */
     public static class TERRAIN {
-        public static final int GRASS = 0, DIRT = 1;
-        public static final int count = 2;
+        public static final int GRASS = 0, DIRT = 1, DIRT_ROUNDED = 2;
+        public static final int count = 3;
     }
 
     /**
