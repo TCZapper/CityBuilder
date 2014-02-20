@@ -3,7 +3,9 @@
  */
 package com.jasperb.citybuilder;
 
+import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
+import com.jasperb.citybuilder.util.Constant.TERRAIN_MODS;
 
 import android.util.Log;
 
@@ -19,6 +21,7 @@ public class CityModel {
 
     private int mWidth, mHeight;
     private byte[][] mTerrainMap;
+    private byte[][] mTerrainModMap;
 
     public int getWidth() {
         return mWidth;
@@ -36,13 +39,20 @@ public class CityModel {
         mWidth = width;
         mHeight = height;
 
-        mTerrainMap = new byte[mHeight][mWidth];
-        for (int row = 0; row < mHeight; row++) {
-            for (int col = 0; col < mWidth; col++) {
+        // Draw thread processes by column, so keep data in a single column close
+        mTerrainMap = new byte[mWidth][mHeight];
+        // Try to be clever with memory by keeping all of the terrain mods within a few pages of memory
+        mTerrainModMap = new byte[mWidth][mHeight * Constant.MAX_NUMBER_OF_TERRAIN_MODS];
+
+        for (int col = 0; col < mWidth; col++) {
+            for (int row = 0; row < mHeight; row++) {
                 if ((row + col) % 8 < 4 || row % 20 == 0) {
-                    mTerrainMap[row][col] = TERRAIN.GRASS;
+                    mTerrainMap[col][row] = TERRAIN.GRASS;
                 } else {
-                    mTerrainMap[row][col] = TERRAIN.DIRT;
+                    mTerrainMap[col][row] = TERRAIN.DIRT;
+                }
+                for (int i = 0; i < Constant.MAX_NUMBER_OF_TERRAIN_MODS; i++) {
+                    mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + i] = TERRAIN_MODS.NONE;
                 }
             }
         }
@@ -57,17 +67,17 @@ public class CityModel {
      */
     public byte getTerrain(int row, int col) {
         synchronized (this) {
-            return mTerrainMap[row][col];
+            return mTerrainMap[col][row];
         }
     }
 
     public void setTerrain(int startRow, int startCol, int endRow, int endCol, int terrain) {
-        for(int row = startRow; row <= endRow; row++)
-            for(int col = startCol; col <= endCol; col++)
-                mTerrainMap[row][col] = (byte) terrain;
+        for (int col = startCol; col <= endCol; col++)
+            for (int row = startRow; row <= endRow; row++)
+                mTerrainMap[col][row] = (byte) terrain;
     }
 
     public void setTerrain(int row, int col, int terrain) {
-        mTerrainMap[row][col] = (byte) terrain;
+        mTerrainMap[col][row] = (byte) terrain;
     }
 }

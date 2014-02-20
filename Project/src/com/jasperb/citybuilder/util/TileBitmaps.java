@@ -53,7 +53,7 @@ public class TileBitmaps {
                 
                 ims = assets.open("TERRAIN/TileRounded.png");
                 tempBitmap = BitmapFactory.decodeStream(ims);
-                mFullBitmaps[TERRAIN.DIRT_ROUNDED] = tempBitmap.copy(Config.ARGB_8888, true);
+                mFullBitmaps[TERRAIN.SIDEWALK] = tempBitmap.copy(Config.ARGB_8888, true);
                 ims.close();
 
                 Log.d(TAG, "DONE LOADING");

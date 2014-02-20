@@ -22,7 +22,7 @@ public class DrawThread extends Thread {
      */
     public static final String TAG = "DrawThread";
 
-    public static final boolean LOG_TTD = false;//Time To Draw
+    public static final boolean LOG_TTD = true;//Time To Draw
 
     private TileBitmaps mTileBitmaps = null;
     private Paint mGridPaint = null, mSelectionPaint = null, mSelectedTilePaint = null;

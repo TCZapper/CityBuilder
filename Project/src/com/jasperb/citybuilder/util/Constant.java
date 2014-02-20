@@ -44,7 +44,7 @@ public class Constant {
     public static final float INTERPOLATE_ACCELERATION = 0.8f;
     
     /**
-     * Time it takes to constrain the focus within the valid range when the focus is outside of that range
+     * Time it takes to constrain the focus within the valid range when the focus is outside of that range.
      */
     public static final int FOCUS_CONSTRAIN_TIME = 500;
     
@@ -57,8 +57,23 @@ public class Constant {
      * Types of available terrain.
      */
     public static class TERRAIN {
-        public static final int GRASS = 0, DIRT = 1, DIRT_ROUNDED = 2;
+        public static final int GRASS = 0, DIRT = 1, SIDEWALK = 2, PAVEMENT = 3, PAVED_LINE = 4;
         public static final int count = 3;
+    }
+    
+    /**
+     * Maximum number of terrain mods that can be applied to a tile.
+     */
+    public static int MAX_NUMBER_OF_TERRAIN_MODS = 4;
+    
+    /**
+     * Types of available terrain mods.
+     */
+    public static class TERRAIN_MODS {
+        public static final int ROUNDED_GRASS = 0, ROUNDED_DIRT = 4, ROUNDED_SIDEWALK = 8, ROUNDED_PAVEMENT = 12, ROUNDED_PAVED_LINE = 16, STRAIGHT_PAVED_LINE = 24, NONE = 26;
+        public static final int TOP_LEFT = 0, TOP_RIGHT = 1, BOTTOM_LEFT = 2, BOTTOM_RIGHT = 3;
+        public static final int VERTICAL = 0, HORIZONTAL = 1;
+        public static final int count = 27;
     }
 
     /**
