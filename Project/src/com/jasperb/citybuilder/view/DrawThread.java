@@ -9,6 +9,9 @@ import android.graphics.Path;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
+import com.jasperb.citybuilder.util.Constant.TERRAIN_MODS;
+import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
 import com.jasperb.citybuilder.util.PerfTools;
 import com.jasperb.citybuilder.util.TileBitmaps;
 
@@ -94,7 +97,8 @@ public class DrawThread extends Thread {
                                 calculateBoundaries();
                                 if (visibileTilesExist()) {
                                     drawGround(c);
-                                    drawSelection(c);
+                                    if(mDrawState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mDrawState.mTool == TERRAIN_TOOLS.SELECT)
+                                        drawSelection(c);
                                 } else {
                                     Log.v(TAG, "NOTHING TO DRAW");
                                 }
@@ -222,9 +226,19 @@ public class DrawThread extends Thread {
             for (; row <= lastRow; row++) {
                 // Time to draw the terrain to the buffer. TileBitmaps handles resizing the tiles, we just draw/position them
 //                    Log.d(TAG, "Paint Tile: " + row + " : " + col);
-                canvas.drawBitmap(mTileBitmaps.getBitmap(mDrawState.mCityModel.getTerrain(row, col)),
-                        mDrawState.isoToRealXDownscaling(row, col) + mOriginX + mBitmapOffsetX,
-                        mDrawState.isoToRealYDownscaling(row, col) + mOriginY, null);
+                int offsetX = mDrawState.isoToRealXDownscaling(row, col) + mOriginX + mBitmapOffsetX;
+                int offsetY = mDrawState.isoToRealYDownscaling(row, col) + mOriginY;
+                canvas.drawBitmap(mTileBitmaps.getBaseBitmap(mDrawState.mCityModel.getTerrain(row, col)),
+                        offsetX, offsetY, null);
+                int mod;
+                for(int index = 0; index < 4; index++) {
+                    mod = mDrawState.mCityModel.getMod(row, col, index);
+                    if (mod == TERRAIN_MODS.NONE)
+                        break;
+                    canvas.drawBitmap(mTileBitmaps.getModBitmap(mod),
+                            offsetX + TileBitmaps.getModOffsetX(mod),
+                            offsetY + TileBitmaps.getModOffsetY(mod), null);
+                }
             }
         }
         // Draw grid lines for the outer edges of the world

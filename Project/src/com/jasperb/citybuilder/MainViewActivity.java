@@ -95,7 +95,7 @@ public class MainViewActivity extends Activity {
         Log.v(TAG, "ON START");
 
         if (!mAllocated) {
-            TileBitmaps.loadFullBitmaps(this);
+            TileBitmaps.loadStaticBitmaps(this);
             mState.mCityModel = mCityModel;
             mCityViewController.init(this, mState);
             mOverlayController.init(this, mState);
@@ -135,7 +135,7 @@ public class MainViewActivity extends Activity {
                 mOverlayController.cleanup();
                 mCityView.cleanup();
                 mCityView.stopDrawThread();//blocks until draw thread is done drawing
-                TileBitmaps.freeFullBitmaps();
+                TileBitmaps.freeStaticBitmaps();
                 mAllocated = false;
             }
         }

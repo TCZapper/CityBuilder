@@ -58,7 +58,14 @@ public class Constant {
      */
     public static class TERRAIN {
         public static final int GRASS = 0, DIRT = 1, SIDEWALK = 2, PAVEMENT = 3, PAVED_LINE = 4;
-        public static final int count = 3;
+        public static final int count = 2;
+        
+        public static int getBaseType(int terrain) {
+            if(terrain == TERRAIN.PAVED_LINE) {
+                return TERRAIN.PAVEMENT;
+            }
+            return terrain;
+        }
     }
     
     /**
@@ -74,10 +81,36 @@ public class Constant {
         public static final int TOP_LEFT = 0, TOP_RIGHT = 1, BOTTOM_LEFT = 2, BOTTOM_RIGHT = 3;
         public static final int VERTICAL = 0, HORIZONTAL = 1;
         public static final int count = 27;
+        public static boolean isRoundableTerrain(int terrain) {
+            return true;
+        }
+        
+        public static boolean hasRoundingMods(int terrain) {
+            return true;
+        }
+        
+        /**
+         * @param terrain the terrain type to use in the corner
+         * @return terrain mod for the associated terrain type
+         */
+        public static int getRoundedType(int terrain) {
+            switch(terrain) {
+            case TERRAIN.GRASS:
+                return ROUNDED_GRASS;
+            case TERRAIN.DIRT:
+                return ROUNDED_DIRT;
+            case TERRAIN.SIDEWALK:
+                return ROUNDED_SIDEWALK;
+            case TERRAIN.PAVEMENT:
+                return ROUNDED_PAVEMENT;
+            default:
+                return NONE;
+            }
+        }
     }
 
     /**
-     * Types of available modes for the city viewer
+     * Types of available modes for the city viewer.
      */
     public static class CITY_VIEW_MODES {
         public static final int VIEW = 0, EDIT_TERRAIN = 1;
