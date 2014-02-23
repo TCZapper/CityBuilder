@@ -9,6 +9,7 @@ import android.graphics.Path;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_MODS;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
@@ -97,7 +98,7 @@ public class DrawThread extends Thread {
                                 calculateBoundaries();
                                 if (visibileTilesExist()) {
                                     drawGround(c);
-                                    if(mDrawState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mDrawState.mTool == TERRAIN_TOOLS.SELECT)
+                                    if (mDrawState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mDrawState.mTool == TERRAIN_TOOLS.SELECT)
                                         drawSelection(c);
                                 } else {
                                     Log.v(TAG, "NOTHING TO DRAW");
@@ -118,6 +119,9 @@ public class DrawThread extends Thread {
         Log.v(TAG, "DONE RUN");
     }
 
+    /**
+     * Calculate the boundaries of the view in terms of which tiles are visible
+     */
     private void calculateBoundaries() {
         // Calculate real coordinates for the top-most tile based off the focus iso coordinates being the centre of the screen
         mOriginX = mDrawState.getOriginX();
@@ -210,6 +214,7 @@ public class DrawThread extends Thread {
      */
     private void drawGround(Canvas canvas) {
         //Log.d(TAG, "DRAW FIRST: " + firstRow + " : " + firstCol);
+        float visualScale = mDrawState.getTileWidth() / (float) Constant.TILE_WIDTH;
         for (int col = mFirstCol; col <= mLastCol; col++) {
             // Find the last row by figuring out the rows where this column crosses the bottom and left edge,
             // and draw up to the whichever row corresponds edge we hit first
@@ -226,18 +231,21 @@ public class DrawThread extends Thread {
             for (; row <= lastRow; row++) {
                 // Time to draw the terrain to the buffer. TileBitmaps handles resizing the tiles, we just draw/position them
 //                    Log.d(TAG, "Paint Tile: " + row + " : " + col);
-                int offsetX = mDrawState.isoToRealXDownscaling(row, col) + mOriginX + mBitmapOffsetX;
-                int offsetY = mDrawState.isoToRealYDownscaling(row, col) + mOriginY;
-                canvas.drawBitmap(mTileBitmaps.getBaseBitmap(mDrawState.mCityModel.getTerrain(row, col)),
-                        offsetX, offsetY, null);
-                int mod;
-                for(int index = 0; index < 4; index++) {
-                    mod = mDrawState.mCityModel.getMod(row, col, index);
-                    if (mod == TERRAIN_MODS.NONE)
-                        break;
-                    canvas.drawBitmap(mTileBitmaps.getModBitmap(mod),
-                            offsetX + TileBitmaps.getModOffsetX(mod),
-                            offsetY + TileBitmaps.getModOffsetY(mod), null);
+                int drawX = mDrawState.isoToRealXDownscaling(row, col) + mOriginX + mBitmapOffsetX;
+                int drawY = mDrawState.isoToRealYDownscaling(row, col) + mOriginY;
+                canvas.drawBitmap(mTileBitmaps.getScaledTileBitmap(mDrawState.mCityModel.getTerrain(row, col)), drawX, drawY, null);
+                int mod = mDrawState.mCityModel.getMod(row, col, 0);
+                if (mod != TERRAIN_MODS.NONE) {
+                    int index = 0;
+
+                    while (mod != TERRAIN_MODS.NONE) {
+                        canvas.drawBitmap(mTileBitmaps.getScaledModBitmap(mod), drawX + TileBitmaps.getModOffsetX(mod) * visualScale, drawY
+                                + TileBitmaps.getModOffsetY(mod) * visualScale, null);
+                        index++;
+                        if (index >= Constant.MAX_NUMBER_OF_TERRAIN_MODS)
+                            break;
+                        mod = mDrawState.mCityModel.getMod(row, col, index);
+                    }
                 }
             }
         }
@@ -261,8 +269,20 @@ public class DrawThread extends Thread {
                     mDrawState.isoToRealXDownscaling(0, mLastCol + 1) + mOriginX,
                     mDrawState.isoToRealYDownscaling(0, mLastCol + 1) + mOriginY, mGridPaint);
         }
+        if (mMaxRow == mDrawState.mCityModel.getHeight() - 1) {
+            canvas.drawLine(mDrawState.isoToRealXDownscaling(mMaxRow + 1, mFirstCol) + mOriginX - 1,
+                    mDrawState.isoToRealYDownscaling(mMaxRow + 1, mFirstCol) + mOriginY,
+                    mDrawState.isoToRealXDownscaling(mMaxRow + 1, mLastCol + 1) + mOriginX,
+                    mDrawState.isoToRealYDownscaling(mMaxRow + 1, mLastCol + 1) + mOriginY + 1, mGridPaint);
+        }
     }
 
+    /**
+     * Draw a semi-transparent rectangular overlay on top of selected tiles
+     * 
+     * @param canvas
+     *            the canvas to draw onto
+     */
     private void drawSelection(Canvas canvas) {
         int minRow, maxRow, minCol, maxCol;
         if (mDrawState.mFirstSelectedRow != -1) {
@@ -320,25 +340,39 @@ public class DrawThread extends Thread {
         }
     }
 
+    /**
+     * Draw a very thin plus sign spanning the entire screen that indicates the middle of the screen
+     * 
+     * @param canvas
+     *            the canvas to draw onto
+     */
     @SuppressWarnings("unused")
     private void drawCenterLines(Canvas canvas) {
-        // Draw a very thin plus sign spanning the entire screen that indicates the middle of the screen
         canvas.drawLine(mDrawState.mWidth / 2, 0, mDrawState.mWidth / 2, mDrawState.mHeight, mGridPaint);
         canvas.drawLine(0, mDrawState.mHeight / 2, mDrawState.mWidth, mDrawState.mHeight / 2, mGridPaint);
     }
 
+    /**
+     * @return true if there visibile tiles within the view
+     */
     private boolean visibileTilesExist() {
         return mDrawState.isTileValid(mFirstRow, mFirstCol)//is the first tile to draw even valid/visible?
                 && mDrawState.isTileVisible(mDrawState.isoToRealXDownscaling(mFirstRow, mFirstCol) + mOriginX,
                         mDrawState.isoToRealYDownscaling(mFirstRow, mFirstCol) + mOriginY);
     }
 
+    /**
+     * Set the start time for time to draw measurement
+     */
     private void setStartTime() {
         if (LOG_TTD) {
             startTime = System.currentTimeMillis();
         }
     }
 
+    /**
+     * Calculate and print the time to draw measurement
+     */
     private void setEndTime() {
         if (LOG_TTD) {
             long endTime = System.currentTimeMillis();

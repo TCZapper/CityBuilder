@@ -31,7 +31,7 @@ public class CityViewState {
     private int mTileWidth;
     private int mTileHeight;
     public CityModel mCityModel = null;
-    public boolean mDrawGridLines = true;
+    public boolean mDrawGridLines = false;
     public int mTerrainTypeSelected = TERRAIN.GRASS;
     public int mMode = CITY_VIEW_MODES.VIEW;
     public int mTool = TERRAIN_TOOLS.BRUSH;

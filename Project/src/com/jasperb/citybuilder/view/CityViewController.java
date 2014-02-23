@@ -70,6 +70,7 @@ public class CityViewController {
         boolean result = mPanDetector.onTouchEvent(event);
         mScaleDetector.onTouchEvent(event);
         if (!result && event.getAction() == MotionEvent.ACTION_UP && mInputClick) {
+//            mState.setScaleFactor(mState.getScaleFactor() * 0.9f);
             if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN) {
                 if (mState.mTool == TERRAIN_TOOLS.BRUSH) {
                     paintWithBrush(event);

@@ -110,7 +110,7 @@ public class OverlayController implements Observer {
                 synchronized (mState) {
                     mState.mTerrainTypeSelected = terrain;
                 }
-                mTileSyleIcon.setImageBitmap(TileBitmaps.getFullBitmap(terrain));
+                mTileSyleIcon.setImageBitmap(TileBitmaps.getFullTileBitmap(terrain));
             } else if (v.equals(mPaintButton)) {
                 synchronized (mState) {
                     mState.mTool = TERRAIN_TOOLS.BRUSH;
@@ -237,7 +237,7 @@ public class OverlayController implements Observer {
             break;
         case CITY_VIEW_MODES.EDIT_TERRAIN:
             mTerrainTools.setVisibility(View.VISIBLE);
-            mTileSyleIcon.setImageBitmap(TileBitmaps.getFullBitmap(mState.mTerrainTypeSelected));
+            mTileSyleIcon.setImageBitmap(TileBitmaps.getFullTileBitmap(mState.mTerrainTypeSelected));
             mUndoButton.setVisibility(View.GONE);
             mRedoButton.setVisibility(View.GONE);
             switch (mState.mTool) {
