@@ -129,7 +129,7 @@ public class CityViewController {
             int col = (int) mState.realToIsoColUpscaling(posX, posY);
             if (mState.isTileValid(row, col)) {
                 if (mState.mBrushType == BRUSH_TYPES.SQUARE1X1) {
-                    mState.addTerrainEdit(new TerrainEdit(row, col, mState.mTerrainTypeSelected));
+                    mState.addTerrainEdit(new TerrainEdit(row, col, mState.mTerrainTypeSelected, mState.mDrawWithBlending));
                 } else if (mState.mBrushType == BRUSH_TYPES.SQUARE3X3) {
                     int minRow = row - 1;
                     if (minRow < 0)
@@ -143,7 +143,7 @@ public class CityViewController {
                     int maxCol = col + 1;
                     if (maxCol > mState.mCityModel.getWidth())
                         maxCol = 0;
-                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mTerrainTypeSelected));
+                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mTerrainTypeSelected, mState.mDrawWithBlending));
                 } else if (mState.mBrushType == BRUSH_TYPES.SQUARE5X5) {
                     int minRow = row - 2;
                     if (minRow < 0)
@@ -157,7 +157,7 @@ public class CityViewController {
                     int maxCol = col + 2;
                     if (maxCol > mState.mCityModel.getWidth())
                         maxCol = 0;
-                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mTerrainTypeSelected));
+                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mTerrainTypeSelected, mState.mDrawWithBlending));
                 }
             }
         }

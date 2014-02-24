@@ -32,6 +32,7 @@ public class CityViewState {
     private int mTileHeight;
     public CityModel mCityModel = null;
     public boolean mDrawGridLines = false;
+    public boolean mDrawWithBlending = true;
     public int mTerrainTypeSelected = TERRAIN.GRASS;
     public int mMode = CITY_VIEW_MODES.VIEW;
     public int mTool = TERRAIN_TOOLS.BRUSH;
@@ -153,7 +154,7 @@ public class CityViewState {
             minRow = maxRow;
             minCol = maxCol;
         }
-        mTerrainEdits.add(new TerrainEdit(minRow, minCol, maxRow, maxCol, mTerrainTypeSelected));
+        mTerrainEdits.add(new TerrainEdit(minRow, minCol, maxRow, maxCol, mTerrainTypeSelected, mDrawWithBlending));
     }
 
     /**

@@ -53,6 +53,7 @@ public class MainViewActivity extends Activity {
 
         mOverlayController.mGridButton = (ImageView) findViewById(R.id.GridButton);
         mOverlayController.mTerrainButton = (ImageView) findViewById(R.id.TerrainButton);
+        mOverlayController.mBlendButton = (ImageView) findViewById(R.id.BlendButton);
 
         mOverlayController.mTerrainTools = (LinearLayout) findViewById(R.id.TerrainTools);
         mOverlayController.mTileStyleButton = (FrameLayout) findViewById(R.id.TileStyleButton);
