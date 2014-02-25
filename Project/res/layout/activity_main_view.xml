@@ -25,15 +25,6 @@
         android:clickable="true"
         android:src="@drawable/grid_button" />
 
-    <ImageView
-        android:id="@+id/BlendButton"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginLeft="95dp"
-        android:layout_marginTop="5dp"
-        android:clickable="true"
-        android:src="@drawable/blend_button" />
-
     <LinearLayout
         android:id="@+id/TerrainTools"
         android:layout_width="wrap_content"
@@ -78,6 +69,16 @@
                 android:layout_height="match_parent"
                 android:layout_margin="2dp" />
         </FrameLayout>
+
+        <ImageView
+            android:id="@+id/BlendButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:clickable="true"
+            android:src="@drawable/blend_button" />
+        
     </LinearLayout>
 
     <LinearLayout

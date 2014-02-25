@@ -239,6 +239,7 @@ public class OverlayController implements Observer {
             mTileSyleIcon.setImageBitmap(TileBitmaps.getFullTileBitmap(mState.mTerrainTypeSelected));
             mUndoButton.setVisibility(View.GONE);
             mRedoButton.setVisibility(View.GONE);
+            mBlendButton.setSelected(mState.mDrawWithBlending);
             switch (mState.mTool) {
             case TERRAIN_TOOLS.BRUSH:
                 mMoveButtons.setVisibility(View.VISIBLE);
@@ -261,6 +262,5 @@ public class OverlayController implements Observer {
             break;
         }
         mGridButton.setSelected(mState.mDrawGridLines);
-        mBlendButton.setSelected(mState.mDrawWithBlending);
     }
 }
