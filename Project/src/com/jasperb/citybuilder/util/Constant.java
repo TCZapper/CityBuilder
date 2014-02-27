@@ -58,7 +58,7 @@ public class Constant {
      */
     public static class TERRAIN {
         public static final int GRASS = 0, DIRT = 1, SIDEWALK = 2, PAVEMENT = 3, PAVED_LINE = 4;
-        public static final int count = 2;
+        public static final int count = 4;
         
         public static int getBaseType(int terrain) {
             if(terrain == TERRAIN.PAVED_LINE) {

@@ -54,15 +54,11 @@ public class CityModel {
 
         for (int col = 0; col < mWidth; col++) {
             for (int row = 0; row < mHeight; row++) {
-                if ((row + col) % 8 < 4 || row % 20 == 0) {
-                    mTerrainMap[col][row] = TERRAIN.GRASS;
-                } else {
-                    mTerrainMap[col][row] = TERRAIN.DIRT;
-                }
+                mTerrainMap[col][row] = (byte) (Math.random() * TERRAIN.count);
                 for (int i = 0; i < Constant.MAX_NUMBER_OF_TERRAIN_MODS; i++) {
                     mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + i] = TERRAIN_MODS.NONE;
                 }
-                mBlend[col][row] = true;
+                mBlend[col][row] = false;
             }
         }
         for (int col = 0; col < mWidth; col++) {

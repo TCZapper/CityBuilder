@@ -94,11 +94,16 @@ public class TileBitmaps {
                 tempBitmap = BitmapFactory.decodeStream(ims);
                 mFullTileBitmaps[TERRAIN.DIRT] = tempBitmap.copy(Config.ARGB_8888, true);
                 ims.close();
-
-//                ims = assets.open("TERRAIN/TileRounded.png");
-//                tempBitmap = BitmapFactory.decodeStream(ims);
-//                mFullBitmaps[TERRAIN.SIDEWALK] = tempBitmap.copy(Config.ARGB_8888, true);
-//                ims.close();
+                
+                ims = assets.open("TERRAIN/TileSidewalk.png");
+                tempBitmap = BitmapFactory.decodeStream(ims);
+                mFullTileBitmaps[TERRAIN.SIDEWALK] = tempBitmap.copy(Config.ARGB_8888, true);
+                ims.close();
+                
+                ims = assets.open("TERRAIN/TileAsphalt.png");
+                tempBitmap = BitmapFactory.decodeStream(ims);
+                mFullTileBitmaps[TERRAIN.PAVEMENT] = tempBitmap.copy(Config.ARGB_8888, true);
+                ims.close();
 
                 int[] roundedMods = { TERRAIN_MODS.ROUNDED_GRASS, TERRAIN_MODS.ROUNDED_DIRT };
                 String[] roundedNames = { "Grass", "Dirt" };
