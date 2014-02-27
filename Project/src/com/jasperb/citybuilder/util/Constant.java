@@ -82,11 +82,11 @@ public class Constant {
         public static final int VERTICAL = 0, HORIZONTAL = 1;
         public static final int count = 27;
         public static boolean isRoundableTerrain(int terrain) {
-            return true;
+            return terrain != TERRAIN.SIDEWALK;
         }
         
         public static boolean hasRoundingMods(int terrain) {
-            return true;
+            return terrain != TERRAIN.SIDEWALK;
         }
         
         /**

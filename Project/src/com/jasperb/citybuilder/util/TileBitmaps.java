@@ -100,33 +100,33 @@ public class TileBitmaps {
                 mFullTileBitmaps[TERRAIN.SIDEWALK] = tempBitmap.copy(Config.ARGB_8888, true);
                 ims.close();
                 
-                ims = assets.open("TERRAIN/TileAsphalt.png");
+                ims = assets.open("TERRAIN/TilePavement.png");
                 tempBitmap = BitmapFactory.decodeStream(ims);
                 mFullTileBitmaps[TERRAIN.PAVEMENT] = tempBitmap.copy(Config.ARGB_8888, true);
                 ims.close();
 
-                int[] roundedMods = { TERRAIN_MODS.ROUNDED_GRASS, TERRAIN_MODS.ROUNDED_DIRT };
-                String[] roundedNames = { "Grass", "Dirt" };
+                int[] roundedMods = { TERRAIN_MODS.ROUNDED_GRASS, TERRAIN_MODS.ROUNDED_DIRT, TERRAIN_MODS.ROUNDED_PAVEMENT };
+                String[] roundedNames = { "Grass", "Dirt", "Pavement" };
                 for (int j = 0; j < roundedNames.length; j++) {
                     for (int i = 0; i <= 3; i++) {
                         switch (i) {
                         case TERRAIN_MODS.TOP_LEFT:
-                            ims = assets.open("TERRAIN_MODS/Corner" + roundedNames[j] + "Top.png");
+                            ims = assets.open("TERRAIN_MODS/Rounded" + roundedNames[j] + "Top.png");
                             mModOffsetX[roundedMods[j] + i] = 27;
                             mModOffsetY[roundedMods[j] + i] = 0;
                             break;
                         case TERRAIN_MODS.TOP_RIGHT:
-                            ims = assets.open("TERRAIN_MODS/Corner" + roundedNames[j] + "Right.png");
+                            ims = assets.open("TERRAIN_MODS/Rounded" + roundedNames[j] + "Right.png");
                             mModOffsetX[roundedMods[j] + i] = 76;
                             mModOffsetY[roundedMods[j] + i] = 15;
                             break;
                         case TERRAIN_MODS.BOTTOM_LEFT:
-                            ims = assets.open("TERRAIN_MODS/Corner" + roundedNames[j] + "Left.png");
+                            ims = assets.open("TERRAIN_MODS/Rounded" + roundedNames[j] + "Left.png");
                             mModOffsetX[roundedMods[j] + i] = 0;
                             mModOffsetY[roundedMods[j] + i] = 15;
                             break;
                         case TERRAIN_MODS.BOTTOM_RIGHT:
-                            ims = assets.open("TERRAIN_MODS/Corner" + roundedNames[j] + "Bottom.png");
+                            ims = assets.open("TERRAIN_MODS/Rounded" + roundedNames[j] + "Bottom.png");
                             mModOffsetX[roundedMods[j] + i] = 26;
                             mModOffsetY[roundedMods[j] + i] = 38;
                             break;

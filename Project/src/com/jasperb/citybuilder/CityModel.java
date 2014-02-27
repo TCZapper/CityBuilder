@@ -54,11 +54,18 @@ public class CityModel {
 
         for (int col = 0; col < mWidth; col++) {
             for (int row = 0; row < mHeight; row++) {
-                mTerrainMap[col][row] = (byte) (Math.random() * TERRAIN.count);
+                mTerrainMap[col][row] = (byte) (Math.random() * (TERRAIN.count + 2));
+                if(mTerrainMap[col][row] >= TERRAIN.count) {
+                    if(row == 0) {
+                        mTerrainMap[col][row] = (byte) (Math.random() * TERRAIN.count);
+                    } else {
+                        mTerrainMap[col][row] = mTerrainMap[col][row - 1];
+                    }
+                }
                 for (int i = 0; i < Constant.MAX_NUMBER_OF_TERRAIN_MODS; i++) {
                     mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + i] = TERRAIN_MODS.NONE;
                 }
-                mBlend[col][row] = false;
+                mBlend[col][row] = true;
             }
         }
         for (int col = 0; col < mWidth; col++) {
