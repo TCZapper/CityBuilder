@@ -58,7 +58,7 @@ public class Constant {
      */
     public static class TERRAIN {
         public static final int GRASS = 0, DIRT = 1, SIDEWALK = 2, PAVEMENT = 3, PAVED_LINE = 4;
-        public static final int count = 4;
+        public static final int count = 5;
         
         public static int getBaseType(int terrain) {
             if(terrain == TERRAIN.PAVED_LINE) {
@@ -77,10 +77,10 @@ public class Constant {
      * Types of available terrain mods.
      */
     public static class TERRAIN_MODS {
-        public static final int ROUNDED_GRASS = 0, ROUNDED_DIRT = 4, ROUNDED_SIDEWALK = 8, ROUNDED_PAVEMENT = 12, ROUNDED_PAVED_LINE = 16, STRAIGHT_PAVED_LINE = 24, NONE = 26;
-        public static final int TOP_LEFT = 0, TOP_RIGHT = 1, BOTTOM_LEFT = 2, BOTTOM_RIGHT = 3;
+        public static final int ROUNDED_GRASS = 0, ROUNDED_DIRT = 4, ROUNDED_SIDEWALK = 8, ROUNDED_PAVEMENT = 12, SMOOTHED_PAVED_LINE = 16, ROUNDED_PAVED_LINE = 20, STRAIGHT_PAVED_LINE = 28, NONE = 30;
+        public static final int TOP_LEFT = 0, TOP_RIGHT = 1, BOTTOM_RIGHT = 2, BOTTOM_LEFT = 3;
         public static final int VERTICAL = 0, HORIZONTAL = 1;
-        public static final int count = 27;
+        public static final int count = NONE;
         public static boolean isRoundableTerrain(int terrain) {
             return terrain != TERRAIN.SIDEWALK;
         }

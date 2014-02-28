@@ -57,7 +57,8 @@ public class TileBitmaps {
     }
 
     /**
-     * @param mod the terrain mod to get the offset for
+     * @param mod
+     *            the terrain mod to get the offset for
      * @return the X offset of the mod relative to the top-right corner of the tile
      */
     public static int getModOffsetX(int mod) {
@@ -65,7 +66,8 @@ public class TileBitmaps {
     }
 
     /**
-     * @param mod the terrain mod to get the offset for
+     * @param mod
+     *            the terrain mod to get the offset for
      * @return the Y offset of the mod relative to the top-right corner of the tile
      */
     public static int getModOffsetY(int mod) {
@@ -94,15 +96,20 @@ public class TileBitmaps {
                 tempBitmap = BitmapFactory.decodeStream(ims);
                 mFullTileBitmaps[TERRAIN.DIRT] = tempBitmap.copy(Config.ARGB_8888, true);
                 ims.close();
-                
+
                 ims = assets.open("TERRAIN/TileSidewalk.png");
                 tempBitmap = BitmapFactory.decodeStream(ims);
                 mFullTileBitmaps[TERRAIN.SIDEWALK] = tempBitmap.copy(Config.ARGB_8888, true);
                 ims.close();
-                
+
                 ims = assets.open("TERRAIN/TilePavement.png");
                 tempBitmap = BitmapFactory.decodeStream(ims);
                 mFullTileBitmaps[TERRAIN.PAVEMENT] = tempBitmap.copy(Config.ARGB_8888, true);
+                ims.close();
+
+                ims = assets.open("TERRAIN/TilePavedLine.png");
+                tempBitmap = BitmapFactory.decodeStream(ims);
+                mFullTileBitmaps[TERRAIN.PAVED_LINE] = tempBitmap.copy(Config.ARGB_8888, true);
                 ims.close();
 
                 int[] roundedMods = { TERRAIN_MODS.ROUNDED_GRASS, TERRAIN_MODS.ROUNDED_DIRT, TERRAIN_MODS.ROUNDED_PAVEMENT };
@@ -120,15 +127,15 @@ public class TileBitmaps {
                             mModOffsetX[roundedMods[j] + i] = 76;
                             mModOffsetY[roundedMods[j] + i] = 15;
                             break;
-                        case TERRAIN_MODS.BOTTOM_LEFT:
-                            ims = assets.open("TERRAIN_MODS/Rounded" + roundedNames[j] + "Left.png");
-                            mModOffsetX[roundedMods[j] + i] = 0;
-                            mModOffsetY[roundedMods[j] + i] = 15;
-                            break;
                         case TERRAIN_MODS.BOTTOM_RIGHT:
                             ims = assets.open("TERRAIN_MODS/Rounded" + roundedNames[j] + "Bottom.png");
                             mModOffsetX[roundedMods[j] + i] = 26;
                             mModOffsetY[roundedMods[j] + i] = 38;
+                            break;
+                        case TERRAIN_MODS.BOTTOM_LEFT:
+                            ims = assets.open("TERRAIN_MODS/Rounded" + roundedNames[j] + "Left.png");
+                            mModOffsetX[roundedMods[j] + i] = 0;
+                            mModOffsetY[roundedMods[j] + i] = 15;
                             break;
                         }
                         tempBitmap = BitmapFactory.decodeStream(ims);
@@ -136,6 +143,51 @@ public class TileBitmaps {
                         ims.close();
                     }
                 }
+
+                for (int i = 0; i <= 3; i++) {
+                    switch (i) {
+                    case TERRAIN_MODS.TOP_LEFT:
+                        ims = assets.open("TERRAIN_MODS/PavedLineRoundedTop.png");
+                        mModOffsetX[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 33;
+                        mModOffsetY[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 15;
+                        break;
+                    case TERRAIN_MODS.TOP_RIGHT:
+                        ims = assets.open("TERRAIN_MODS/PavedLineRoundedRight.png");
+                        mModOffsetX[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 66;
+                        mModOffsetY[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 12;
+                        break;
+                    case TERRAIN_MODS.BOTTOM_RIGHT:
+                        ims = assets.open("TERRAIN_MODS/PavedLineRoundedBottom.png");
+                        mModOffsetX[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 32;
+                        mModOffsetY[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 24;
+                        break;
+                    case TERRAIN_MODS.BOTTOM_LEFT:
+                        ims = assets.open("TERRAIN_MODS/PavedLineRoundedLeft.png");
+                        mModOffsetX[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 22;
+                        mModOffsetY[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 12;
+                        break;
+                    }
+                    tempBitmap = BitmapFactory.decodeStream(ims);
+                    mFullModBitmaps[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = tempBitmap.copy(Config.ARGB_8888, true);
+                    ims.close();
+                }
+
+                ims = assets.open("TERRAIN_MODS/PavedLineBackSlash.png");
+                tempBitmap = BitmapFactory.decodeStream(ims);
+                mFullModBitmaps[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.HORIZONTAL] = tempBitmap.copy(Config.ARGB_8888, true);
+                ims.close();
+                mModOffsetX[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.HORIZONTAL] = 37;
+                mModOffsetY[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.HORIZONTAL] = 18;
+
+                ims = assets.open("TERRAIN_MODS/PavedLineSlash.png");
+                tempBitmap = BitmapFactory.decodeStream(ims);
+                mFullModBitmaps[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL] = tempBitmap.copy(Config.ARGB_8888, true);
+                ims.close();
+                mModOffsetX[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL] = 37;
+                mModOffsetY[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL] = 18;
+
+                Log.d(TAG, "SPL: " + mFullModBitmaps[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL].getWidth() + " : "
+                        + mFullModBitmaps[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL].getHeight());
 
                 Log.d(TAG, "DONE LOADING");
             } catch (IOException ex) {
@@ -167,10 +219,15 @@ public class TileBitmaps {
         mMatrix.setScale(visualScale, visualScale);
         if (state.mDrawGridLines) {
             for (int i = 0; i < mFullTileBitmaps.length; i++) {
-                mScaledTileBitmaps[i] = Bitmap.createScaledBitmap(mFullTileBitmaps[i], state.getTileWidth(), state.getTileHeight(), true);
-                mCanvas.setBitmap(mScaledTileBitmaps[i]);
-                mCanvas.drawLine(state.getTileWidth() / 2, 0, state.getTileWidth(), state.getTileHeight() / 2, mPaint);
-                mCanvas.drawLine(state.getTileWidth() / 2, 0, 0, state.getTileHeight() / 2, mPaint);
+                if (TERRAIN.getBaseType(i) != i) {
+                    mScaledTileBitmaps[i] = Bitmap.createScaledBitmap(mFullTileBitmaps[i], state.getTileWidth(), state.getTileHeight(),
+                            true);
+                    mCanvas.setBitmap(mScaledTileBitmaps[i]);
+                    mCanvas.drawLine(state.getTileWidth() / 2, 0, state.getTileWidth(), state.getTileHeight() / 2, mPaint);
+                    mCanvas.drawLine(state.getTileWidth() / 2, 0, 0, state.getTileHeight() / 2, mPaint);
+                } else {
+                    mScaledTileBitmaps[i] = mScaledTileBitmaps[TERRAIN.getBaseType(i)];
+                }
             }
             for (int i = 0; i < mFullModBitmaps.length; i++) {
                 mScaledModBitmaps[i].eraseColor(android.graphics.Color.TRANSPARENT);
@@ -187,7 +244,12 @@ public class TileBitmaps {
             }
         } else {
             for (int i = 0; i < mFullTileBitmaps.length; i++) {
-                mScaledTileBitmaps[i] = Bitmap.createScaledBitmap(mFullTileBitmaps[i], state.getTileWidth(), state.getTileHeight(), true);
+                if (TERRAIN.getBaseType(i) != i) {
+                    mScaledTileBitmaps[i] = Bitmap.createScaledBitmap(mFullTileBitmaps[i], state.getTileWidth(), state.getTileHeight(),
+                            true);
+                } else {
+                    mScaledTileBitmaps[i] = mScaledTileBitmaps[TERRAIN.getBaseType(i)];
+                }
             }
             for (int i = 0; i < mFullModBitmaps.length; i++) {
                 mScaledModBitmaps[i].eraseColor(android.graphics.Color.TRANSPARENT);
