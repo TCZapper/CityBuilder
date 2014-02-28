@@ -54,7 +54,8 @@ public class CityModel {
 
         for (int col = 0; col < mWidth; col++) {
             for (int row = 0; row < mHeight; row++) {
-                mTerrainMap[col][row] = (byte) (Math.random() * (TERRAIN.count + 2));
+                mTerrainMap[col][row] = TERRAIN.GRASS;
+                //mTerrainMap[col][row] = (byte) (Math.random() * (TERRAIN.count + 2));
                 if (mTerrainMap[col][row] >= TERRAIN.count) {
                     if (row == 0) {
                         mTerrainMap[col][row] = (byte) (Math.random() * TERRAIN.count);
@@ -62,9 +63,7 @@ public class CityModel {
                         mTerrainMap[col][row] = mTerrainMap[col][row - 1];
                     }
                 }
-                for (int i = 0; i < Constant.MAX_NUMBER_OF_TERRAIN_MODS; i++) {
-                    mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + i] = TERRAIN_MODS.NONE;
-                }
+                mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS] = TERRAIN_MODS.NONE;
                 mBlend[col][row] = true;
             }
         }
@@ -177,6 +176,7 @@ public class CityModel {
         }
 
         if (terrain == TERRAIN.PAVED_LINE && setPavedLineMod(row, col, modIndex)) {
+            Log.d(TAG,"PAVED: " + mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex]);
             modIndex++;
         }
 
@@ -188,6 +188,17 @@ public class CityModel {
 
     private boolean setPavedLineMod(int row, int col, int modIndex) {
         if (col - 1 >= 0 && mTerrainMap[col - 1][row] == TERRAIN.PAVED_LINE) {
+//            if (mBlend[col][row] && col + 1 < mWidth) {
+//                if (row - 1 >= 0 && mTerrainMap[col + 1][row - 1] == TERRAIN.PAVED_LINE) {
+//                    mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.SMOOTHED_PAVED_LINE
+//                            + TERRAIN_MODS.HORIZONTAL * 4 + TERRAIN_MODS.TOP_RIGHT;
+//                    return true;
+//                } else if (row + 1 < mHeight && mTerrainMap[col + 1][row + 1] == TERRAIN.PAVED_LINE) {
+//                    mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.SMOOTHED_PAVED_LINE
+//                            + TERRAIN_MODS.HORIZONTAL * 4 + TERRAIN_MODS.BOTTOM_RIGHT;
+//                    return true;
+//                }
+//            }
             if (row - 1 >= 0 && mTerrainMap[col][row - 1] == TERRAIN.PAVED_LINE) {
                 mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.ROUNDED_PAVED_LINE
                         + TERRAIN_MODS.TOP_LEFT;
@@ -199,6 +210,17 @@ public class CityModel {
                         + TERRAIN_MODS.HORIZONTAL;
             }
         } else if (col + 1 < mWidth && mTerrainMap[col + 1][row] == TERRAIN.PAVED_LINE) {
+//            if (mBlend[col][row] && col - 1 >= 0) {
+//                if (row - 1 >= 0 && mTerrainMap[col - 1][row - 1] == TERRAIN.PAVED_LINE) {
+//                    mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.SMOOTHED_PAVED_LINE
+//                            + TERRAIN_MODS.HORIZONTAL * 4 + TERRAIN_MODS.TOP_LEFT;
+//                    return true;
+//                } else if (row + 1 < mHeight && mTerrainMap[col - 1][row + 1] == TERRAIN.PAVED_LINE) {
+//                    mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.SMOOTHED_PAVED_LINE
+//                            + TERRAIN_MODS.HORIZONTAL * 4 + TERRAIN_MODS.BOTTOM_LEFT;
+//                    return true;
+//                }
+//            }
             if (row - 1 >= 0 && mTerrainMap[col][row - 1] == TERRAIN.PAVED_LINE) {
                 mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.ROUNDED_PAVED_LINE
                         + TERRAIN_MODS.TOP_RIGHT;
@@ -210,9 +232,31 @@ public class CityModel {
                         + TERRAIN_MODS.HORIZONTAL;
             }
         } else if (row - 1 >= 0 && mTerrainMap[col][row - 1] == TERRAIN.PAVED_LINE) {
+//            if (mBlend[col][row] && row + 1 < mHeight) {
+//                if (col - 1 >= 0 && mTerrainMap[col - 1][row + 1] == TERRAIN.PAVED_LINE) {
+//                    mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.SMOOTHED_PAVED_LINE
+//                            + TERRAIN_MODS.VERTICAL * 4 + TERRAIN_MODS.BOTTOM_LEFT;
+//                    return true;
+//                } else if (col + 1 < mWidth && mTerrainMap[col + 1][row + 1] == TERRAIN.PAVED_LINE) {
+//                    mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.SMOOTHED_PAVED_LINE
+//                            + TERRAIN_MODS.VERTICAL * 4 + TERRAIN_MODS.BOTTOM_RIGHT;
+//                    return true;
+//                }
+//            }
             mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.STRAIGHT_PAVED_LINE
                     + TERRAIN_MODS.VERTICAL;
         } else if (row + 1 < mHeight && mTerrainMap[col][row + 1] == TERRAIN.PAVED_LINE) {
+//            if (mBlend[col][row] && row - 1 >= 0) {
+//                if (col - 1 >= 0 && mTerrainMap[col - 1][row - 1] == TERRAIN.PAVED_LINE) {
+//                    mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.SMOOTHED_PAVED_LINE
+//                            + TERRAIN_MODS.VERTICAL * 4 + TERRAIN_MODS.TOP_LEFT;
+//                    return true;
+//                } else if (col + 1 < mWidth && mTerrainMap[col + 1][row - 1] == TERRAIN.PAVED_LINE) {
+//                    mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.SMOOTHED_PAVED_LINE
+//                            + TERRAIN_MODS.VERTICAL * 4 + TERRAIN_MODS.TOP_RIGHT;
+//                    return true;
+//                }
+//            }
             mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.STRAIGHT_PAVED_LINE
                     + TERRAIN_MODS.VERTICAL;
         } else {

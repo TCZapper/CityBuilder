@@ -49,6 +49,7 @@ public class TileBitmaps {
                 mScaledModBitmaps[i] = Bitmap.createScaledBitmap(mFullModBitmaps[i], mFullModBitmaps[i].getWidth(),
                         mFullModBitmaps[i].getHeight(), false);
             } catch (NullPointerException e) {//Temp fix until all mods are implemented
+                Log.d(TAG, "Failed to scale for terrain mod: " + i);
                 mFullModBitmaps[i] = mFullModBitmaps[0];
                 mScaledModBitmaps[i] = Bitmap.createScaledBitmap(mFullModBitmaps[i], mFullModBitmaps[i].getWidth(),
                         mFullModBitmaps[i].getHeight(), false);
@@ -171,6 +172,56 @@ public class TileBitmaps {
                     mFullModBitmaps[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = tempBitmap.copy(Config.ARGB_8888, true);
                     ims.close();
                 }
+                
+                for (int i = 0; i <= 7; i++) {
+                    switch (i) {
+                    case TERRAIN_MODS.HORIZONTAL * 4 + TERRAIN_MODS.TOP_LEFT:
+                        ims = assets.open("TERRAIN_MODS/PavedLineSmoothHorizontalTop.png");
+                        mModOffsetX[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 39;
+                        mModOffsetY[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 22;
+                        break;
+                    case TERRAIN_MODS.HORIZONTAL * 4 + TERRAIN_MODS.TOP_RIGHT:
+                        ims = assets.open("TERRAIN_MODS/PavedLineSmoothHorizontalRight.png");
+                        mModOffsetX[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 39;
+                        mModOffsetY[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 22;
+                        break;
+                    case TERRAIN_MODS.HORIZONTAL * 4 + TERRAIN_MODS.BOTTOM_RIGHT:
+                        ims = assets.open("TERRAIN_MODS/PavedLineSmoothHorizontalBottom.png");
+                        mModOffsetX[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 39;
+                        mModOffsetY[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 22;
+                        break;
+                    case TERRAIN_MODS.HORIZONTAL * 4 + TERRAIN_MODS.BOTTOM_LEFT:
+                        ims = assets.open("TERRAIN_MODS/PavedLineSmoothHorizontalLeft.png");
+                        mModOffsetX[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 39;
+                        mModOffsetY[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 22;
+                        break;
+                    case TERRAIN_MODS.VERTICAL * 4 + TERRAIN_MODS.TOP_LEFT:
+                        ims = assets.open("TERRAIN_MODS/PavedLineSmoothVerticalTop.png");
+                        mModOffsetX[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 39;
+                        mModOffsetY[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 22;
+                        break;
+                    case TERRAIN_MODS.VERTICAL * 4 + TERRAIN_MODS.TOP_RIGHT:
+                        ims = assets.open("TERRAIN_MODS/PavedLineSmoothVerticalRight.png");
+                        mModOffsetX[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 39;
+                        mModOffsetY[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 22;
+                        break;
+                    case TERRAIN_MODS.VERTICAL * 4 + TERRAIN_MODS.BOTTOM_RIGHT:
+                        ims = assets.open("TERRAIN_MODS/PavedLineSmoothVerticalBottom.png");
+                        mModOffsetX[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 39;
+                        mModOffsetY[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 22;
+                        break;
+                    case TERRAIN_MODS.VERTICAL * 4 + TERRAIN_MODS.BOTTOM_LEFT:
+                        ims = assets.open("TERRAIN_MODS/PavedLineSmoothVerticalLeft.png");
+                        mModOffsetX[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 39;
+                        mModOffsetY[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = 22;
+                        break;
+                    }
+                    tempBitmap = BitmapFactory.decodeStream(ims);
+                    mFullModBitmaps[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = tempBitmap.copy(Config.ARGB_8888, true);
+                    ims.close();
+                }
+                
+                
 
                 ims = assets.open("TERRAIN_MODS/PavedLineBackSlash.png");
                 tempBitmap = BitmapFactory.decodeStream(ims);
@@ -185,9 +236,6 @@ public class TileBitmaps {
                 ims.close();
                 mModOffsetX[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL] = 37;
                 mModOffsetY[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL] = 18;
-
-                Log.d(TAG, "SPL: " + mFullModBitmaps[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL].getWidth() + " : "
-                        + mFullModBitmaps[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL].getHeight());
 
                 Log.d(TAG, "DONE LOADING");
             } catch (IOException ex) {
