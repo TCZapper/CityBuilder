@@ -176,7 +176,6 @@ public class CityModel {
         }
 
         if (terrain == TERRAIN.PAVED_LINE && setPavedLineMod(row, col, modIndex)) {
-            Log.d(TAG,"PAVED: " + mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex]);
             modIndex++;
         }
 

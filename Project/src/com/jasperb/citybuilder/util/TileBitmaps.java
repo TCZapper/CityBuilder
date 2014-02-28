@@ -154,18 +154,18 @@ public class TileBitmaps {
                         break;
                     case TERRAIN_MODS.TOP_RIGHT:
                         ims = assets.open("TERRAIN_MODS/PavedLineRoundedRight.png");
-                        mModOffsetX[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 66;
-                        mModOffsetY[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 12;
+                        mModOffsetX[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 63;
+                        mModOffsetY[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 15;
                         break;
                     case TERRAIN_MODS.BOTTOM_RIGHT:
                         ims = assets.open("TERRAIN_MODS/PavedLineRoundedBottom.png");
                         mModOffsetX[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 32;
-                        mModOffsetY[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 24;
+                        mModOffsetY[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 26;
                         break;
                     case TERRAIN_MODS.BOTTOM_LEFT:
                         ims = assets.open("TERRAIN_MODS/PavedLineRoundedLeft.png");
-                        mModOffsetX[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 22;
-                        mModOffsetY[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 12;
+                        mModOffsetX[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 25;
+                        mModOffsetY[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = 15;
                         break;
                     }
                     tempBitmap = BitmapFactory.decodeStream(ims);
@@ -228,14 +228,14 @@ public class TileBitmaps {
                 mFullModBitmaps[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.HORIZONTAL] = tempBitmap.copy(Config.ARGB_8888, true);
                 ims.close();
                 mModOffsetX[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.HORIZONTAL] = 37;
-                mModOffsetY[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.HORIZONTAL] = 18;
+                mModOffsetY[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.HORIZONTAL] = 19;
 
                 ims = assets.open("TERRAIN_MODS/PavedLineSlash.png");
                 tempBitmap = BitmapFactory.decodeStream(ims);
                 mFullModBitmaps[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL] = tempBitmap.copy(Config.ARGB_8888, true);
                 ims.close();
                 mModOffsetX[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL] = 37;
-                mModOffsetY[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL] = 18;
+                mModOffsetY[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL] = 19;
 
                 Log.d(TAG, "DONE LOADING");
             } catch (IOException ex) {
