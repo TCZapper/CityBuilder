@@ -219,7 +219,7 @@ public class TileBitmaps {
         mMatrix.setScale(visualScale, visualScale);
         if (state.mDrawGridLines) {
             for (int i = 0; i < mFullTileBitmaps.length; i++) {
-                if (TERRAIN.getBaseType(i) != i) {
+                if (TERRAIN.getBaseType(i) == i) {
                     mScaledTileBitmaps[i] = Bitmap.createScaledBitmap(mFullTileBitmaps[i], state.getTileWidth(), state.getTileHeight(),
                             true);
                     mCanvas.setBitmap(mScaledTileBitmaps[i]);
@@ -244,7 +244,7 @@ public class TileBitmaps {
             }
         } else {
             for (int i = 0; i < mFullTileBitmaps.length; i++) {
-                if (TERRAIN.getBaseType(i) != i) {
+                if (TERRAIN.getBaseType(i) == i) {
                     mScaledTileBitmaps[i] = Bitmap.createScaledBitmap(mFullTileBitmaps[i], state.getTileWidth(), state.getTileHeight(),
                             true);
                 } else {
