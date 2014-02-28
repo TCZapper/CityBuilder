@@ -101,10 +101,16 @@ public class DrawThread extends Thread {
                                     if (mDrawState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mDrawState.mTool == TERRAIN_TOOLS.SELECT)
                                         drawSelection(c);
                                 } else {
-                                    Log.v(TAG, "NOTHING TO DRAW");
+                                    Log.d(TAG, "NOTHING TO DRAW");
+                                    Log.d(TAG, "NTD: " + mFirstRow + " : " + mFirstCol);
+                                    Log.d(TAG, "NTD2: " + mDrawState.isTileValid(mFirstRow, mFirstCol) + " : " +
+                                            mDrawState.isTileVisible(mDrawState.isoToRealXDownscaling(mFirstRow, mFirstCol) + mOriginX,
+                                                    mDrawState.isoToRealYDownscaling(mFirstRow, mFirstCol) + mOriginY));
+                                    Log.d(TAG, "NTD3: " + mDrawState.isoToRealXDownscaling(mFirstRow, mFirstCol) + " : " + mOriginX + " : " +
+                                                    mDrawState.isoToRealYDownscaling(mFirstRow, mFirstCol) + " : " + mOriginY);
+                                    Log.v(TAG, "NTD4: " + mTopBoundRow + " : " + mTopBoundCol + " :: " + mRightBoundRow + " : " + mRightBoundCol );
                                 }
                                 //drawCenterLines(c);
-
                                 setEndTime();
                             }
                         }
