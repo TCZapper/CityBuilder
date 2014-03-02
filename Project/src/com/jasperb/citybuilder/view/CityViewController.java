@@ -24,7 +24,7 @@ public class CityViewController {
      */
     public static final String TAG = "CityCtrl";
 
-    private CityViewState mState = null;
+    private SharedState mState = null;
 
     private ScaleGestureDetector mScaleDetector = null;
     private GestureDetector mPanDetector = null;
@@ -33,7 +33,7 @@ public class CityViewController {
     /**
      * Initialize and allocate the necessary components of the view, except those related to the drawing thread
      */
-    public void init(Context context, CityViewState state) {
+    public void init(Context context, SharedState state) {
         mState = state;
 
         mPanDetector = new GestureDetector(context, new GestureListener());

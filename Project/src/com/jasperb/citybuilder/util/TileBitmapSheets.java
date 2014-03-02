@@ -18,7 +18,7 @@ import android.graphics.Rect;
 import android.util.Log;
 
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
-import com.jasperb.citybuilder.view.CityViewState;
+import com.jasperb.citybuilder.view.SharedState;
 
 /**
  * @author Jasper
@@ -86,7 +86,7 @@ public class TileBitmapSheets {
      * @param state
      *            the state that dictates the properties of the tiles
      */
-    public void remakeBitmaps(CityViewState state) {
+    public void remakeBitmaps(SharedState state) {
         Log.v(TAG, "REMAKE BITMAPS");
 
         mRect.set(0, 0, state.getTileWidth() * TERRAIN.count, state.getTileHeight());

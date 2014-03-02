@@ -26,7 +26,7 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
     private DrawThread mDrawThread = null;
     private SurfaceHolder mSurfaceHolder = null;
     private boolean mSurfaceExists = false;
-    private CityViewState mState = null;
+    private SharedState mState = null;
 
     /**
      * Class constructor taking a context and an attribute set. This constructor is used by the layout engine to construct a
@@ -64,7 +64,7 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
     /**
      * Initialize and allocate the necessary components of the view, except those related to the drawing thread
      */
-    public void init(CityViewController controller, CityViewState state) {
+    public void init(CityViewController controller, SharedState state) {
         mController = controller;
         mState = state;
 

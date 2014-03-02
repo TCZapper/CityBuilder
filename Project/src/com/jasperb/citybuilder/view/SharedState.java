@@ -19,7 +19,7 @@ import com.jasperb.citybuilder.util.TerrainEdit;
  * 
  * @author Jasper
  */
-public class CityViewState {
+public class SharedState {
     // Thread safe member variables (read from and written to by multiple threads)
     public float mFocusRow = 0, mFocusCol = 0;
     public OverScroller mScroller = null;
@@ -47,7 +47,7 @@ public class CityViewState {
     // Single thread use
     public boolean mDrawWithBlending = true;
 
-    public CityViewState() {
+    public SharedState() {
         setScaleFactor(Constant.MAXIMUM_SCALE_FACTOR);
     }
 
@@ -57,7 +57,7 @@ public class CityViewState {
      * @param state
      *            the CityViewState object to copy from
      */
-    public void copyFrom(CityViewState state) {
+    public void copyFrom(SharedState state) {
         mFocusRow = state.mFocusRow;
         mFocusCol = state.mFocusCol;
         mWidth = state.mWidth;
@@ -80,7 +80,7 @@ public class CityViewState {
      * @param to
      *            the object to copy the state into
      */
-    protected void updateThenCopyState(CityViewState to) {
+    protected void updateThenCopyState(SharedState to) {
         // The purpose of this method is to be used by the draw thread to update the CityView's state and then retrieve that state
         // This lets us easily continuously update the CityView's state and keep the update rate synced with the FPS of the draw thread
         

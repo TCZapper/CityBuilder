@@ -31,8 +31,8 @@ public class DrawThread extends Thread {
     private TileBitmaps mTileBitmaps = null;
     private Paint mGridPaint = null, mSelectionPaint = null, mSelectedTilePaint = null;
     private SurfaceHolder mSurfaceHolder = null;
-    private CityViewState mDrawState = new CityViewState();
-    private CityViewState mMainState = null;
+    private SharedState mDrawState = new SharedState();
+    private SharedState mMainState = null;
     private boolean mRun = true;
     //Boundary calculations are costly, so we store them and reuse them during a single drawing pass
     private int mOriginX, mOriginY, mBitmapOffsetX, mTopLeftRow, mTopLeftCol, mBottomRightRow, mBottomRightCol, mFirstRow, mFirstCol,
@@ -40,7 +40,7 @@ public class DrawThread extends Thread {
             mBottomBoundCol, mMinRow, mMaxRow;
     private long startTime;
 
-    public DrawThread(SurfaceHolder surfaceHolder, CityViewState state) {
+    public DrawThread(SurfaceHolder surfaceHolder, SharedState state) {
         mSurfaceHolder = surfaceHolder;
         mMainState = state;
 

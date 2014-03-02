@@ -15,7 +15,7 @@ import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.TileBitmaps;
 import com.jasperb.citybuilder.view.CityView;
 import com.jasperb.citybuilder.view.CityViewController;
-import com.jasperb.citybuilder.view.CityViewState;
+import com.jasperb.citybuilder.view.SharedState;
 
 public class MainViewActivity extends Activity {
     /**
@@ -27,7 +27,7 @@ public class MainViewActivity extends Activity {
     private static final String STATE_SCALE_FACTOR = "scaleFactor";
     private static final String STATE_DRAW_GRID_LINES = "drawGridLines";
 
-    private CityViewState mState;
+    private SharedState mState;
     private CityViewController mCityViewController;
     private OverlayController mOverlayController;
     private CityModel mCityModel;
@@ -42,7 +42,7 @@ public class MainViewActivity extends Activity {
         setContentView(R.layout.activity_main_view);
 
         mCityModel = new CityModel(200, 200);
-        mState = new CityViewState();
+        mState = new SharedState();
         mState.mScroller = new OverScroller(this, new AccelerateInterpolator(Constant.INTERPOLATE_ACCELERATION));
         mState.mScroller.setFriction(Constant.FLING_FRICTION);
         mCityViewController = new CityViewController();

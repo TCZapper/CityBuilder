@@ -18,7 +18,7 @@ import android.util.Log;
 
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_MODS;
-import com.jasperb.citybuilder.view.CityViewState;
+import com.jasperb.citybuilder.view.SharedState;
 
 /**
  * @author Jasper
@@ -259,7 +259,7 @@ public class TileBitmaps {
      * @param state
      *            the state that dictates the properties of the tiles
      */
-    public void remakeBitmaps(CityViewState state) {
+    public void remakeBitmaps(SharedState state) {
         // A major part of the bitmap draw cost appears to be related to the size of the bitmap (in memory).
         // As drawing tile bitmaps is a significant chunk of the total draw time, we try to minimize the bitmap size.
         // This require recreating the bitmap as it is scaled, which unfortunately means we do memory allocations on the draw thread.

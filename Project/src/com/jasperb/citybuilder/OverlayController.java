@@ -20,7 +20,7 @@ import com.jasperb.citybuilder.util.Constant.TERRAIN;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
 import com.jasperb.citybuilder.util.Observer;
 import com.jasperb.citybuilder.util.TileBitmaps;
-import com.jasperb.citybuilder.view.CityViewState;
+import com.jasperb.citybuilder.view.SharedState;
 
 /**
  * @author Jasper
@@ -32,7 +32,7 @@ public class OverlayController implements Observer {
      */
     public static final String TAG = "OverlayCtrl";
 
-    private CityViewState mState = null;
+    private SharedState mState = null;
 
     private MainViewClickListener mClickListener = null;
     private MainViewTouchListener mTouchListener = null;
@@ -50,7 +50,7 @@ public class OverlayController implements Observer {
     /**
      * Initialize and allocate the necessary components of the view, except those related to the drawing thread
      */
-    public void init(Context context, CityViewState state) {
+    public void init(Context context, SharedState state) {
         mState = state;
 
         mClickListener = new MainViewClickListener();
