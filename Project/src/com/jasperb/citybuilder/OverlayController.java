@@ -38,8 +38,8 @@ public class OverlayController implements Observer {
     private MainViewTouchListener mTouchListener = null;
 
     //Main View buttons and layouts
-    public ImageView mGridButton, mTerrainButton, mBlendButton;
-    public ImageView mPaintButton, mSelectButton, mTileSyleIcon;
+    public ImageView mGridButton, mTerrainButton;
+    public ImageView mPaintButton, mSelectButton, mTileSyleIcon, mBlendButton, mEyedropperButton;
     public ImageView mBrushSquare1x1, mBrushSquare3x3, mBrushSquare5x5;
     public ImageView mLeftButton, mUpButton, mDownButton, mRightButton;
     public ImageView mAcceptButton, mCancelButton, mUndoButton, mRedoButton;
@@ -56,10 +56,11 @@ public class OverlayController implements Observer {
         mClickListener = new MainViewClickListener();
         mGridButton.setOnClickListener(mClickListener);
         mTerrainButton.setOnClickListener(mClickListener);
-        mBlendButton.setOnClickListener(mClickListener);
         mTileStyleButton.setOnClickListener(mClickListener);
         mPaintButton.setOnClickListener(mClickListener);
         mSelectButton.setOnClickListener(mClickListener);
+        mEyedropperButton.setOnClickListener(mClickListener);
+        mBlendButton.setOnClickListener(mClickListener);
         mBrushSquare1x1.setOnClickListener(mClickListener);
         mBrushSquare3x3.setOnClickListener(mClickListener);
         mBrushSquare5x5.setOnClickListener(mClickListener);
@@ -133,16 +134,27 @@ public class OverlayController implements Observer {
                     mState.mBrushType = BRUSH_TYPES.SQUARE5X5;
                 }
             } else if (v.equals(mAcceptButton)) {
-                mState.addSelectedTerrainEdit();
-                mState.resetSelectTool();
+                synchronized (mState) {
+                    mState.addSelectedTerrainEdit();
+                    mState.resetSelectTool();
+                }
             } else if (v.equals(mCancelButton)) {
-                mState.resetSelectTool();
+                synchronized (mState) {
+                    mState.resetSelectTool();
+                }
             } else if (v.equals(mUndoButton)) {
 
             } else if (v.equals(mRedoButton)) {
 
             } else if (v.equals(mBlendButton)) {
                 mState.mDrawWithBlending = !mState.mDrawWithBlending;
+            } else if (v.equals(mEyedropperButton)) {
+                synchronized (mState) {
+                    if (mState.mTool != TERRAIN_TOOLS.EYEDROPPER) {
+                        mState.mPreviousTool = mState.mTool;
+                        mState.mTool = TERRAIN_TOOLS.EYEDROPPER;
+                    }
+                }
             }
             update();
         }
@@ -257,6 +269,11 @@ public class OverlayController implements Observer {
                     mAcceptButton.setVisibility(View.GONE);
                     mCancelButton.setVisibility(View.GONE);
                 }
+                break;
+            case TERRAIN_TOOLS.EYEDROPPER:
+                mMoveButtons.setVisibility(View.GONE);
+                mGeneralTools.setVisibility(View.GONE);
+                mBrushTools.setVisibility(View.GONE);
                 break;
             }
             break;

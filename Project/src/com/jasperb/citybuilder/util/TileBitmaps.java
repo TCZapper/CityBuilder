@@ -172,7 +172,7 @@ public class TileBitmaps {
                     mFullModBitmaps[TERRAIN_MODS.ROUNDED_PAVED_LINE + i] = tempBitmap.copy(Config.ARGB_8888, true);
                     ims.close();
                 }
-                
+
                 for (int i = 0; i <= 7; i++) {
                     switch (i) {
                     case TERRAIN_MODS.HORIZONTAL * 4 + TERRAIN_MODS.TOP_LEFT:
@@ -220,8 +220,6 @@ public class TileBitmaps {
                     mFullModBitmaps[TERRAIN_MODS.SMOOTHED_PAVED_LINE + i] = tempBitmap.copy(Config.ARGB_8888, true);
                     ims.close();
                 }
-                
-                
 
                 ims = assets.open("TERRAIN_MODS/PavedLineBackSlash.png");
                 tempBitmap = BitmapFactory.decodeStream(ims);
@@ -262,10 +260,15 @@ public class TileBitmaps {
      *            the state that dictates the properties of the tiles
      */
     public void remakeBitmaps(CityViewState state) {
+        // A major part of the bitmap draw cost appears to be related to the size of the bitmap (in memory).
+        // As drawing tile bitmaps is a significant chunk of the total draw time, we try to minimize the bitmap size.
+        // This require recreating the bitmap as it is scaled, which unfortunately means we do memory allocations on the draw thread.
+        // Tile mods take a much smaller chunk of our total draw time, so we just redraw the tile mods into their existing bitmap.
+        
         Log.v(TAG, "REMAKE BITMAPS");
         float visualScale = state.getTileWidth() / (float) Constant.TILE_WIDTH;
         mMatrix.setScale(visualScale, visualScale);
-        if (state.mDrawGridLines) {
+        if (state.mDrawGridLines) {//Draw gridlines onto the terrain tiles and mods
             for (int i = 0; i < mFullTileBitmaps.length; i++) {
                 if (TERRAIN.getBaseType(i) == i) {
                     mScaledTileBitmaps[i] = Bitmap.createScaledBitmap(mFullTileBitmaps[i], state.getTileWidth(), state.getTileHeight(),

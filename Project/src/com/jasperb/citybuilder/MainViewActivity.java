@@ -53,13 +53,14 @@ public class MainViewActivity extends Activity {
 
         mOverlayController.mGridButton = (ImageView) findViewById(R.id.GridButton);
         mOverlayController.mTerrainButton = (ImageView) findViewById(R.id.TerrainButton);
-        mOverlayController.mBlendButton = (ImageView) findViewById(R.id.BlendButton);
 
         mOverlayController.mTerrainTools = (LinearLayout) findViewById(R.id.TerrainTools);
         mOverlayController.mTileStyleButton = (FrameLayout) findViewById(R.id.TileStyleButton);
         mOverlayController.mPaintButton = (ImageView) findViewById(R.id.PaintButton);
         mOverlayController.mSelectButton = (ImageView) findViewById(R.id.SelectButton);
         mOverlayController.mTileSyleIcon = (ImageView) findViewById(R.id.TileStyleIcon);
+        mOverlayController.mEyedropperButton = (ImageView) findViewById(R.id.EyedropperButton);
+        mOverlayController.mBlendButton = (ImageView) findViewById(R.id.BlendButton);
 
         mOverlayController.mBrushTools = (LinearLayout) findViewById(R.id.BrushTools);
         mOverlayController.mBrushSquare1x1 = (ImageView) findViewById(R.id.Brush1x1);

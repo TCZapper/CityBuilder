@@ -110,6 +110,18 @@ public class CityViewController {
                             }
                         }
                     }
+                } else if (mState.mTool == TERRAIN_TOOLS.EYEDROPPER) {
+                    synchronized (mState) {
+                        int posX = (int) event.getX() - mState.getOriginX();
+                        int posY = (int) event.getY() - mState.getOriginY();
+                        int row = (int) mState.realToIsoRowUpscaling(posX, posY);
+                        int col = (int) mState.realToIsoColUpscaling(posX, posY);
+                        if (mState.isTileValid(row, col)) {
+                            mState.mTerrainTypeSelected = mState.mCityModel.getTerrain(row, col);
+                            mState.mTool = mState.mPreviousTool;
+                            mState.notifyOverlay();
+                        }
+                    }
                 }
             }
         }
@@ -143,7 +155,8 @@ public class CityViewController {
                     int maxCol = col + 1;
                     if (maxCol > mState.mCityModel.getWidth())
                         maxCol = 0;
-                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mTerrainTypeSelected, mState.mDrawWithBlending));
+                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mTerrainTypeSelected,
+                            mState.mDrawWithBlending));
                 } else if (mState.mBrushType == BRUSH_TYPES.SQUARE5X5) {
                     int minRow = row - 2;
                     if (minRow < 0)
@@ -157,7 +170,8 @@ public class CityViewController {
                     int maxCol = col + 2;
                     if (maxCol > mState.mCityModel.getWidth())
                         maxCol = 0;
-                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mTerrainTypeSelected, mState.mDrawWithBlending));
+                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mTerrainTypeSelected,
+                            mState.mDrawWithBlending));
                 }
             }
         }
@@ -198,7 +212,7 @@ public class CityViewController {
                 mInputClick = false;
 
                 if (mState.mMode == CITY_VIEW_MODES.VIEW ||
-                        (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.mTool == TERRAIN_TOOLS.SELECT)) {
+                        (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.mTool != TERRAIN_TOOLS.BRUSH)) {
                     synchronized (mState) {
                         mState.mFocusRow += mState.realToIsoRowUpscaling(Math.round(distanceX), Math.round(distanceY));
                         mState.mFocusCol += mState.realToIsoColUpscaling(Math.round(distanceX), Math.round(distanceY));

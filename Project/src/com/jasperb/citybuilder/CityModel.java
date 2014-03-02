@@ -55,7 +55,7 @@ public class CityModel {
         for (int col = 0; col < mWidth; col++) {
             for (int row = 0; row < mHeight; row++) {
                 mTerrainMap[col][row] = TERRAIN.GRASS;
-                //mTerrainMap[col][row] = (byte) (Math.random() * (TERRAIN.count + 2));
+                mTerrainMap[col][row] = (byte) (Math.random() * (TERRAIN.count + 3));
                 if (mTerrainMap[col][row] >= TERRAIN.count) {
                     if (row == 0) {
                         mTerrainMap[col][row] = (byte) (Math.random() * TERRAIN.count);
@@ -78,13 +78,24 @@ public class CityModel {
      * Gets the type of TERRAIN located at the specified row and column.
      * 
      * @param row
+     *            the row of the tile
      * @param col
+     *            the column of the tile
      * @return the type of tile at the specified location
      */
     public byte getTerrain(int row, int col) {
         return mTerrainMap[col][row];
     }
 
+    /**
+     * @param row
+     *            the row of the tile
+     * @param col
+     *            the column of the tile
+     * @param index
+     *            the mod index
+     * @return the type of mod at the specified location and mod index
+     */
     public byte getMod(int row, int col, int index) {
         return mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + index];
     }
@@ -102,6 +113,8 @@ public class CityModel {
      *            maximum column defining the region
      * @param terrain
      *            type of terrain to fill the region with
+     * @param blend
+     *            true if the terrain at these tiles should use blending mods
      */
     public void setTerrain(int startRow, int startCol, int endRow, int endCol, int terrain, boolean blend) {
         for (int col = startCol; col <= endCol; col++) {
@@ -121,6 +134,8 @@ public class CityModel {
      * @param row
      * @param col
      * @param terrain
+     * @param blend
+     *            true if the terrain at this tile should use blending mods
      */
     public void setTerrain(int row, int col, int terrain, boolean blend) {
         mTerrainMap[col][row] = (byte) terrain;
@@ -132,21 +147,30 @@ public class CityModel {
         }
     }
 
+    /**
+     * Determine the terrain mods to be used for a specified tile based off the surrounding 8 tiles
+     * 
+     * @param row
+     * @param col
+     */
     private void determineTerrainMods(int row, int col) {
         int terrain = mTerrainMap[col][row];
         int modIndex = 0;
         int blendTerrain;
         if (mBlend[col][row]) {
-            if (TERRAIN_MODS.isRoundableTerrain(terrain)) {
+            if (TERRAIN_MODS.supportsStandardRounding(terrain)) {
                 if (col - 1 >= 0) {
                     blendTerrain = TERRAIN.getBaseType(mTerrainMap[col - 1][row]);
-                    if (TERRAIN_MODS.hasRoundingMods(blendTerrain) && blendTerrain != TERRAIN.getBaseType(terrain)) {
+                    //Check that the surrounding terrain can be used for blending, and that blending is even needed (not same base type)
+                    if (TERRAIN_MODS.hasStandardRoundingMods(blendTerrain) && blendTerrain != TERRAIN.getBaseType(terrain)) {
+                        //Only blend the top left corner if all 3 tiles touching the corner are of the same base type
                         if (row - 1 >= 0 && TERRAIN.getBaseType(mTerrainMap[col - 1][row - 1]) == blendTerrain
                                 && TERRAIN.getBaseType(mTerrainMap[col][row - 1]) == blendTerrain) {
                             mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] =
                                     (byte) (TERRAIN_MODS.getRoundedType(blendTerrain) + TERRAIN_MODS.TOP_LEFT);
                             modIndex++;
                         }
+                        //Only blend the bottom left corner if all 3 tiles touching the corner are of the same base type
                         if (row + 1 < mHeight && TERRAIN.getBaseType(mTerrainMap[col - 1][row + 1]) == blendTerrain
                                 && TERRAIN.getBaseType(mTerrainMap[col][row + 1]) == blendTerrain) {
                             mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] =
@@ -157,13 +181,16 @@ public class CityModel {
                 }
                 if (col + 1 < mWidth) {
                     blendTerrain = TERRAIN.getBaseType(mTerrainMap[col + 1][row]);
-                    if (TERRAIN_MODS.hasRoundingMods(blendTerrain) && blendTerrain != TERRAIN.getBaseType(terrain)) {
+                    //Check that the surrounding terrain can be used for blending, and that blending is even needed (not same base type)
+                    if (TERRAIN_MODS.hasStandardRoundingMods(blendTerrain) && blendTerrain != TERRAIN.getBaseType(terrain)) {
+                        //Only blend the top right corner if all 3 tiles touching the corner are of the same base type
                         if (row - 1 >= 0 && TERRAIN.getBaseType(mTerrainMap[col + 1][row - 1]) == blendTerrain
                                 && TERRAIN.getBaseType(mTerrainMap[col][row - 1]) == blendTerrain) {
                             mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] =
                                     (byte) (TERRAIN_MODS.getRoundedType(blendTerrain) + TERRAIN_MODS.TOP_RIGHT);
                             modIndex++;
                         }
+                        //Only blend the bottom right corner if all 3 tiles touching the corner are of the same base type
                         if (row + 1 < mHeight && TERRAIN.getBaseType(mTerrainMap[col + 1][row + 1]) == blendTerrain
                                 && TERRAIN.getBaseType(mTerrainMap[col][row + 1]) == blendTerrain) {
                             mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] =
@@ -175,8 +202,18 @@ public class CityModel {
             }
         }
 
-        if (terrain == TERRAIN.PAVED_LINE && setPavedLineMod(row, col, modIndex)) {
-            modIndex++;
+        //Paved line must always have a mod to indicate that it is a paved line        
+        if (terrain == TERRAIN.PAVED_LINE) {
+            if (setPavedLineMod(row, col, modIndex)) {
+                modIndex++;
+            } else {//if there is no adjacent paved lines to connect to, just draw a generic one
+                //If the limit on terrain mods is exceeded, just drop all of them in favour of the paved line
+                if (modIndex == Constant.MAX_NUMBER_OF_TERRAIN_MODS) {
+                    modIndex = 0;
+                }
+                mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.STRAIGHT_PAVED_LINE;
+                modIndex++;
+            }
         }
 
         if (modIndex < Constant.MAX_NUMBER_OF_TERRAIN_MODS)
@@ -185,6 +222,16 @@ public class CityModel {
             assert (modIndex == Constant.MAX_NUMBER_OF_TERRAIN_MODS);
     }
 
+    /**
+     * Determine which paved line mods make sense based off adjacent terrain paved line tiles.
+     * Note: this method does not supply a default paved line mod if there are no adjacent paved line tiles.
+     * 
+     * @param row
+     * @param col
+     * @param modIndex
+     *            the current number of mods already assigned to the specified tile
+     * @return true if at least one adjacent paved line tile was found
+     */
     private boolean setPavedLineMod(int row, int col, int modIndex) {
         if (col - 1 >= 0 && mTerrainMap[col - 1][row] == TERRAIN.PAVED_LINE) {
 //            if (mBlend[col][row] && col + 1 < mWidth) {
@@ -198,13 +245,14 @@ public class CityModel {
 //                    return true;
 //                }
 //            }
+            //Test for the two L shaped scenarios 
             if (row - 1 >= 0 && mTerrainMap[col][row - 1] == TERRAIN.PAVED_LINE) {
                 mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.ROUNDED_PAVED_LINE
                         + TERRAIN_MODS.TOP_LEFT;
             } else if (row + 1 < mHeight && mTerrainMap[col][row + 1] == TERRAIN.PAVED_LINE) {
                 mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.ROUNDED_PAVED_LINE
                         + TERRAIN_MODS.BOTTOM_LEFT;
-            } else {
+            } else {//Not L-shaped, so default to straight
                 mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.STRAIGHT_PAVED_LINE
                         + TERRAIN_MODS.HORIZONTAL;
             }
@@ -220,13 +268,14 @@ public class CityModel {
 //                    return true;
 //                }
 //            }
+            //Test for the two L shaped scenarios 
             if (row - 1 >= 0 && mTerrainMap[col][row - 1] == TERRAIN.PAVED_LINE) {
                 mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.ROUNDED_PAVED_LINE
                         + TERRAIN_MODS.TOP_RIGHT;
             } else if (row + 1 < mHeight && mTerrainMap[col][row + 1] == TERRAIN.PAVED_LINE) {
                 mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.ROUNDED_PAVED_LINE
                         + TERRAIN_MODS.BOTTOM_RIGHT;
-            } else {
+            } else {//Not L-shaped, so default to straight
                 mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.STRAIGHT_PAVED_LINE
                         + TERRAIN_MODS.HORIZONTAL;
             }
@@ -242,6 +291,7 @@ public class CityModel {
 //                    return true;
 //                }
 //            }
+            //L-shaped scenario would have been caught prior, so default to straight 
             mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.STRAIGHT_PAVED_LINE
                     + TERRAIN_MODS.VERTICAL;
         } else if (row + 1 < mHeight && mTerrainMap[col][row + 1] == TERRAIN.PAVED_LINE) {
@@ -256,6 +306,7 @@ public class CityModel {
 //                    return true;
 //                }
 //            }
+            //L-shaped scenario would have been caught prior, so default to straight 
             mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.STRAIGHT_PAVED_LINE
                     + TERRAIN_MODS.VERTICAL;
         } else {

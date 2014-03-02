@@ -32,10 +32,10 @@ public class CityViewState {
     private int mTileHeight;
     public CityModel mCityModel = null;
     public boolean mDrawGridLines = false;
-    public boolean mDrawWithBlending = true;
     public int mTerrainTypeSelected = TERRAIN.GRASS;
     public int mMode = CITY_VIEW_MODES.VIEW;
     public int mTool = TERRAIN_TOOLS.BRUSH;
+    public int mPreviousTool = TERRAIN_TOOLS.BRUSH;
     public int mBrushType = BRUSH_TYPES.SQUARE1X1;
     public int mFirstSelectedRow = -1, mFirstSelectedCol = -1, mSecondSelectedRow = -1, mSecondSelectedCol = -1;
     public boolean mSelectingFirstTile = true;
@@ -43,6 +43,9 @@ public class CityViewState {
     
     // Only ever read
     public Observer mOverlay;
+    
+    // Single thread use
+    public boolean mDrawWithBlending = true;
 
     public CityViewState() {
         setScaleFactor(Constant.MAXIMUM_SCALE_FACTOR);
@@ -322,7 +325,7 @@ public class CityViewState {
     }
 
     /**
-     * Notify the associated overlay that it should update
+     * Notify the associated overlay that it should update.
      */
     public void notifyOverlay() {
         mOverlay.update();
