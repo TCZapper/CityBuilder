@@ -245,6 +245,9 @@ public class DrawThread extends Thread {
                     int index = 0;
 
                     while (mod != TERRAIN_MODS.NONE) {
+                        if(mod > 33) {
+                            Log.d(TAG, "CRASH: " + row + " : " + col + " :: " + mDrawState.mCityModel.getTerrain(row, col));
+                        }
                         canvas.drawBitmap(mTileBitmaps.getScaledModBitmap(mod), drawX + TileBitmaps.getModOffsetX(mod) * visualScale, drawY
                                 + TileBitmaps.getModOffsetY(mod) * visualScale, null);
                         index++;

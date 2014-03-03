@@ -57,8 +57,8 @@ public class Constant {
      * Types of available terrain.
      */
     public static class TERRAIN {
-        public static final int GRASS = 0, DIRT = 1, SIDEWALK = 2, PAVEMENT = 3, PAVED_LINE = 4;
-        public static final int count = 5;
+        public static final int GRASS = 0, DIRT = 1, CONCRETE = 2, SIDEWALK = 3, PAVEMENT = 4, PAVED_LINE = 5;
+        public static final int count = 6;
 
         /**
          * Get the base terrain type for terrain that are modifications of a base terrain type.
@@ -81,8 +81,8 @@ public class Constant {
      */
     public static class TERRAIN_MODS {
         //Types of terrain mods
-        public static final int ROUNDED_GRASS = 0, ROUNDED_DIRT = 4, ROUNDED_PAVEMENT = 8, SMOOTHED_PAVED_LINE = 12,
-                ROUNDED_PAVED_LINE = 20, STRAIGHT_PAVED_LINE = 24, GRASS_DECORATION = 26, NONE = 29;
+        public static final int ROUNDED_GRASS = 0, ROUNDED_DIRT = 4, ROUNDED_CONCRETE = 8, ROUNDED_PAVEMENT = 12, SMOOTHED_PAVED_LINE = 16,
+                ROUNDED_PAVED_LINE = 24, STRAIGHT_PAVED_LINE = 28, GRASS_DECORATION = 30, NONE = 33;
         //Number of terrain decorations by type
         public static final int GRASS_DECORATION_COUNT = 3;
         //What is the 1 in X chance for a terrain decoration by type 
@@ -94,7 +94,7 @@ public class Constant {
         //Total number of terrain mods (excluding the NONE type)
         public static final int count = NONE;
         //The value for the first decoration (all following values should be decorations as well, or the NONE type)
-        public static final int FIRST_DECORATION = 26;
+        public static final int FIRST_DECORATION = GRASS_DECORATION;
 
         /**
          * Returns true if this terrain can have its corners rounded using standard rounding mods.
@@ -121,13 +121,15 @@ public class Constant {
                 return ROUNDED_DIRT;
             case TERRAIN.PAVEMENT:
                 return ROUNDED_PAVEMENT;
+            case TERRAIN.CONCRETE:
+                return ROUNDED_CONCRETE;
             default:
                 return NONE;
             }
         }
 
         public static boolean isTerrainDecoration(int mod) {
-            return mod >= FIRST_DECORATION && mod != NONE; 
+            return mod >= FIRST_DECORATION && mod != NONE;
         }
     }
 

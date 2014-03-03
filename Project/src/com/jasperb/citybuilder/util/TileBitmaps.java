@@ -99,6 +99,11 @@ public class TileBitmaps {
                 mFullTileBitmaps[TERRAIN.DIRT] = tempBitmap.copy(Config.ARGB_8888, true);
                 ims.close();
 
+                ims = assets.open("TERRAIN/TileConcrete.png");
+                tempBitmap = BitmapFactory.decodeStream(ims);
+                mFullTileBitmaps[TERRAIN.CONCRETE] = tempBitmap.copy(Config.ARGB_8888, true);
+                ims.close();
+
                 ims = assets.open("TERRAIN/TileSidewalk.png");
                 tempBitmap = BitmapFactory.decodeStream(ims);
                 mFullTileBitmaps[TERRAIN.SIDEWALK] = tempBitmap.copy(Config.ARGB_8888, true);
@@ -115,8 +120,9 @@ public class TileBitmaps {
                 ims.close();
 
                 //Load standard rounded mods
-                int[] roundedMods = { TERRAIN_MODS.ROUNDED_GRASS, TERRAIN_MODS.ROUNDED_DIRT, TERRAIN_MODS.ROUNDED_PAVEMENT };
-                String[] roundedNames = { "Grass", "Dirt", "Pavement" };
+                int[] roundedMods = { TERRAIN_MODS.ROUNDED_GRASS, TERRAIN_MODS.ROUNDED_DIRT, TERRAIN_MODS.ROUNDED_PAVEMENT,
+                        TERRAIN_MODS.ROUNDED_CONCRETE };
+                String[] roundedNames = { "Grass", "Dirt", "Pavement", "Concrete" };
                 for (int j = 0; j < roundedNames.length; j++) {
                     for (int i = 0; i <= 3; i++) {
                         switch (i) {
@@ -241,16 +247,16 @@ public class TileBitmaps {
                 mModOffsetY[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL] = 19;
 
                 //Load grass decorations
-                for(int i = 0; i < TERRAIN_MODS.GRASS_DECORATION_COUNT; i++) {
+                for (int i = 0; i < TERRAIN_MODS.GRASS_DECORATION_COUNT; i++) {
                     ims = assets.open("TERRAIN_MODS/GrassDecoration" + (i + 1) + ".png");
                     tempBitmap = BitmapFactory.decodeStream(ims);
                     mFullModBitmaps[TERRAIN_MODS.GRASS_DECORATION + i] = tempBitmap.copy(Config.ARGB_8888, true);
                     ims.close();
                 }
-                mModOffsetX[TERRAIN_MODS.GRASS_DECORATION + 0] = 60;
+                mModOffsetX[TERRAIN_MODS.GRASS_DECORATION + 0] = 50;
                 mModOffsetY[TERRAIN_MODS.GRASS_DECORATION + 0] = 15;
                 mModOffsetX[TERRAIN_MODS.GRASS_DECORATION + 1] = 30;
-                mModOffsetY[TERRAIN_MODS.GRASS_DECORATION + 1] = 15;
+                mModOffsetY[TERRAIN_MODS.GRASS_DECORATION + 1] = 20;
                 mModOffsetX[TERRAIN_MODS.GRASS_DECORATION + 2] = 30;
                 mModOffsetY[TERRAIN_MODS.GRASS_DECORATION + 2] = 25;
 

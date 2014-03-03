@@ -224,6 +224,8 @@ public class CityModel {
                 modIndex++;
             }
         }
+        
+        
 
         if (modIndex < Constant.MAX_NUMBER_OF_TERRAIN_MODS)
             mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.NONE;
