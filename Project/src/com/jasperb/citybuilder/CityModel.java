@@ -334,6 +334,8 @@ public class CityModel {
             } else {
                 mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS] = TERRAIN_MODS.NONE;
             }
+        } else {
+            mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS] = TERRAIN_MODS.NONE;
         }
     }
 }
