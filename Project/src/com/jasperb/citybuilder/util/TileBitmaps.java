@@ -88,6 +88,7 @@ public class TileBitmaps {
             mModOffsetY = new int[TERRAIN_MODS.count];
             AssetManager assets = context.getAssets();
             try {
+                //Load Tiles
                 InputStream ims = assets.open("TERRAIN/TileGrass.png");
                 Bitmap tempBitmap = BitmapFactory.decodeStream(ims);
                 mFullTileBitmaps[TERRAIN.GRASS] = tempBitmap.copy(Config.ARGB_8888, true);
@@ -113,6 +114,7 @@ public class TileBitmaps {
                 mFullTileBitmaps[TERRAIN.PAVED_LINE] = tempBitmap.copy(Config.ARGB_8888, true);
                 ims.close();
 
+                //Load standard rounded mods
                 int[] roundedMods = { TERRAIN_MODS.ROUNDED_GRASS, TERRAIN_MODS.ROUNDED_DIRT, TERRAIN_MODS.ROUNDED_PAVEMENT };
                 String[] roundedNames = { "Grass", "Dirt", "Pavement" };
                 for (int j = 0; j < roundedNames.length; j++) {
@@ -145,6 +147,7 @@ public class TileBitmaps {
                     }
                 }
 
+                //Load paved line rounded mods
                 for (int i = 0; i <= 3; i++) {
                     switch (i) {
                     case TERRAIN_MODS.TOP_LEFT:
@@ -173,6 +176,7 @@ public class TileBitmaps {
                     ims.close();
                 }
 
+                //Load paved line smoothed mods
                 for (int i = 0; i <= 7; i++) {
                     switch (i) {
                     case TERRAIN_MODS.HORIZONTAL * 4 + TERRAIN_MODS.TOP_LEFT:
@@ -221,6 +225,7 @@ public class TileBitmaps {
                     ims.close();
                 }
 
+                //Load paved line straight mods
                 ims = assets.open("TERRAIN_MODS/PavedLineBackSlash.png");
                 tempBitmap = BitmapFactory.decodeStream(ims);
                 mFullModBitmaps[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.HORIZONTAL] = tempBitmap.copy(Config.ARGB_8888, true);
@@ -234,6 +239,20 @@ public class TileBitmaps {
                 ims.close();
                 mModOffsetX[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL] = 37;
                 mModOffsetY[TERRAIN_MODS.STRAIGHT_PAVED_LINE + TERRAIN_MODS.VERTICAL] = 19;
+
+                //Load grass decorations
+                for(int i = 0; i < TERRAIN_MODS.GRASS_DECORATION_COUNT; i++) {
+                    ims = assets.open("TERRAIN_MODS/GrassDecoration" + (i + 1) + ".png");
+                    tempBitmap = BitmapFactory.decodeStream(ims);
+                    mFullModBitmaps[TERRAIN_MODS.GRASS_DECORATION + i] = tempBitmap.copy(Config.ARGB_8888, true);
+                    ims.close();
+                }
+                mModOffsetX[TERRAIN_MODS.GRASS_DECORATION + 0] = 60;
+                mModOffsetY[TERRAIN_MODS.GRASS_DECORATION + 0] = 15;
+                mModOffsetX[TERRAIN_MODS.GRASS_DECORATION + 1] = 30;
+                mModOffsetY[TERRAIN_MODS.GRASS_DECORATION + 1] = 15;
+                mModOffsetX[TERRAIN_MODS.GRASS_DECORATION + 2] = 30;
+                mModOffsetY[TERRAIN_MODS.GRASS_DECORATION + 2] = 25;
 
                 Log.d(TAG, "DONE LOADING");
             } catch (IOException ex) {
@@ -264,7 +283,7 @@ public class TileBitmaps {
         // As drawing tile bitmaps is a significant chunk of the total draw time, we try to minimize the bitmap size.
         // This require recreating the bitmap as it is scaled, which unfortunately means we do memory allocations on the draw thread.
         // Tile mods take a much smaller chunk of our total draw time, so we just redraw the tile mods into their existing bitmap.
-        
+
         Log.v(TAG, "REMAKE BITMAPS");
         float visualScale = state.getTileWidth() / (float) Constant.TILE_WIDTH;
         mMatrix.setScale(visualScale, visualScale);

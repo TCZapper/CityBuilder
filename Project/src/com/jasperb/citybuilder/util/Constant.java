@@ -74,17 +74,27 @@ public class Constant {
     /**
      * Maximum number of terrain mods that can be applied to a tile.
      */
-    public static int MAX_NUMBER_OF_TERRAIN_MODS = 4;
+    public static int MAX_NUMBER_OF_TERRAIN_MODS = 5;
 
     /**
      * Types of available terrain mods.
      */
     public static class TERRAIN_MODS {
+        //Types of terrain mods
         public static final int ROUNDED_GRASS = 0, ROUNDED_DIRT = 4, ROUNDED_PAVEMENT = 8, SMOOTHED_PAVED_LINE = 12,
-                ROUNDED_PAVED_LINE = 20, STRAIGHT_PAVED_LINE = 24, GRASS_DECORATION = 26, NONE = 27;
+                ROUNDED_PAVED_LINE = 20, STRAIGHT_PAVED_LINE = 24, GRASS_DECORATION = 26, NONE = 29;
+        //Number of terrain decorations by type
+        public static final int GRASS_DECORATION_COUNT = 3;
+        //What is the 1 in X chance for a terrain decoration by type 
+        public static final int GRASS_DECORATION_CHANCE = 10;
+        //Distinguish which corner of the tile a mod is for (top left touches the row-1,col-1 corner)
         public static final int TOP_LEFT = 0, TOP_RIGHT = 1, BOTTOM_RIGHT = 2, BOTTOM_LEFT = 3;
+        //Distinguish between vertical/horizontal directions for mods (vertical is changing rows)
         public static final int VERTICAL = 0, HORIZONTAL = 1;
+        //Total number of terrain mods (excluding the NONE type)
         public static final int count = NONE;
+        //The value for the first decoration (all following values should be decorations as well, or the NONE type)
+        public static final int FIRST_DECORATION = 26;
 
         /**
          * Returns true if this terrain can have its corners rounded using standard rounding mods.
@@ -114,6 +124,10 @@ public class Constant {
             default:
                 return NONE;
             }
+        }
+
+        public static boolean isTerrainDecoration(int mod) {
+            return mod >= FIRST_DECORATION && mod != NONE; 
         }
     }
 

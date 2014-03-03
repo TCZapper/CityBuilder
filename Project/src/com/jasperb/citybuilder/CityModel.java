@@ -69,6 +69,7 @@ public class CityModel {
         }
         for (int col = 0; col < mWidth; col++) {
             for (int row = 0; row < mHeight; row++) {
+                determineTerrainDecorations(row, col);
                 determineTerrainMods(row, col);
             }
         }
@@ -121,6 +122,7 @@ public class CityModel {
             for (int row = startRow; row <= endRow; row++) {
                 mTerrainMap[col][row] = (byte) terrain;
                 mBlend[col][row] = blend;
+                determineTerrainDecorations(row, col);
             }
         }
         for (int col = Math.max(startCol - 1, 0); col <= Math.min(endCol + 1, mWidth - 1); col++)
@@ -140,6 +142,7 @@ public class CityModel {
     public void setTerrain(int row, int col, int terrain, boolean blend) {
         mTerrainMap[col][row] = (byte) terrain;
         mBlend[col][row] = blend;
+        determineTerrainDecorations(row, col);
         for (int c = Math.max(col - 1, 0); c <= Math.min(col + 1, mWidth - 1); c++) {
             for (int r = Math.max(row - 1, 0); r <= Math.min(row + 1, mHeight - 1); r++) {
                 determineTerrainMods(r, c);
@@ -152,11 +155,17 @@ public class CityModel {
      * 
      * @param row
      * @param col
+     * @param overwriteDecorations
+     *            if true terrain decorations are overwritten
      */
     private void determineTerrainMods(int row, int col) {
         int terrain = mTerrainMap[col][row];
         int modIndex = 0;
         int blendTerrain;
+
+        if (TERRAIN_MODS.isTerrainDecoration(mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex]))
+            modIndex++;
+
         if (mBlend[col][row]) {
             if (TERRAIN_MODS.supportsStandardRounding(terrain)) {
                 if (col - 1 >= 0) {
@@ -313,5 +322,16 @@ public class CityModel {
             return false;
         }
         return true;
+    }
+
+    private void determineTerrainDecorations(int row, int col) {
+        if (mTerrainMap[col][row] == TERRAIN.GRASS) {
+            int rand = (int) ((Math.random() * TERRAIN_MODS.GRASS_DECORATION_COUNT) * TERRAIN_MODS.GRASS_DECORATION_CHANCE);
+            if (rand < TERRAIN_MODS.GRASS_DECORATION_COUNT) {
+                mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS] = (byte) (TERRAIN_MODS.GRASS_DECORATION + rand);
+            } else {
+                mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS] = TERRAIN_MODS.NONE;
+            }
+        }
     }
 }

@@ -29,6 +29,7 @@ public class CityViewController {
     private ScaleGestureDetector mScaleDetector = null;
     private GestureDetector mPanDetector = null;
     private boolean mInputClick = false;
+    private int mLastRow = -1, mLastCol = -1;
 
     /**
      * Initialize and allocate the necessary components of the view, except those related to the drawing thread
@@ -62,6 +63,8 @@ public class CityViewController {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 mState.mInputActive = true;
                 mInputClick = true;
+                mLastRow = -1;
+                mLastCol = -1;
             } else if (event.getAction() == MotionEvent.ACTION_UP) {
                 mState.mInputActive = false;
             }
@@ -73,7 +76,7 @@ public class CityViewController {
 //            mState.setScaleFactor(mState.getScaleFactor() * 0.9f);
             if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN) {
                 if (mState.mTool == TERRAIN_TOOLS.BRUSH) {
-                    paintWithBrush(event);
+                    paintWithBrush(event, false);
                 } else if (mState.mTool == TERRAIN_TOOLS.SELECT) {
                     synchronized (mState) {
                         int posX = (int) event.getX() - mState.getOriginX();
@@ -133,13 +136,15 @@ public class CityViewController {
      * 
      * @param event
      */
-    private void paintWithBrush(MotionEvent event) {
+    private void paintWithBrush(MotionEvent event, boolean drag) {
         synchronized (mState) {
             int posX = (int) event.getX() - mState.getOriginX();
             int posY = (int) event.getY() - mState.getOriginY();
             int row = (int) mState.realToIsoRowUpscaling(posX, posY);
             int col = (int) mState.realToIsoColUpscaling(posX, posY);
-            if (mState.isTileValid(row, col)) {
+            if (mState.isTileValid(row, col) && (row != mLastRow || col != mLastCol)) {
+                mLastRow = row;
+                mLastCol = col;
                 if (mState.mBrushType == BRUSH_TYPES.SQUARE1X1) {
                     mState.addTerrainEdit(new TerrainEdit(row, col, mState.mTerrainTypeSelected, mState.mDrawWithBlending));
                 } else if (mState.mBrushType == BRUSH_TYPES.SQUARE3X3) {
@@ -220,7 +225,7 @@ public class CityViewController {
                     }
                 } else {
 //                    Log.d(TAG,"SCROLL: " + e1.getX() + " : " + e1.getY() + " --- " + e2.getX() + " : " + e2.getY() + " --- " + distanceX + " : " + distanceY);
-                    paintWithBrush(e2);
+                    paintWithBrush(e2, true);
                 }
                 return true;
             } else {
