@@ -59,6 +59,25 @@ public class Constant {
     public static class TERRAIN {
         public static final int GRASS = 0, DIRT = 1, CONCRETE = 2, SIDEWALK = 3, PAVEMENT = 4, PAVED_LINE = 5;
         public static final int count = 6;
+        
+        public static String getName(int terrain) {
+            switch(terrain) {
+            case GRASS:
+                return "Grass";
+            case DIRT:
+                return "Dirt";
+            case CONCRETE:
+                return "Concrete";
+            case SIDEWALK:
+                return "Sidewalk";
+            case PAVEMENT:
+                return "Pavement";
+            case PAVED_LINE:
+                return "Paved Line";
+            default:
+                throw new IllegalArgumentException();
+            }
+        }
 
         /**
          * Get the base terrain type for terrain that are modifications of a base terrain type.

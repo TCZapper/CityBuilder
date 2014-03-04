@@ -87,69 +87,48 @@ public class TileBitmaps {
             mModOffsetX = new int[TERRAIN_MODS.count];
             mModOffsetY = new int[TERRAIN_MODS.count];
             AssetManager assets = context.getAssets();
+            InputStream ims = null;
+            Bitmap tempBitmap;
             try {
                 //Load Tiles
-                InputStream ims = assets.open("TERRAIN/TileGrass.png");
-                Bitmap tempBitmap = BitmapFactory.decodeStream(ims);
-                mFullTileBitmaps[TERRAIN.GRASS] = tempBitmap.copy(Config.ARGB_8888, true);
-                ims.close();
-
-                ims = assets.open("TERRAIN/TileDirt.png");
-                tempBitmap = BitmapFactory.decodeStream(ims);
-                mFullTileBitmaps[TERRAIN.DIRT] = tempBitmap.copy(Config.ARGB_8888, true);
-                ims.close();
-
-                ims = assets.open("TERRAIN/TileConcrete.png");
-                tempBitmap = BitmapFactory.decodeStream(ims);
-                mFullTileBitmaps[TERRAIN.CONCRETE] = tempBitmap.copy(Config.ARGB_8888, true);
-                ims.close();
-
-                ims = assets.open("TERRAIN/TileSidewalk.png");
-                tempBitmap = BitmapFactory.decodeStream(ims);
-                mFullTileBitmaps[TERRAIN.SIDEWALK] = tempBitmap.copy(Config.ARGB_8888, true);
-                ims.close();
-
-                ims = assets.open("TERRAIN/TilePavement.png");
-                tempBitmap = BitmapFactory.decodeStream(ims);
-                mFullTileBitmaps[TERRAIN.PAVEMENT] = tempBitmap.copy(Config.ARGB_8888, true);
-                ims.close();
-
-                ims = assets.open("TERRAIN/TilePavedLine.png");
-                tempBitmap = BitmapFactory.decodeStream(ims);
-                mFullTileBitmaps[TERRAIN.PAVED_LINE] = tempBitmap.copy(Config.ARGB_8888, true);
-                ims.close();
+                for (int i = 0; i < TERRAIN.count; i++) {
+                    
+                    ims = assets.open("TERRAIN/Tile" + TERRAIN.getName(i).replace(" ", "") + ".png");
+                    tempBitmap = BitmapFactory.decodeStream(ims);
+                    mFullTileBitmaps[i] = tempBitmap.copy(Config.ARGB_8888, true);
+                    ims.close();
+                }
 
                 //Load standard rounded mods
-                int[] roundedMods = { TERRAIN_MODS.ROUNDED_GRASS, TERRAIN_MODS.ROUNDED_DIRT, TERRAIN_MODS.ROUNDED_PAVEMENT,
-                        TERRAIN_MODS.ROUNDED_CONCRETE };
-                String[] roundedNames = { "Grass", "Dirt", "Pavement", "Concrete" };
-                for (int j = 0; j < roundedNames.length; j++) {
-                    for (int i = 0; i <= 3; i++) {
-                        switch (i) {
-                        case TERRAIN_MODS.TOP_LEFT:
-                            ims = assets.open("TERRAIN_MODS/Rounded" + roundedNames[j] + "Top.png");
-                            mModOffsetX[roundedMods[j] + i] = 27;
-                            mModOffsetY[roundedMods[j] + i] = 0;
-                            break;
-                        case TERRAIN_MODS.TOP_RIGHT:
-                            ims = assets.open("TERRAIN_MODS/Rounded" + roundedNames[j] + "Right.png");
-                            mModOffsetX[roundedMods[j] + i] = 76;
-                            mModOffsetY[roundedMods[j] + i] = 15;
-                            break;
-                        case TERRAIN_MODS.BOTTOM_RIGHT:
-                            ims = assets.open("TERRAIN_MODS/Rounded" + roundedNames[j] + "Bottom.png");
-                            mModOffsetX[roundedMods[j] + i] = 26;
-                            mModOffsetY[roundedMods[j] + i] = 38;
-                            break;
-                        case TERRAIN_MODS.BOTTOM_LEFT:
-                            ims = assets.open("TERRAIN_MODS/Rounded" + roundedNames[j] + "Left.png");
-                            mModOffsetX[roundedMods[j] + i] = 0;
-                            mModOffsetY[roundedMods[j] + i] = 15;
-                            break;
+                for (int j = 0; j < TERRAIN.count; j++) {
+                    if (j == TERRAIN.getBaseType(j) && TERRAIN_MODS.hasStandardRoundingMods(j)) {
+                        for (int i = 0; i <= 3; i++) {
+                            switch (i) {
+                            case TERRAIN_MODS.TOP_LEFT:
+                                ims = assets.open("TERRAIN_MODS/Rounded" + TERRAIN.getName(j) + "Top.png");
+                                mModOffsetX[TERRAIN_MODS.getRoundedType(j) + i] = 27;
+                                mModOffsetY[TERRAIN_MODS.getRoundedType(j) + i] = 0;
+                                break;
+                            case TERRAIN_MODS.TOP_RIGHT:
+                                ims = assets.open("TERRAIN_MODS/Rounded" + TERRAIN.getName(j) + "Right.png");
+                                mModOffsetX[TERRAIN_MODS.getRoundedType(j) + i] = 76;
+                                mModOffsetY[TERRAIN_MODS.getRoundedType(j) + i] = 15;
+                                break;
+                            case TERRAIN_MODS.BOTTOM_RIGHT:
+                                ims = assets.open("TERRAIN_MODS/Rounded" + TERRAIN.getName(j) + "Bottom.png");
+                                mModOffsetX[TERRAIN_MODS.getRoundedType(j) + i] = 26;
+                                mModOffsetY[TERRAIN_MODS.getRoundedType(j) + i] = 38;
+                                break;
+                            case TERRAIN_MODS.BOTTOM_LEFT:
+                                ims = assets.open("TERRAIN_MODS/Rounded" + TERRAIN.getName(j) + "Left.png");
+                                mModOffsetX[TERRAIN_MODS.getRoundedType(j) + i] = 0;
+                                mModOffsetY[TERRAIN_MODS.getRoundedType(j) + i] = 15;
+                                break;
+                            }
+                            tempBitmap = BitmapFactory.decodeStream(ims);
+                            mFullModBitmaps[TERRAIN_MODS.getRoundedType(j) + i] = tempBitmap.copy(Config.ARGB_8888, true);
+                            ims.close();
                         }
-                        tempBitmap = BitmapFactory.decodeStream(ims);
-                        mFullModBitmaps[roundedMods[j] + i] = tempBitmap.copy(Config.ARGB_8888, true);
-                        ims.close();
                     }
                 }
 
@@ -263,6 +242,11 @@ public class TileBitmaps {
                 Log.d(TAG, "DONE LOADING");
             } catch (IOException ex) {
                 Log.e(TAG, ex.toString());
+                if (ims != null) {
+                    try {
+                        ims.close();
+                    } catch (IOException e) {}
+                }
             }
         }
     }
