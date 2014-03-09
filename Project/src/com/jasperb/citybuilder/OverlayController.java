@@ -4,6 +4,7 @@
 package com.jasperb.citybuilder;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -16,8 +17,8 @@ import android.widget.RelativeLayout;
 import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
-import com.jasperb.citybuilder.util.Constant.TERRAIN;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
+import com.jasperb.citybuilder.util.GridViewDialogFragment;
 import com.jasperb.citybuilder.util.Observer;
 import com.jasperb.citybuilder.util.TileBitmaps;
 import com.jasperb.citybuilder.view.SharedState;
@@ -104,14 +105,7 @@ public class OverlayController implements Observer {
                         mState.mMode = CITY_VIEW_MODES.EDIT_TERRAIN;
                 }
             } else if (v.equals(mTileStyleButton)) {
-                int terrain = mState.mTerrainTypeSelected + 1;
-                if (terrain == TERRAIN.count) {
-                    terrain = 0;
-                }
-                synchronized (mState) {
-                    mState.mTerrainTypeSelected = terrain;
-                }
-                mTileSyleIcon.setImageBitmap(TileBitmaps.getFullTileBitmap(terrain));
+                openDialog(GridViewDialogFragment.TYPE_TILES);
             } else if (v.equals(mPaintButton)) {
                 synchronized (mState) {
                     mState.mTool = TERRAIN_TOOLS.BRUSH;
@@ -219,9 +213,10 @@ public class OverlayController implements Observer {
                     synchronized (mState) {
                         float min = Math.min(mState.mFocusRow, mState.mCityModel.getWidth() - mState.mFocusCol);
                         int duration = (int) min * Constant.MOVE_BUTTON_DURATION;
-                        mState.mScroller.startScroll((int) mState.mFocusRow * Constant.TILE_WIDTH, (int) mState.mFocusCol
-                                * Constant.TILE_WIDTH,
-                                (int) (-min) * Constant.TILE_WIDTH, (int) (min) * Constant.TILE_WIDTH,
+                        mState.mScroller.startScroll((int) mState.mFocusRow * Constant.TILE_WIDTH,
+                                (int) mState.mFocusCol * Constant.TILE_WIDTH,
+                                (int) -min * Constant.TILE_WIDTH,
+                                (int) min * Constant.TILE_WIDTH,
                                 duration);
                     }
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -279,5 +274,13 @@ public class OverlayController implements Observer {
             break;
         }
         mGridButton.setSelected(mState.mDrawGridLines);
+    }
+    
+    private void openDialog(int type) {
+        GridViewDialogFragment newFragment = new GridViewDialogFragment();
+        Bundle b = new Bundle();
+        b.putInt(GridViewDialogFragment.TYPE, type);
+        newFragment.setArguments(b);
+        newFragment.show(mState.mActivity.getFragmentManager(), "TileDialog");
     }
 }

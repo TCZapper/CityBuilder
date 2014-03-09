@@ -2,6 +2,7 @@ package com.jasperb.citybuilder.view;
 
 import java.util.LinkedList;
 
+import android.app.Activity;
 import android.widget.OverScroller;
 
 import com.jasperb.citybuilder.CityModel;
@@ -23,6 +24,7 @@ public class SharedState {
     // Thread safe member variables (read from and written to by multiple threads)
     public float mFocusRow = 0, mFocusCol = 0;
     public OverScroller mScroller = null;
+    public Activity mActivity = null;
     private LinkedList<TerrainEdit> mTerrainEdits = new LinkedList<TerrainEdit>();
 
     // Thread safe member variables (read from by multiple threads, but only written to by UI thread)

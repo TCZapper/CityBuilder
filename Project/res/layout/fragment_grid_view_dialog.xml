@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@color/ui_very_dark"
+    android:orientation="vertical" >
+
+    <GridView
+        android:id="@+id/DialogGridView"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="@color/ui_dark"
+        android:fadeScrollbars="false"
+        android:fadingEdge="none"
+        android:horizontalSpacing="0dip"
+        android:listSelector="@color/ui_dark_highlight"
+        android:numColumns="auto_fit"
+        android:overScrollMode="never"
+        android:scrollbars="horizontal"
+        android:scrollingCache="true"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="0dip" >
+    </GridView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/ui_very_dark" >
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/DialogDesc"
+        android:layout_width="wrap_content"
+        android:layout_height="0dip"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text=""
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/DialogAcceptButton"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="@drawable/accept_unpressed"
+            android:clickable="true"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/DialogCancelButton"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="@drawable/cancel_unpressed"
+            android:clickable="true"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</LinearLayout>

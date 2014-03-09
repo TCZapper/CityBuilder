@@ -30,9 +30,9 @@ public class TileBitmaps {
      */
     public static final String TAG = "TileBitmaps";
 
-    private static Bitmap[] mFullTileBitmaps = null;
+    public static Bitmap[] mFullTileBitmaps = null;
     private Bitmap[] mScaledTileBitmaps = new Bitmap[TERRAIN.count];
-    private static Bitmap[] mFullModBitmaps;
+    public static Bitmap[] mFullModBitmaps;
     private Bitmap[] mScaledModBitmaps = new Bitmap[TERRAIN_MODS.count];
     private static int[] mModOffsetX;
     private static int[] mModOffsetY;
@@ -48,7 +48,7 @@ public class TileBitmaps {
             try {
                 mScaledModBitmaps[i] = Bitmap.createScaledBitmap(mFullModBitmaps[i], mFullModBitmaps[i].getWidth(),
                         mFullModBitmaps[i].getHeight(), false);
-            } catch (NullPointerException e) {//Temp fix until all mods are implemented
+            } catch (NullPointerException e) {//Usually the result of a missing file in the assets folder
                 Log.d(TAG, "Failed to scale for terrain mod: " + i);
                 mFullModBitmaps[i] = mFullModBitmaps[0];
                 mScaledModBitmaps[i] = Bitmap.createScaledBitmap(mFullModBitmaps[i], mFullModBitmaps[i].getWidth(),

@@ -21,16 +21,11 @@
     <style name="FullscreenTheme" parent="android:Theme.Holo.NoActionBar.Fullscreen">
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowBackground">@null</item>
-        <item name="buttonBarStyle">@style/ButtonBar</item>
         <item name="buttonBarButtonStyle">@style/ButtonBarButton</item>
     </style>
-
-    <style name="ButtonBar">
-        <item name="android:paddingLeft">2dp</item>
-        <item name="android:paddingTop">5dp</item>
-        <item name="android:paddingRight">2dp</item>
-        <item name="android:paddingBottom">0dp</item>
-        <item name="android:background">@android:drawable/bottom_bar</item>
+    
+    <style name="GridViewDialogSelectedItem">
+        <item name="android:background">@color/ui_very_dark</item>
     </style>
 
     <style name="ButtonBarButton" />

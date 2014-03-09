@@ -1,5 +1,9 @@
 <resources>
 
     <color name="black_overlay">#66000000</color>
+    <color name="ui_very_dark">#333333</color>
+    <color name="ui_black">#222222</color>
+    <color name="ui_dark">#444444</color>
+    <color name="ui_dark_highlight">#555555</color>
 
 </resources>

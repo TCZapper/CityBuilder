@@ -12,12 +12,14 @@ import android.widget.OverScroller;
 import android.widget.RelativeLayout;
 
 import com.jasperb.citybuilder.util.Constant;
+import com.jasperb.citybuilder.util.GridViewDialogFragment;
+import com.jasperb.citybuilder.util.GridViewDialogFragment.GridViewDialogListener;
 import com.jasperb.citybuilder.util.TileBitmaps;
 import com.jasperb.citybuilder.view.CityView;
 import com.jasperb.citybuilder.view.CityViewController;
 import com.jasperb.citybuilder.view.SharedState;
 
-public class MainViewActivity extends Activity {
+public class MainViewActivity extends Activity implements GridViewDialogListener {
     /**
      * String used for identifying this class
      */
@@ -43,6 +45,7 @@ public class MainViewActivity extends Activity {
 
         mCityModel = new CityModel(200, 200);
         mState = new SharedState();
+        mState.mActivity = this;
         mState.mScroller = new OverScroller(this, new AccelerateInterpolator(Constant.INTERPOLATE_ACCELERATION));
         mState.mScroller.setFriction(Constant.FLING_FRICTION);
         mCityViewController = new CityViewController();
@@ -159,5 +162,17 @@ public class MainViewActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_view, menu);
         return true;
+    }
+
+    @Override
+    public void onGridViewDialogAccept(int type, int selectedIndex) {
+        if(mState != null) {
+            if(type == GridViewDialogFragment.TYPE_BUILDINGS) {
+                
+            } else {
+                mState.mTerrainTypeSelected = selectedIndex;
+            }
+            mState.notifyOverlay();
+        }
     }
 }
