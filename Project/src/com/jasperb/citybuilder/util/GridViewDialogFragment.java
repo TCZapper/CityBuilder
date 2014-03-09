@@ -95,7 +95,7 @@ public class GridViewDialogFragment extends DialogFragment {
                 mGridView.setVerticalScrollBarEnabled(false);
             } else {
                 mGridView.setColumnWidth(Constant.TILE_WIDTH + 10);
-                mGridView.setNumColumns(1);
+                mGridView.setNumColumns(GridView.AUTO_FIT);
                 mGridView.setHorizontalScrollBarEnabled(false);
                 mGridView.setVerticalScrollBarEnabled(true);
             }

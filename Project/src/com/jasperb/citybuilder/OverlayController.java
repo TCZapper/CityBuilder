@@ -99,10 +99,12 @@ public class OverlayController implements Observer {
                 }
             } else if (v.equals(mTerrainButton)) {
                 synchronized (mState) {
-                    if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN)
+                    if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN) {
                         mState.mMode = CITY_VIEW_MODES.VIEW;
-                    else
+                    } else {
                         mState.mMode = CITY_VIEW_MODES.EDIT_TERRAIN;
+                        mState.resetSelectTool();
+                    }
                 }
             } else if (v.equals(mTileStyleButton)) {
                 openDialog(GridViewDialogFragment.TYPE_TILES);
