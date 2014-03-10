@@ -22,7 +22,7 @@ public class CityModel {
     private int mWidth, mHeight;
     private byte[][] mTerrainMap;
     private byte[][] mTerrainModMap;
-    private boolean[][] mBlend;
+    private boolean[][] mTerrainBlend;
 
     /**
      * @return width of the model in tiles
@@ -50,7 +50,7 @@ public class CityModel {
         mTerrainMap = new byte[mWidth][mHeight];
         // Try to be clever with memory by keeping all of the terrain mods close in memory
         mTerrainModMap = new byte[mWidth][mHeight * Constant.MAX_NUMBER_OF_TERRAIN_MODS];
-        mBlend = new boolean[mWidth][mHeight];
+        mTerrainBlend = new boolean[mWidth][mHeight];
 
         for (int col = 0; col < mWidth; col++) {
             for (int row = 0; row < mHeight; row++) {
@@ -64,7 +64,7 @@ public class CityModel {
                     }
                 }
                 mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS] = TERRAIN_MODS.NONE;
-                mBlend[col][row] = true;
+                mTerrainBlend[col][row] = true;
             }
         }
         for (int col = 0; col < mWidth; col++) {
@@ -121,7 +121,7 @@ public class CityModel {
         for (int col = startCol; col <= endCol; col++) {
             for (int row = startRow; row <= endRow; row++) {
                 mTerrainMap[col][row] = (byte) terrain;
-                mBlend[col][row] = blend;
+                mTerrainBlend[col][row] = blend;
                 determineTerrainDecorations(row, col);
             }
         }
@@ -141,7 +141,7 @@ public class CityModel {
      */
     public void setTerrain(int row, int col, int terrain, boolean blend) {
         mTerrainMap[col][row] = (byte) terrain;
-        mBlend[col][row] = blend;
+        mTerrainBlend[col][row] = blend;
         determineTerrainDecorations(row, col);
         for (int c = Math.max(col - 1, 0); c <= Math.min(col + 1, mWidth - 1); c++) {
             for (int r = Math.max(row - 1, 0); r <= Math.min(row + 1, mHeight - 1); r++) {
@@ -166,7 +166,7 @@ public class CityModel {
         if (TERRAIN_MODS.isTerrainDecoration(mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex]))
             modIndex++;
 
-        if (mBlend[col][row]) {
+        if (mTerrainBlend[col][row]) {
             if (TERRAIN_MODS.supportsStandardRounding(terrain)) {
                 if (col - 1 >= 0) {
                     blendTerrain = TERRAIN.getBaseType(mTerrainMap[col - 1][row]);
