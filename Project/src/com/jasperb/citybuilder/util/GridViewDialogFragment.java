@@ -90,7 +90,7 @@ public class GridViewDialogFragment extends DialogFragment {
             layoutParams.height = (Constant.TILE_HEIGHT + 10)  * numRowsVisibile;
             mGridView.setLayoutParams(layoutParams);
             if (mType == TYPE_BUILDINGS) {
-                mGridView.setNumColumns(TileBitmaps.mFullTileBitmaps.length);
+                mGridView.setNumColumns(TileBitmaps.getFullTileBitmaps().length);
                 mGridView.setHorizontalScrollBarEnabled(true);
                 mGridView.setVerticalScrollBarEnabled(false);
             } else {
@@ -100,7 +100,7 @@ public class GridViewDialogFragment extends DialogFragment {
                 mGridView.setVerticalScrollBarEnabled(true);
             }
 
-            ArrayAdapter<Bitmap> adapter = new ArrayAdapter<Bitmap>(getContext(), R.layout.grid_image_view, TileBitmaps.mFullTileBitmaps) {
+            ArrayAdapter<Bitmap> adapter = new ArrayAdapter<Bitmap>(getContext(), R.layout.grid_image_view, TileBitmaps.getFullTileBitmaps()) {
                 @Override
                 public View getView(int position, View convertView, ViewGroup parent) {
                     View row;

@@ -30,9 +30,9 @@ public class TileBitmaps {
      */
     public static final String TAG = "TileBitmaps";
 
-    public static Bitmap[] mFullTileBitmaps = null;
+    private static Bitmap[] mFullTileBitmaps = null;
     private Bitmap[] mScaledTileBitmaps = new Bitmap[TERRAIN.count];
-    public static Bitmap[] mFullModBitmaps;
+    private static Bitmap[] mFullModBitmaps;
     private Bitmap[] mScaledModBitmaps = new Bitmap[TERRAIN_MODS.count];
     private static int[] mModOffsetX;
     private static int[] mModOffsetY;
@@ -75,6 +75,13 @@ public class TileBitmaps {
         return mModOffsetY[mod];
     }
 
+    /**
+     * @return the array of full-sized tile bitmaps
+     */
+    public static Bitmap[] getFullTileBitmaps() {
+        return mFullTileBitmaps;
+    }
+    
     /**
      * Create a TileBitmaps objects, loading the static bitmaps from the assets into memory.
      * 
