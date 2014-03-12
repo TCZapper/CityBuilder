@@ -5,11 +5,12 @@
     android:background="#0099cc"
     tools:context=".MainMenuActivity" >
 
-    <!--
-         The primary full-screen view. This can be replaced with whatever view
-         is needed to present your content, e.g. VideoView, SurfaceView,
-         TextureView, etc.
-    -->
+	<ImageView
+	   android:id="@+id/Background"
+	   android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:src="@drawable/globe" >
+	</ImageView>
 
     <TextView
         android:id="@+id/fullscreen_content"
@@ -21,11 +22,6 @@
         android:textColor="#33b5e5"
         android:textSize="50sp"
         android:textStyle="bold" />
-
-    <!--
-         This FrameLayout insets its children based on system windows using
-         android:fitsSystemWindows.
-    -->
 
     <LinearLayout
         android:id="@+id/main_buttons_panel"
@@ -48,5 +44,15 @@
             android:text="@string/dummy_button"
             android:onClick="gotoMainView" />
     </LinearLayout>
+    
+    <ImageView
+        android:id="@+id/SplashScreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#AAAAAA"
+        android:src="@drawable/globe"
+        android:visibility="gone" >
+
+	</ImageView>
 
 </FrameLayout>

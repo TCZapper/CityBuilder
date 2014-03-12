@@ -30,8 +30,11 @@
             android:configChanges="orientation"
             android:hardwareAccelerated="true"
             android:label="@string/title_activity_main_view"
-            android:parentActivityName="@string/app_name"
+            android:parentActivityName="com.jasperb.citybuilder.MainMenuActivity"
             android:screenOrientation="sensorLandscape" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.jasperb.citybuilder.MainMenuActivity" />
         </activity>
     </application>
 
