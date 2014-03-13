@@ -3,6 +3,9 @@
  */
 package com.jasperb.citybuilder.util;
 
+import android.R.dimen;
+import android.util.Pair;
+
 /**
  * @author Jasper
  * 
@@ -149,6 +152,21 @@ public class Constant {
 
         public static boolean isTerrainDecoration(int mod) {
             return mod >= FIRST_DECORATION && mod != NONE;
+        }
+    }
+    
+    public static class OBJECTS {
+        public static final int TEST2X4 = 0;
+        public static final int buildingCount = 1;
+        
+        public static final int count = buildingCount;
+        public static final int NONE = count;
+        
+        public static final byte[] objectNumColumns = new byte[count];
+        public static final byte[] objectNumRows = new byte[count];
+        static {
+            objectNumColumns[TEST2X4] = 4;
+            objectNumRows[TEST2X4] = 2;
         }
     }
 

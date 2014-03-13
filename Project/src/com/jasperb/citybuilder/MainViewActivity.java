@@ -13,6 +13,7 @@ import android.widget.RelativeLayout;
 
 import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.GridViewDialogFragment;
+import com.jasperb.citybuilder.util.ObjectBitmaps;
 import com.jasperb.citybuilder.util.GridViewDialogFragment.GridViewDialogListener;
 import com.jasperb.citybuilder.util.TileBitmaps;
 import com.jasperb.citybuilder.view.CityView;
@@ -101,6 +102,7 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
 
         if (!mAllocated) {
             TileBitmaps.loadStaticBitmaps(this);
+            ObjectBitmaps.loadStaticBitmaps(this);
             mState.mCityModel = mCityModel;
             mCityViewController.init(this, mState);
             mOverlayController.init(this, mState);
@@ -141,6 +143,7 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
                 mCityView.cleanup();
                 mCityView.stopDrawThread();//blocks until draw thread is done drawing
                 TileBitmaps.freeStaticBitmaps();
+                ObjectBitmaps.freeStaticBitmaps();
                 mAllocated = false;
             }
         }
