@@ -3,8 +3,6 @@
  */
 package com.jasperb.citybuilder.util;
 
-import android.R.dimen;
-import android.util.Pair;
 
 /**
  * @author Jasper

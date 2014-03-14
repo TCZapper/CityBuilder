@@ -54,7 +54,7 @@ public class ObjectBitmaps {
                 height = tempBitmap.getHeight();
                 width = tempBitmap.getWidth();
                 sliceWidth = (Constant.TILE_WIDTH / 2) * (2 + (OBJECTS.objectNumRows[i] - 1));
-                sliceCount = width / sliceWidth;
+                sliceCount = (int) Math.ceil(width / (float) sliceWidth);
                 mFullObjectBitmaps[i] = new Bitmap[sliceCount];
 
                 for (int j = 0; j < sliceCount; j++) {

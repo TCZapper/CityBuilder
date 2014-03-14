@@ -8,7 +8,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
@@ -357,26 +356,26 @@ public class DrawThread extends Thread {
     private void drawBuildings(Canvas canvas) {
         float visualScale = mDrawState.getTileWidth() / (float) Constant.TILE_WIDTH;
         Rect origin = new Rect();
-        RectF dest = new RectF();
+        Rect dest = new Rect();
         Paint p = new Paint();
 
         int targetRow = 1, targetCol = 1;
-        int drawX = mDrawState.isoToRealXDownscaling(targetRow, targetCol) + mOriginX - (OBJECTS.objectNumRows[OBJECTS.TEST2X4]) * (mDrawState.getTileWidth() / 2);
-        int drawY = mDrawState.isoToRealYDownscaling(targetRow, targetCol) + mOriginY + (OBJECTS.objectNumColumns[OBJECTS.TEST2X4] + 2) * (mDrawState.getTileHeight() / 2);
+        int drawX = mDrawState.isoToRealXDownscaling(targetRow, targetCol) + mOriginX
+                - (OBJECTS.objectNumRows[OBJECTS.TEST2X4]) * (mDrawState.getTileWidth() / 2);
+        int drawY = mDrawState.isoToRealYDownscaling(targetRow, targetCol) + mOriginY
+                + (OBJECTS.objectNumColumns[OBJECTS.TEST2X4] + 2) * (mDrawState.getTileHeight() / 2);
 
-        int sliceWidth = (mDrawState.getTileWidth() / 2) * (2 + (OBJECTS.objectNumRows[OBJECTS.TEST2X4] - 1));
         for (int i = 0; i < ObjectBitmaps.mFullObjectBitmaps[OBJECTS.TEST2X4].length; i++) {
             Bitmap bitmap = ObjectBitmaps.mFullObjectBitmaps[OBJECTS.TEST2X4][i];
 
-            int height = (int) (bitmap.getHeight() * visualScale);
-            int width = (int) (bitmap.getWidth() * visualScale);
+            int height = (int) Math.ceil(bitmap.getHeight() * visualScale);
+            int width = (int) Math.ceil(bitmap.getWidth() * visualScale);
 
             origin.set(0, 0, width, height);
-            dest.set(drawX + i * sliceWidth,
-                    drawY - height,
-                    drawX + i * sliceWidth + width,
-                    drawY);
+            dest.set(drawX, drawY - height, drawX + width, drawY);
             canvas.drawBitmap(bitmap, origin, dest, p);
+
+            drawX += width;
         }
     }
 
