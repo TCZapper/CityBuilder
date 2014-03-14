@@ -53,6 +53,8 @@ public class Constant {
      * Defines the permitted range for the focus as the valid range +/- this many tiles
      */
     public static final int FOCUS_EXTENDED_BOUNDARY = 8;
+    
+    public static final short OBJECT_LIMIT = 3000;
 
     /**
      * Types of available terrain.

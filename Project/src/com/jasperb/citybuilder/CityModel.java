@@ -3,11 +3,14 @@
  */
 package com.jasperb.citybuilder;
 
-import com.jasperb.citybuilder.util.Constant;
-import com.jasperb.citybuilder.util.Constant.TERRAIN;
-import com.jasperb.citybuilder.util.Constant.TERRAIN_MODS;
+import java.util.Arrays;
 
 import android.util.Log;
+
+import com.jasperb.citybuilder.util.Constant;
+import com.jasperb.citybuilder.util.Constant.OBJECTS;
+import com.jasperb.citybuilder.util.Constant.TERRAIN;
+import com.jasperb.citybuilder.util.Constant.TERRAIN_MODS;
 
 /**
  * @author Jasper
@@ -23,6 +26,8 @@ public class CityModel {
     private byte[][] mTerrainMap;
     private byte[][] mTerrainModMap;
     private boolean[][] mTerrainBlend;
+    private short[][] mObjectMap;
+    private byte[] mObjectList;
 
     /**
      * @return width of the model in tiles
@@ -48,6 +53,10 @@ public class CityModel {
 
         // Draw thread processes by column, so keep data in a single column close in memory
         mTerrainMap = new byte[mWidth][mHeight];
+        mObjectMap = new short[mWidth][mHeight];
+        mObjectList = new byte[Constant.OBJECT_LIMIT];
+        Arrays.fill(mObjectList, (byte) OBJECTS.NONE);
+
         // Try to be clever with memory by keeping all of the terrain mods close in memory
         mTerrainModMap = new byte[mWidth][mHeight * Constant.MAX_NUMBER_OF_TERRAIN_MODS];
         mTerrainBlend = new boolean[mWidth][mHeight];
@@ -65,6 +74,7 @@ public class CityModel {
                 }
                 mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS] = TERRAIN_MODS.NONE;
                 mTerrainBlend[col][row] = true;
+                mObjectMap[col][row] = OBJECTS.NONE;
             }
         }
         for (int col = 0; col < mWidth; col++) {
@@ -99,6 +109,19 @@ public class CityModel {
      */
     public byte getMod(int row, int col, int index) {
         return mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + index];
+    }
+
+    /**
+     * Gets the id of object located at the specified row and column.
+     * 
+     * @param row
+     *            the row of the tile
+     * @param col
+     *            the column of the tile
+     * @return the id of building at the specified location
+     */
+    public short getObjectID(int row, int col) {
+        return mObjectMap[col][row];
     }
 
     /**
@@ -224,8 +247,6 @@ public class CityModel {
                 modIndex++;
             }
         }
-        
-        
 
         if (modIndex < Constant.MAX_NUMBER_OF_TERRAIN_MODS)
             mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex] = TERRAIN_MODS.NONE;
@@ -337,5 +358,29 @@ public class CityModel {
         } else {
             mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS] = TERRAIN_MODS.NONE;
         }
+    }
+
+    public boolean addObject(int row, int col, int type) {
+        short id = createObject(row, col, type);
+        if (id != -1) {
+            for (int r = row; r < row + OBJECTS.objectNumRows[type]; r++) {
+                for (int c = col; c < col + OBJECTS.objectNumColumns[type]; c++) {
+                    mObjectMap[c][r] = id;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private short createObject(int row, int col, int type) {
+        for (short i = 0; i < Constant.OBJECT_LIMIT; i++) {
+            if (mObjectList[i] == OBJECTS.NONE) {
+                mObjectList[i] = (byte) type;
+                return i;
+            }
+        }
+        return -1;
     }
 }

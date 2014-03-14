@@ -9,6 +9,7 @@ import com.jasperb.citybuilder.CityModel;
 import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
+import com.jasperb.citybuilder.util.Constant.OBJECTS;
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
 import com.jasperb.citybuilder.util.Observer;
@@ -26,6 +27,7 @@ public class SharedState {
     public OverScroller mScroller = null;
     public Activity mActivity = null;
     private LinkedList<TerrainEdit> mTerrainEdits = new LinkedList<TerrainEdit>();
+    public int mObjectEdits = OBJECTS.NONE;
 
     // Thread safe member variables (read from by multiple threads, but only written to by UI thread)
     public int mWidth = 0, mHeight = 0;
@@ -92,6 +94,8 @@ public class SharedState {
         synchronized (mCityModel) {
             for (TerrainEdit edit : mTerrainEdits)
                 edit.setTerrain(mCityModel);
+            if(mObjectEdits != OBJECTS.NONE) 
+                mCityModel.addObject(5, 5, mObjectEdits);
         }
         mTerrainEdits.clear();
 
