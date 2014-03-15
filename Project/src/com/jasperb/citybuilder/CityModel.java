@@ -21,6 +21,8 @@ public class CityModel {
      * String used for identifying this class.
      */
     public static final String TAG = "CityModel";
+    
+    public static final int ROW_INDEX = 0, COL_INDEX = 1;
 
     private int mWidth, mHeight;
     private byte[][] mTerrainMap;
@@ -28,6 +30,8 @@ public class CityModel {
     private boolean[][] mTerrainBlend;
     private short[][] mObjectMap;
     private byte[] mObjectList;
+    private short[][] mObjectLocList;
+    private short mNumObjects = 0;
 
     /**
      * @return width of the model in tiles
@@ -56,6 +60,7 @@ public class CityModel {
         mObjectMap = new short[mWidth][mHeight];
         mObjectList = new byte[Constant.OBJECT_LIMIT];
         Arrays.fill(mObjectList, (byte) OBJECTS.NONE);
+        mObjectLocList = new short[Constant.OBJECT_LIMIT][2];
 
         // Try to be clever with memory by keeping all of the terrain mods close in memory
         mTerrainModMap = new byte[mWidth][mHeight * Constant.MAX_NUMBER_OF_TERRAIN_MODS];
@@ -83,6 +88,12 @@ public class CityModel {
                 determineTerrainMods(row, col);
             }
         }
+        for (int col = 0; col < mWidth; col += OBJECTS.objectNumColumns[OBJECTS.TEST2X4]) {
+            for (int row = 0; row < mHeight; row += OBJECTS.objectNumRows[OBJECTS.TEST2X4]) {
+                addObject(row, col, OBJECTS.TEST2X4);
+            }
+        }
+        //addObject(5, 5, OBJECTS.TEST2X4);
     }
 
     /**
@@ -122,6 +133,21 @@ public class CityModel {
      */
     public short getObjectID(int row, int col) {
         return mObjectMap[col][row];
+    }
+    
+    public short getObjectType(int id) {
+        return mObjectList[id];
+    }
+    
+    public short[] getObjectLocation(int id) {
+        return mObjectLocList[id];
+    }
+    
+    /**
+     * @return the number of objects in the city model.
+     */
+    public short getNumberOfObjects() {
+        return mNumObjects;
     }
 
     /**
@@ -375,12 +401,19 @@ public class CityModel {
     }
 
     private short createObject(int row, int col, int type) {
-        for (short i = 0; i < Constant.OBJECT_LIMIT; i++) {
+        if (mNumObjects == Constant.OBJECT_LIMIT)
+            return -1;
+
+        for (short i = 0; i <= mNumObjects; i++) {
             if (mObjectList[i] == OBJECTS.NONE) {
                 mObjectList[i] = (byte) type;
+                mObjectLocList[i][ROW_INDEX] = (short) row;
+                mObjectLocList[i][COL_INDEX] = (short) col;
+                mNumObjects++;
                 return i;
             }
         }
-        return -1;
+        
+        throw new IllegalStateException(); //This shouldn't be possible
     }
 }

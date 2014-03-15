@@ -11,6 +11,7 @@ import android.graphics.Rect;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import com.jasperb.citybuilder.CityModel;
 import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
 import com.jasperb.citybuilder.util.Constant.OBJECTS;
@@ -30,7 +31,7 @@ public class DrawThread extends Thread {
      */
     public static final String TAG = "DrawThread";
 
-    public static final boolean LOG_TTD = false;//Time To Draw
+    public static final boolean LOG_TTD = true;//Time To Draw
 
     private TileBitmaps mTileBitmaps = null;
     private Paint mGridPaint = null, mSelectionPaint = null, mSelectedTilePaint = null;
@@ -104,7 +105,7 @@ public class DrawThread extends Thread {
                                     drawGround(c);
                                     if (mDrawState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mDrawState.mTool == TERRAIN_TOOLS.SELECT)
                                         drawSelection(c);
-                                    drawBuildings(c);
+                                    drawObjects(c);
                                 } else {
                                     Log.d(TAG, "NOTHING TO DRAW");
                                     Log.d(TAG, "NTD: " + mFirstRow + " : " + mFirstCol);
@@ -353,29 +354,42 @@ public class DrawThread extends Thread {
         }
     }
 
-    private void drawBuildings(Canvas canvas) {
+    private void drawObjects(Canvas canvas) {
         float visualScale = mDrawState.getTileWidth() / (float) Constant.TILE_WIDTH;
         Rect origin = new Rect();
         Rect dest = new Rect();
         Paint p = new Paint();
+        Rect screen = new Rect(0, 0, mDrawState.mWidth, mDrawState.mHeight);
 
-        int targetRow = 1, targetCol = 1;
-        int drawX = mDrawState.isoToRealXDownscaling(targetRow, targetCol) + mOriginX
-                - (OBJECTS.objectNumRows[OBJECTS.TEST2X4]) * (mDrawState.getTileWidth() / 2);
-        int drawY = mDrawState.isoToRealYDownscaling(targetRow, targetCol) + mOriginY
-                + (OBJECTS.objectNumColumns[OBJECTS.TEST2X4] + 2) * (mDrawState.getTileHeight() / 2);
+        int numObjectsChecked = 0;
+        for (int j = 0; j < Constant.OBJECT_LIMIT && numObjectsChecked < mDrawState.mCityModel.getNumberOfObjects(); j++) {
+            int type = mDrawState.mCityModel.getObjectType(j);
+            if (type != OBJECTS.NONE) {
+                numObjectsChecked++;
 
-        for (int i = 0; i < ObjectBitmaps.mFullObjectBitmaps[OBJECTS.TEST2X4].length; i++) {
-            Bitmap bitmap = ObjectBitmaps.mFullObjectBitmaps[OBJECTS.TEST2X4][i];
+                short[] loc = mDrawState.mCityModel.getObjectLocation(j);
 
-            int height = (int) Math.ceil(bitmap.getHeight() * visualScale);
-            int width = (int) Math.ceil(bitmap.getWidth() * visualScale);
+                int drawX = mDrawState.isoToRealXDownscaling(loc[CityModel.ROW_INDEX], loc[CityModel.COL_INDEX]) + mOriginX
+                        - (OBJECTS.objectNumRows[OBJECTS.TEST2X4]) * (mDrawState.getTileWidth() / 2);
+                int drawY = mDrawState.isoToRealYDownscaling(loc[CityModel.ROW_INDEX], loc[CityModel.COL_INDEX]) + mOriginY
+                        + (OBJECTS.objectNumColumns[OBJECTS.TEST2X4] + 2) * (mDrawState.getTileHeight() / 2);
 
-            origin.set(0, 0, width, height);
-            dest.set(drawX, drawY - height, drawX + width, drawY);
-            canvas.drawBitmap(bitmap, origin, dest, p);
+                for (int i = 0; i < ObjectBitmaps.mFullObjectBitmaps[OBJECTS.TEST2X4].length; i++) {
+                    Bitmap bitmap = ObjectBitmaps.mFullObjectBitmaps[OBJECTS.TEST2X4][i];
 
-            drawX += width;
+                    int height = (int) Math.ceil(bitmap.getHeight() * visualScale);
+                    int width = (int) Math.ceil(bitmap.getWidth() * visualScale);
+
+                    dest.set(drawX, drawY - height, drawX + width, drawY);
+
+                    if (Rect.intersects(dest, screen)) {
+                        origin.set(0, 0, width, height);
+                        canvas.drawBitmap(bitmap, origin, dest, p);
+                    }
+
+                    drawX += width;
+                }
+            }
         }
     }
 
