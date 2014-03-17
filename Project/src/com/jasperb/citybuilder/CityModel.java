@@ -21,31 +21,15 @@ public class CityModel {
      * String used for identifying this class.
      */
     public static final String TAG = "CityModel";
-    
-    public static final int ROW_INDEX = 0, COL_INDEX = 1;
 
     private int mWidth, mHeight;
     private byte[][] mTerrainMap;
     private byte[][] mTerrainModMap;
     private boolean[][] mTerrainBlend;
     private short[][] mObjectMap;
-    private byte[] mObjectList;
-    private short[][] mObjectLocList;
+    private boolean[] mUsedObjectIDs;
+    private ObjectSlice mObjectList = null;
     private short mNumObjects = 0;
-
-    /**
-     * @return width of the model in tiles
-     */
-    public int getWidth() {
-        return mWidth;
-    }
-
-    /**
-     * @return height of the model in tiles
-     */
-    public int getHeight() {
-        return mHeight;
-    }
 
     @SuppressWarnings("unused")
     private CityModel() {}// Prevent constructing without a width and height
@@ -58,9 +42,8 @@ public class CityModel {
         // Draw thread processes by column, so keep data in a single column close in memory
         mTerrainMap = new byte[mWidth][mHeight];
         mObjectMap = new short[mWidth][mHeight];
-        mObjectList = new byte[Constant.OBJECT_LIMIT];
-        Arrays.fill(mObjectList, (byte) OBJECTS.NONE);
-        mObjectLocList = new short[Constant.OBJECT_LIMIT][2];
+        mUsedObjectIDs = new boolean[Constant.OBJECT_LIMIT];
+        Arrays.fill(mUsedObjectIDs, false);
 
         // Try to be clever with memory by keeping all of the terrain mods close in memory
         mTerrainModMap = new byte[mWidth][mHeight * Constant.MAX_NUMBER_OF_TERRAIN_MODS];
@@ -88,14 +71,28 @@ public class CityModel {
                 determineTerrainMods(row, col);
             }
         }
-        for (int col = 0; col < mWidth; col += OBJECTS.objectNumColumns[OBJECTS.TEST2X4]) {
-            for (int row = 0; row < mHeight; row += OBJECTS.objectNumRows[OBJECTS.TEST2X4]) {
-                addObject(row, col, OBJECTS.TEST2X4);
-            }
-        }
-        //addObject(5, 5, OBJECTS.TEST2X4);
+//        for (int col = 0; col < mWidth; col += OBJECTS.objectNumColumns[OBJECTS.TEST2X4]) {
+//            for (int row = 0; row < mHeight; row += OBJECTS.objectNumRows[OBJECTS.TEST2X4]) {
+//                addObject(row, col, OBJECTS.TEST2X4);
+//            }
+//        }
+        addObject(0, 0, OBJECTS.TEST2X4);
     }
 
+    /**
+     * @return width of the model in tiles
+     */
+    public int getWidth() {
+        return mWidth;
+    }
+
+    /**
+     * @return height of the model in tiles
+     */
+    public int getHeight() {
+        return mHeight;
+    }
+    
     /**
      * Gets the type of TERRAIN located at the specified row and column.
      * 
@@ -135,14 +132,10 @@ public class CityModel {
         return mObjectMap[col][row];
     }
     
-    public short getObjectType(int id) {
-        return mObjectList[id];
+    public ObjectSlice getObjectList() {
+        return mObjectList;
     }
-    
-    public short[] getObjectLocation(int id) {
-        return mObjectLocList[id];
-    }
-    
+
     /**
      * @return the number of objects in the city model.
      */
@@ -387,11 +380,11 @@ public class CityModel {
     }
 
     public boolean addObject(int row, int col, int type) {
-        short id = createObject(row, col, type);
+        int id = createObject(row, col, type);
         if (id != -1) {
             for (int r = row; r < row + OBJECTS.objectNumRows[type]; r++) {
                 for (int c = col; c < col + OBJECTS.objectNumColumns[type]; c++) {
-                    mObjectMap[c][r] = id;
+                    mObjectMap[c][r] = (short) id;
                 }
             }
             return true;
@@ -400,20 +393,90 @@ public class CityModel {
         }
     }
 
-    private short createObject(int row, int col, int type) {
+    private int createObject(int row, int col, int type) {
         if (mNumObjects == Constant.OBJECT_LIMIT)
             return -1;
-
-        for (short i = 0; i <= mNumObjects; i++) {
-            if (mObjectList[i] == OBJECTS.NONE) {
-                mObjectList[i] = (byte) type;
-                mObjectLocList[i][ROW_INDEX] = (short) row;
-                mObjectLocList[i][COL_INDEX] = (short) col;
+        int i = 0;
+        for (; i <= mNumObjects; i++) {
+            if (!mUsedObjectIDs[i]) {
+                mUsedObjectIDs[i] = true;
                 mNumObjects++;
-                return i;
+                break;
             }
         }
+
+        if (i == mNumObjects + 1) {
+            throw new IllegalStateException("There should be at least one free Object ID"); //This shouldn't be possible
+        } else {
+            int sliceColumns = OBJECTS.getSliceWidth(type) / (Constant.TILE_WIDTH / 2);
+            int lastColumn = col + OBJECTS.objectNumColumns[type] - 1;
+            int sliceCount = OBJECTS.getSliceCount(type);
+            Log.d(TAG, "OBJ SLICE: " + sliceCount);
+            int sliceCol = col;
+            int sliceRow = row + OBJECTS.objectNumRows[type] - 1;
+            byte sliceIndex = 0;
+            ObjectSlice currentSlice = mObjectList;
+            while (currentSlice != null) {
+                if (currentSlice.col > sliceCol || (currentSlice.col == col && currentSlice.row > row)) {
+                    currentSlice = addObjectSlice(currentSlice, new ObjectSlice((short)sliceRow, (short)sliceCol, (short)i, (byte)type, sliceIndex));
+                    sliceIndex++;
+                    if(sliceIndex == sliceCount) {
+                        return i;
+                    } else {
+                        if(sliceCol == lastColumn) {
+                            break;
+                        } else {
+                            sliceCol += sliceColumns;
+                            if(sliceCol > lastColumn) {
+                                sliceCol = lastColumn;
+                            }
+                        }
+                    }
+                }
+                currentSlice = currentSlice.next;
+            }
+            while(sliceIndex < sliceCount) {
+                Log.d(TAG, "APPEND SLICE: " + sliceCount);
+                currentSlice = addObjectSlice(currentSlice, new ObjectSlice((short)sliceRow, (short)sliceCol, (short)i, (byte)type, sliceIndex));
+                sliceIndex++;
+                if(sliceCol != lastColumn) {
+                    sliceCol += sliceColumns;
+                    if(sliceCol > lastColumn) {
+                        sliceCol = lastColumn;
+                    }
+                }
+            }
+            
+            return i;
+        }
+    }
+
+    private ObjectSlice addObjectSlice(ObjectSlice node, ObjectSlice newSlice) {
+        if (node == null) {
+            mObjectList = newSlice;
+        } else {
+            newSlice.next = node.next;
+            node.next = newSlice;
+        }
+        return newSlice;
+    }
+
+    public class ObjectSlice {
+        public short row, col;
+        public short id;
+        public byte type;
+        public byte sliceIndex;
+        public ObjectSlice next = null;
+
+        public ObjectSlice(short row, short col, short id, byte type, byte sliceIndex) {
+            this.row = row;
+            this.col = col;
+            this.type = type;
+            this.sliceIndex = sliceIndex;
+        }
         
-        throw new IllegalStateException(); //This shouldn't be possible
+        public void log(String tag) {
+            Log.d(tag,id + ": [R" + row + ",C" + col + "] = "+ type + "[" + sliceIndex + "]");
+        }
     }
 }

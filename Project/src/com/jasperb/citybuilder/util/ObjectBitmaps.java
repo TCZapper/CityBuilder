@@ -53,9 +53,10 @@ public class ObjectBitmaps {
                 tempBitmap = BitmapFactory.decodeStream(ims);
                 height = tempBitmap.getHeight();
                 width = tempBitmap.getWidth();
-                sliceWidth = (Constant.TILE_WIDTH / 2) * (2 + (OBJECTS.objectNumRows[i] - 1));
-                sliceCount = (int) Math.ceil(width / (float) sliceWidth);
+                sliceWidth = OBJECTS.getSliceWidth(i);
+                sliceCount = OBJECTS.getSliceCount(i);
                 mFullObjectBitmaps[i] = new Bitmap[sliceCount];
+                Log.d(TAG, "SLICES: " + sliceCount + " :: " + sliceWidth);
 
                 for (int j = 0; j < sliceCount; j++) {
                     if (j == 0) {

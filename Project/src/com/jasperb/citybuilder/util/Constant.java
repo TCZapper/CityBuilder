@@ -4,6 +4,7 @@
 package com.jasperb.citybuilder.util;
 
 
+
 /**
  * @author Jasper
  * 
@@ -167,6 +168,15 @@ public class Constant {
         static {
             objectNumColumns[TEST2X4] = 4;
             objectNumRows[TEST2X4] = 2;
+        }
+        
+        public static int getSliceWidth(int type) {
+            return (Constant.TILE_WIDTH / 2) * (2 + (OBJECTS.objectNumRows[type] - 1));
+        }
+        
+        public static int getSliceCount(int type) {
+            int width = (Constant.TILE_WIDTH / 2) * (OBJECTS.objectNumColumns[type] + OBJECTS.objectNumRows[type]);
+            return (int) Math.ceil(width / (float) getSliceWidth(type));
         }
     }
 

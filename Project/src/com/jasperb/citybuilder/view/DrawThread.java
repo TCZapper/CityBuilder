@@ -11,7 +11,7 @@ import android.graphics.Rect;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
-import com.jasperb.citybuilder.CityModel;
+import com.jasperb.citybuilder.CityModel.ObjectSlice;
 import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
 import com.jasperb.citybuilder.util.Constant.OBJECTS;
@@ -361,35 +361,33 @@ public class DrawThread extends Thread {
         Paint p = new Paint();
         Rect screen = new Rect(0, 0, mDrawState.mWidth, mDrawState.mHeight);
 
-        int numObjectsChecked = 0;
-        for (int j = 0; j < Constant.OBJECT_LIMIT && numObjectsChecked < mDrawState.mCityModel.getNumberOfObjects(); j++) {
-            int type = mDrawState.mCityModel.getObjectType(j);
-            if (type != OBJECTS.NONE) {
-                numObjectsChecked++;
+        ObjectSlice currentSlice = mDrawState.mCityModel.getObjectList();
+        while (currentSlice != null) {
+            currentSlice.log(TAG);
+            int sliceWidth = OBJECTS.getSliceWidth(currentSlice.type);
+            int sliceColumns = sliceWidth / (Constant.TILE_WIDTH / 2);
+            int firstCol = currentSlice.col
+                    - Math.min(sliceColumns * currentSlice.sliceIndex, OBJECTS.objectNumColumns[currentSlice.type] - 1);
+            Log.d(TAG, "FIRSTCOL: " + firstCol);
+            int drawX = mDrawState.isoToRealXDownscaling(currentSlice.row, firstCol) + mOriginX + mBitmapOffsetX
+                    + sliceWidth * currentSlice.sliceIndex;
+            int drawY = mDrawState.isoToRealYDownscaling(currentSlice.row, firstCol) + mOriginY
+                    + (OBJECTS.objectNumColumns[currentSlice.type] + OBJECTS.objectNumRows[currentSlice.type] - 1)
+                    * (mDrawState.getTileHeight() / 2);
 
-                short[] loc = mDrawState.mCityModel.getObjectLocation(j);
+            Bitmap bitmap = ObjectBitmaps.mFullObjectBitmaps[currentSlice.type][currentSlice.sliceIndex];
 
-                int drawX = mDrawState.isoToRealXDownscaling(loc[CityModel.ROW_INDEX], loc[CityModel.COL_INDEX]) + mOriginX
-                        - (OBJECTS.objectNumRows[OBJECTS.TEST2X4]) * (mDrawState.getTileWidth() / 2);
-                int drawY = mDrawState.isoToRealYDownscaling(loc[CityModel.ROW_INDEX], loc[CityModel.COL_INDEX]) + mOriginY
-                        + (OBJECTS.objectNumColumns[OBJECTS.TEST2X4] + 2) * (mDrawState.getTileHeight() / 2);
+            int height = (int) Math.ceil(bitmap.getHeight() * visualScale);
+            int width = (int) Math.ceil(bitmap.getWidth() * visualScale);
 
-                for (int i = 0; i < ObjectBitmaps.mFullObjectBitmaps[OBJECTS.TEST2X4].length; i++) {
-                    Bitmap bitmap = ObjectBitmaps.mFullObjectBitmaps[OBJECTS.TEST2X4][i];
+            dest.set(drawX, drawY - height, drawX + width, drawY);
 
-                    int height = (int) Math.ceil(bitmap.getHeight() * visualScale);
-                    int width = (int) Math.ceil(bitmap.getWidth() * visualScale);
-
-                    dest.set(drawX, drawY - height, drawX + width, drawY);
-
-                    if (Rect.intersects(dest, screen)) {
-                        origin.set(0, 0, width, height);
-                        canvas.drawBitmap(bitmap, origin, dest, p);
-                    }
-
-                    drawX += width;
-                }
+            if (Rect.intersects(dest, screen)) {
+                origin.set(0, 0, width, height);
+                canvas.drawBitmap(bitmap, origin, dest, p);
             }
+
+            currentSlice = currentSlice.next;
         }
     }
 
