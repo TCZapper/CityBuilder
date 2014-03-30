@@ -3,8 +3,6 @@
  */
 package com.jasperb.citybuilder.util;
 
-
-
 /**
  * @author Jasper
  * 
@@ -54,7 +52,7 @@ public class Constant {
      * Defines the permitted range for the focus as the valid range +/- this many tiles
      */
     public static final int FOCUS_EXTENDED_BOUNDARY = 8;
-    
+
     public static final short OBJECT_LIMIT = 3000;
 
     /**
@@ -63,9 +61,9 @@ public class Constant {
     public static class TERRAIN {
         public static final int GRASS = 0, DIRT = 1, CONCRETE = 2, SIDEWALK = 3, PAVEMENT = 4, PAVED_LINE = 5;
         public static final int count = 6;
-        
+
         public static String getName(int terrain) {
-            switch(terrain) {
+            switch (terrain) {
             case GRASS:
                 return "Grass";
             case DIRT:
@@ -155,28 +153,57 @@ public class Constant {
             return mod >= FIRST_DECORATION && mod != NONE;
         }
     }
-    
+
     public static class OBJECTS {
-        public static final int TEST2X4 = 0;
-        public static final int buildingCount = 1;
-        
+        public static final int TEST2X4 = 0, TEST4X2 = 1, TEST1X3 = 2, TEST3X1 = 3, TEST1X1 = 4;
+        public static final int buildingCount = 5;
+
         public static final int count = buildingCount;
         public static final int NONE = count;
-        
+
         public static final byte[] objectNumColumns = new byte[count];
         public static final byte[] objectNumRows = new byte[count];
         static {
-            objectNumColumns[TEST2X4] = 4;
             objectNumRows[TEST2X4] = 2;
+            objectNumColumns[TEST2X4] = 4;
+
+            objectNumRows[TEST4X2] = 4;
+            objectNumColumns[TEST4X2] = 2;
+
+            objectNumRows[TEST1X3] = 1;
+            objectNumColumns[TEST1X3] = 3;
+
+            objectNumRows[TEST3X1] = 3;
+            objectNumColumns[TEST3X1] = 1;
+
+            objectNumRows[TEST1X1] = 1;
+            objectNumColumns[TEST1X1] = 1;
         }
-        
+
         public static int getSliceWidth(int type) {
             return (Constant.TILE_WIDTH / 2) * (2 + (OBJECTS.objectNumRows[type] - 1));
         }
-        
+
         public static int getSliceCount(int type) {
             int width = (Constant.TILE_WIDTH / 2) * (OBJECTS.objectNumColumns[type] + OBJECTS.objectNumRows[type]);
             return (int) Math.ceil(width / (float) getSliceWidth(type));
+        }
+
+        public static String getName(int type) {
+            switch (type) {
+            case TEST2X4:
+                return "Test2x4";
+            case TEST4X2:
+                return "Test4x2";
+            case TEST1X3:
+                return "Test1x3";
+            case TEST3X1:
+                return "Test3x1";
+            case TEST1X1:
+                return "Test1x1";
+            default:
+                throw new IllegalArgumentException("Object type " + type + " does not exist");
+            }
         }
     }
 

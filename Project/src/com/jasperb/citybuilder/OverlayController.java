@@ -17,6 +17,7 @@ import android.widget.RelativeLayout;
 import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
+import com.jasperb.citybuilder.util.Constant.OBJECTS;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
 import com.jasperb.citybuilder.util.GridViewDialogFragment;
 import com.jasperb.citybuilder.util.Observer;
@@ -96,6 +97,10 @@ public class OverlayController implements Observer {
             if (v.equals(mGridButton)) {
                 synchronized (mState) {
                     mState.mDrawGridLines = !mState.mDrawGridLines;
+                    mState.mObjectTypeSelected++;
+                    if (mState.mObjectTypeSelected == OBJECTS.count) {
+                        mState.mObjectTypeSelected = 0;
+                    }
                 }
             } else if (v.equals(mTerrainButton)) {
                 synchronized (mState) {
@@ -277,7 +282,7 @@ public class OverlayController implements Observer {
         }
         mGridButton.setSelected(mState.mDrawGridLines);
     }
-    
+
     private void openDialog(int type) {
         GridViewDialogFragment newFragment = new GridViewDialogFragment();
         Bundle b = new Bundle();

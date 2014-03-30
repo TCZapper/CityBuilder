@@ -126,6 +126,16 @@ public class CityViewController {
                         }
                     }
                 }
+            } else {
+                synchronized (mState) {
+                    int posX = (int) event.getX() - mState.getOriginX();
+                    int posY = (int) event.getY() - mState.getOriginY();
+                    int row = (int) mState.realToIsoRowUpscaling(posX, posY);
+                    int col = (int) mState.realToIsoColUpscaling(posX, posY);
+                    if (mState.isTileValid(row, col)) {
+                        mState.mCityModel.addObject(row, col, mState.mObjectTypeSelected);
+                    }
+                }
             }
         }
         return result;

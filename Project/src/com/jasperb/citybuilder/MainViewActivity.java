@@ -76,13 +76,12 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
         mOverlayController.mDownButton = (ImageView) findViewById(R.id.DownButton);
         mOverlayController.mRightButton = (ImageView) findViewById(R.id.RightButton);
         mOverlayController.mMoveButtons = (RelativeLayout) findViewById(R.id.MoveButtons);
-        
+
         mOverlayController.mGeneralTools = (LinearLayout) findViewById(R.id.GeneralTools);
         mOverlayController.mAcceptButton = (ImageView) findViewById(R.id.AcceptButton);
         mOverlayController.mCancelButton = (ImageView) findViewById(R.id.CancelButton);
         mOverlayController.mUndoButton = (ImageView) findViewById(R.id.UndoButton);
         mOverlayController.mRedoButton = (ImageView) findViewById(R.id.RedoButton);
-        
 
         if (savedInstanceState != null) {
             // Restore state of the city view
@@ -169,9 +168,9 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
 
     @Override
     public void onGridViewDialogAccept(int type, int selectedIndex) {
-        if(mState != null) {
-            if(type == GridViewDialogFragment.TYPE_BUILDINGS) {
-                
+        if (mState != null) {
+            if (type == GridViewDialogFragment.TYPE_BUILDINGS) {
+
             } else {
                 mState.mTerrainTypeSelected = selectedIndex;
             }

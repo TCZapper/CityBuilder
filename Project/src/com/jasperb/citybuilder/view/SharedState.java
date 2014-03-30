@@ -37,6 +37,7 @@ public class SharedState {
     public CityModel mCityModel = null;
     public boolean mDrawGridLines = false;
     public int mTerrainTypeSelected = TERRAIN.GRASS;
+    public int mObjectTypeSelected = OBJECTS.TEST2X4;
     public int mMode = CITY_VIEW_MODES.VIEW;
     public int mTool = TERRAIN_TOOLS.BRUSH;
     public int mPreviousTool = TERRAIN_TOOLS.BRUSH;
@@ -44,10 +45,10 @@ public class SharedState {
     public int mFirstSelectedRow = -1, mFirstSelectedCol = -1, mSecondSelectedRow = -1, mSecondSelectedCol = -1;
     public boolean mSelectingFirstTile = true;
     public boolean mInputActive = false;
-    
+
     // Only ever read
     public Observer mOverlay;
-    
+
     // Single thread use
     public boolean mDrawWithBlending = true;
 
@@ -87,14 +88,14 @@ public class SharedState {
     protected void updateThenCopyState(SharedState to) {
         // The purpose of this method is to be used by the draw thread to update the CityView's state and then retrieve that state
         // This lets us easily continuously update the CityView's state and keep the update rate synced with the FPS of the draw thread
-        
+
         // Process all of the terrain edits since our last update
         // Doing all modifications to the model on the draw thread means the draw thread doesn't need to waste time with
         // thread-safety on reading from the model (which it must do many, many times).
         synchronized (mCityModel) {
             for (TerrainEdit edit : mTerrainEdits)
                 edit.setTerrain(mCityModel);
-            if(mObjectEdits != OBJECTS.NONE) 
+            if (mObjectEdits != OBJECTS.NONE)
                 mCityModel.addObject(5, 5, mObjectEdits);
         }
         mTerrainEdits.clear();
@@ -132,7 +133,9 @@ public class SharedState {
 
     /**
      * Queue a terrain edit of any type
-     * @param edit the terrain edit to queue up
+     * 
+     * @param edit
+     *            the terrain edit to queue up
      */
     public void addTerrainEdit(TerrainEdit edit) {
         mTerrainEdits.add(edit);

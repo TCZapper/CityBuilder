@@ -76,7 +76,7 @@ public class CityModel {
 //                addObject(row, col, OBJECTS.TEST2X4);
 //            }
 //        }
-        addObject(0, 0, OBJECTS.TEST2X4);
+        //addObject(0, 0, OBJECTS.TEST2X4);
     }
 
     /**
@@ -92,7 +92,7 @@ public class CityModel {
     public int getHeight() {
         return mHeight;
     }
-    
+
     /**
      * Gets the type of TERRAIN located at the specified row and column.
      * 
@@ -131,7 +131,7 @@ public class CityModel {
     public short getObjectID(int row, int col) {
         return mObjectMap[col][row];
     }
-    
+
     public ObjectSlice getObjectList() {
         return mObjectList;
     }
@@ -411,48 +411,64 @@ public class CityModel {
             int sliceColumns = OBJECTS.getSliceWidth(type) / (Constant.TILE_WIDTH / 2);
             int lastColumn = col + OBJECTS.objectNumColumns[type] - 1;
             int sliceCount = OBJECTS.getSliceCount(type);
-            Log.d(TAG, "OBJ SLICE: " + sliceCount);
+            //Log.d(TAG, "NUM SLICES: " + sliceCount);
             int sliceCol = col;
             int sliceRow = row + OBJECTS.objectNumRows[type] - 1;
             byte sliceIndex = 0;
-            ObjectSlice currentSlice = mObjectList;
+            ObjectSlice currentSlice = mObjectList, previousSlice = null;
             while (currentSlice != null) {
-                if (currentSlice.col > sliceCol || (currentSlice.col == col && currentSlice.row > row)) {
-                    currentSlice = addObjectSlice(currentSlice, new ObjectSlice((short)sliceRow, (short)sliceCol, (short)i, (byte)type, sliceIndex));
+                //Log.d(TAG, "SLICE ANALYSIS: " + currentSlice.row + " :: " + currentSlice.col + " -- " + row + " :: " + sliceCol);
+                if (currentSlice.col > sliceCol || (currentSlice.col == sliceCol && currentSlice.row > row)) {
+                    previousSlice = addObjectSlice(previousSlice, new ObjectSlice((short) sliceRow, (short) sliceCol, (short) i,
+                            (byte) type, sliceIndex));
                     sliceIndex++;
-                    if(sliceIndex == sliceCount) {
+                    if (sliceIndex == sliceCount) {
                         return i;
                     } else {
-                        if(sliceCol == lastColumn) {
+                        if (sliceCol == lastColumn) {
                             break;
                         } else {
                             sliceCol += sliceColumns;
-                            if(sliceCol > lastColumn) {
+                            if (sliceCol > lastColumn) {
                                 sliceCol = lastColumn;
                             }
                         }
                     }
+                } else {
+                    previousSlice = currentSlice;
+                    currentSlice = currentSlice.next;
                 }
-                currentSlice = currentSlice.next;
             }
-            while(sliceIndex < sliceCount) {
-                Log.d(TAG, "APPEND SLICE: " + sliceCount);
-                currentSlice = addObjectSlice(currentSlice, new ObjectSlice((short)sliceRow, (short)sliceCol, (short)i, (byte)type, sliceIndex));
+
+            while (sliceIndex < sliceCount) {
+                //Log.d(TAG, "APPEND SLICE: " + sliceIndex);
+                previousSlice = addObjectSlice(previousSlice, new ObjectSlice((short) sliceRow, (short) sliceCol, (short) i, (byte) type,
+                        sliceIndex));
                 sliceIndex++;
-                if(sliceCol != lastColumn) {
+                if (sliceCol != lastColumn) {
                     sliceCol += sliceColumns;
-                    if(sliceCol > lastColumn) {
+                    if (sliceCol > lastColumn) {
                         sliceCol = lastColumn;
                     }
                 }
             }
-            
+
             return i;
         }
     }
 
+    /**
+     * Add an object slice to the object linked list
+     * 
+     * @param node
+     *            the node to append the new slice after
+     * @param newSlice
+     *            the new slice to append to the list
+     * @return the new slice added
+     */
     private ObjectSlice addObjectSlice(ObjectSlice node, ObjectSlice newSlice) {
         if (node == null) {
+            newSlice.next = mObjectList;
             mObjectList = newSlice;
         } else {
             newSlice.next = node.next;
@@ -471,12 +487,13 @@ public class CityModel {
         public ObjectSlice(short row, short col, short id, byte type, byte sliceIndex) {
             this.row = row;
             this.col = col;
+            this.id = id;
             this.type = type;
             this.sliceIndex = sliceIndex;
         }
-        
+
         public void log(String tag) {
-            Log.d(tag,id + ": [R" + row + ",C" + col + "] = "+ type + "[" + sliceIndex + "]");
+            Log.d(tag, id + ": [R" + row + ",C" + col + "] = " + type + "[" + sliceIndex + "]");
         }
     }
 }

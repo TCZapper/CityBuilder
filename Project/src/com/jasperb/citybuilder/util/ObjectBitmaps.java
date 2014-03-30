@@ -44,35 +44,33 @@ public class ObjectBitmaps {
             Bitmap tempBitmap;
             try {
                 Canvas canvas = new Canvas();
-
-                int i = OBJECTS.TEST2X4;
                 int sliceWidth, sliceCount, height, width;
                 Rect trimmedRect = new Rect(), bitmapRect = new Rect();
+                for (int i = 0; i < OBJECTS.count; i++) {
+                    ims = assets.open("BUILDINGS/" + OBJECTS.getName(i) + ".png");
+                    tempBitmap = BitmapFactory.decodeStream(ims);
+                    height = tempBitmap.getHeight();
+                    width = tempBitmap.getWidth();
+                    sliceWidth = OBJECTS.getSliceWidth(i);
+                    sliceCount = OBJECTS.getSliceCount(i);
+                    mFullObjectBitmaps[i] = new Bitmap[sliceCount];
+                    Log.d(TAG, "SLICES: " + sliceCount + " :: " + sliceWidth);
 
-                ims = assets.open("BUILDINGS/test2x4.png");
-                tempBitmap = BitmapFactory.decodeStream(ims);
-                height = tempBitmap.getHeight();
-                width = tempBitmap.getWidth();
-                sliceWidth = OBJECTS.getSliceWidth(i);
-                sliceCount = OBJECTS.getSliceCount(i);
-                mFullObjectBitmaps[i] = new Bitmap[sliceCount];
-                Log.d(TAG, "SLICES: " + sliceCount + " :: " + sliceWidth);
-
-                for (int j = 0; j < sliceCount; j++) {
-                    if (j == 0) {
-                        trimmedRect.set(0, 0, sliceWidth, height);
-                    } else if (j == sliceCount - 1) {
-                        trimmedRect.set(sliceWidth * j, 0, width, height);
-                    } else {
-                        trimmedRect.set(sliceWidth * j, 0, sliceWidth * (j + 1), height);
+                    for (int j = 0; j < sliceCount; j++) {
+                        if (j == 0) {
+                            trimmedRect.set(0, 0, sliceWidth, height);
+                        } else if (j == sliceCount - 1) {
+                            trimmedRect.set(sliceWidth * j, 0, width, height);
+                        } else {
+                            trimmedRect.set(sliceWidth * j, 0, sliceWidth * (j + 1), height);
+                        }
+                        bitmapRect.set(0, 0, trimmedRect.width(), trimmedRect.height());
+                        mFullObjectBitmaps[i][j] = Bitmap.createBitmap(trimmedRect.width(), height, Config.ARGB_8888);
+                        canvas.setBitmap(mFullObjectBitmaps[i][j]);
+                        canvas.drawBitmap(tempBitmap, trimmedRect, bitmapRect, null);
                     }
-                    bitmapRect.set(0, 0, trimmedRect.width(), trimmedRect.height());
-                    mFullObjectBitmaps[i][j] = Bitmap.createBitmap(trimmedRect.width(), height, Config.ARGB_8888);
-                    canvas.setBitmap(mFullObjectBitmaps[i][j]);
-                    canvas.drawBitmap(tempBitmap, trimmedRect, bitmapRect, null);
+                    ims.close();
                 }
-                ims.close();
-
                 Log.d(TAG, "DONE LOADING");
             } catch (IOException ex) {
                 Log.e(TAG, ex.toString());

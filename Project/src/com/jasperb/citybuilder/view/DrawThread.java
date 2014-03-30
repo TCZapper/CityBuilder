@@ -31,7 +31,7 @@ public class DrawThread extends Thread {
      */
     public static final String TAG = "DrawThread";
 
-    public static final boolean LOG_TTD = true;//Time To Draw
+    public static final boolean LOG_TTD = false;//Time To Draw
 
     private TileBitmaps mTileBitmaps = null;
     private Paint mGridPaint = null, mSelectionPaint = null, mSelectedTilePaint = null;
@@ -363,16 +363,16 @@ public class DrawThread extends Thread {
 
         ObjectSlice currentSlice = mDrawState.mCityModel.getObjectList();
         while (currentSlice != null) {
-            currentSlice.log(TAG);
+            //currentSlice.log(TAG);
             int sliceWidth = OBJECTS.getSliceWidth(currentSlice.type);
             int sliceColumns = sliceWidth / (Constant.TILE_WIDTH / 2);
             int firstCol = currentSlice.col
                     - Math.min(sliceColumns * currentSlice.sliceIndex, OBJECTS.objectNumColumns[currentSlice.type] - 1);
-            Log.d(TAG, "FIRSTCOL: " + firstCol);
+            //Log.d(TAG, "FIRSTCOL: " + firstCol);
             int drawX = mDrawState.isoToRealXDownscaling(currentSlice.row, firstCol) + mOriginX + mBitmapOffsetX
                     + sliceWidth * currentSlice.sliceIndex;
             int drawY = mDrawState.isoToRealYDownscaling(currentSlice.row, firstCol) + mOriginY
-                    + (OBJECTS.objectNumColumns[currentSlice.type] + OBJECTS.objectNumRows[currentSlice.type] - 1)
+                    + (OBJECTS.objectNumColumns[currentSlice.type] + 1)
                     * (mDrawState.getTileHeight() / 2);
 
             Bitmap bitmap = ObjectBitmaps.mFullObjectBitmaps[currentSlice.type][currentSlice.sliceIndex];
