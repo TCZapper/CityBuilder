@@ -11,6 +11,7 @@ import android.view.ScaleGestureDetector;
 import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
+import com.jasperb.citybuilder.util.Constant.OBJECT_TOOLS;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
 import com.jasperb.citybuilder.util.TerrainEdit;
 
@@ -73,7 +74,6 @@ public class CityViewController {
         boolean result = mPanDetector.onTouchEvent(event);
         mScaleDetector.onTouchEvent(event);
         if (!result && event.getAction() == MotionEvent.ACTION_UP && mInputClick) {
-//            mState.setScaleFactor(mState.getScaleFactor() * 0.9f);
             if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN) {
                 if (mState.mTool == TERRAIN_TOOLS.BRUSH) {
                     paintWithBrush(event, false);
@@ -126,15 +126,19 @@ public class CityViewController {
                         }
                     }
                 }
-            } else {
-                synchronized (mState) {
-                    int posX = (int) event.getX() - mState.getOriginX();
-                    int posY = (int) event.getY() - mState.getOriginY();
-                    int row = (int) mState.realToIsoRowUpscaling(posX, posY);
-                    int col = (int) mState.realToIsoColUpscaling(posX, posY);
-                    if (mState.isTileValid(row, col)) {
-                        mState.mCityModel.addObject(row, col, mState.mObjectTypeSelected);
+            } else if (mState.mMode == CITY_VIEW_MODES.EDIT_OBJECTS) {
+                if (mState.mTool == OBJECT_TOOLS.NEW) {
+                    synchronized (mState) {
+                        int posX = (int) event.getX() - mState.getOriginX();
+                        int posY = (int) event.getY() - mState.getOriginY();
+                        int row = (int) mState.realToIsoRowUpscaling(posX, posY);
+                        int col = (int) mState.realToIsoColUpscaling(posX, posY);
+                        if (mState.isTileValid(row, col)) {
+                            mState.mCityModel.addObject(row, col, mState.mObjectTypeSelected);
+                        }
                     }
+                } else if (mState.mTool == OBJECT_TOOLS.SELECT) {
+
                 }
             }
         }
@@ -225,17 +229,15 @@ public class CityViewController {
             //e1 defines start of the scroll, e2 is the destination of the scroll
             if (e2.getPointerCount() == 1) {
                 mInputClick = false;
-
-                if (mState.mMode == CITY_VIEW_MODES.VIEW ||
-                        (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.mTool != TERRAIN_TOOLS.BRUSH)) {
+                if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.mTool == TERRAIN_TOOLS.BRUSH) {
+//                  Log.d(TAG,"SCROLL: " + e1.getX() + " : " + e1.getY() + " --- " + e2.getX() + " : " + e2.getY() + " --- " + distanceX + " : " + distanceY);
+                    paintWithBrush(e2, true);
+                } else {
                     synchronized (mState) {
                         mState.mFocusRow += mState.realToIsoRowUpscaling(Math.round(distanceX), Math.round(distanceY));
                         mState.mFocusCol += mState.realToIsoColUpscaling(Math.round(distanceX), Math.round(distanceY));
                         constrainFocus();
                     }
-                } else {
-//                    Log.d(TAG,"SCROLL: " + e1.getX() + " : " + e1.getY() + " --- " + e2.getX() + " : " + e2.getY() + " --- " + distanceX + " : " + distanceY);
-                    paintWithBrush(e2, true);
                 }
                 return true;
             } else {

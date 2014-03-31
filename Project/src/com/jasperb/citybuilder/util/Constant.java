@@ -211,7 +211,7 @@ public class Constant {
      * Types of available modes for the city viewer.
      */
     public static class CITY_VIEW_MODES {
-        public static final int VIEW = 0, EDIT_TERRAIN = 1;
+        public static final int VIEW = 0, EDIT_TERRAIN = 1, EDIT_OBJECTS = 2;
     }
 
     /**
@@ -219,6 +219,13 @@ public class Constant {
      */
     public static class TERRAIN_TOOLS {
         public static final int BRUSH = 0, SELECT = 1, EYEDROPPER = 2;
+    }
+    
+    /**
+     * Types of available terrain editing tools.
+     */
+    public static class OBJECT_TOOLS {
+        public static final int SELECT = 0, NEW = 1;
     }
 
     /**

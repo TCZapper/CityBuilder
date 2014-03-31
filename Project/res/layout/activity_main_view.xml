@@ -7,31 +7,49 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <ImageView
-        android:id="@+id/TerrainButton"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginLeft="5dp"
-        android:layout_marginTop="5dp"
-        android:clickable="true"
-        android:src="@drawable/grass" />
+    <LinearLayout
+        android:id="@+id/MainTools"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left"
+        android:orientation="horizontal" >
 
-    <ImageView
-        android:id="@+id/GridButton"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginLeft="50dp"
-        android:layout_marginTop="5dp"
-        android:clickable="true"
-        android:src="@drawable/grid_button" />
+        <ImageView
+            android:id="@+id/TerrainButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="5dp"
+            android:clickable="true"
+            android:src="@drawable/grass" />
+
+        <ImageView
+            android:id="@+id/ObjectsButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="5dp"
+            android:clickable="true"
+            android:src="@drawable/objects_unpressed" />
+
+        <ImageView
+            android:id="@+id/GridButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="5dp"
+            android:clickable="true"
+            android:src="@drawable/grid_button" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/TerrainTools"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
-        android:orientation="horizontal" >
-        
+        android:orientation="horizontal"
+        android:visibility="gone" >
+
         <ImageView
             android:id="@+id/EyedropperButton"
             android:layout_width="40dp"
@@ -42,7 +60,7 @@
             android:src="@drawable/eyedropper_unpressed" />
 
         <ImageView
-            android:id="@+id/SelectButton"
+            android:id="@+id/SelectTerrainButton"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginRight="5dp"
@@ -87,7 +105,33 @@
             android:layout_marginTop="5dp"
             android:clickable="true"
             android:src="@drawable/blend_button" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ObjectTools"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:orientation="horizontal"
+        android:visibility="visible" >
         
+        <ImageView
+            android:id="@+id/BuildingsButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:clickable="true"
+            android:src="@drawable/buildings_unpressed" />
+        
+        <ImageView
+            android:id="@+id/SelectObjectButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:clickable="true"
+            android:src="@drawable/click_unpressed" />
     </LinearLayout>
 
     <LinearLayout

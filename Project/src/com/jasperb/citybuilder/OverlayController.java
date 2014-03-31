@@ -17,7 +17,7 @@ import android.widget.RelativeLayout;
 import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
-import com.jasperb.citybuilder.util.Constant.OBJECTS;
+import com.jasperb.citybuilder.util.Constant.OBJECT_TOOLS;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
 import com.jasperb.citybuilder.util.GridViewDialogFragment;
 import com.jasperb.citybuilder.util.Observer;
@@ -40,14 +40,15 @@ public class OverlayController implements Observer {
     private MainViewTouchListener mTouchListener = null;
 
     //Main View buttons and layouts
-    public ImageView mGridButton, mTerrainButton;
-    public ImageView mPaintButton, mSelectButton, mTileSyleIcon, mBlendButton, mEyedropperButton;
+    public ImageView mGridButton, mTerrainButton, mObjectsButton;
+    public ImageView mPaintButton, mSelectTerrainButton, mTileSyleIcon, mBlendButton, mEyedropperButton;
     public ImageView mBrushSquare1x1, mBrushSquare3x3, mBrushSquare5x5;
     public ImageView mLeftButton, mUpButton, mDownButton, mRightButton;
     public ImageView mAcceptButton, mCancelButton, mUndoButton, mRedoButton;
+    public ImageView mBuildingsButton, mSelectObjectButton;
     public FrameLayout mTileStyleButton;
     public RelativeLayout mMoveButtons;
-    public LinearLayout mTerrainTools, mBrushTools, mGeneralTools;
+    public LinearLayout mTerrainTools, mBrushTools, mGeneralTools, mObjectTools;
 
     /**
      * Initialize and allocate the necessary components of the view, except those related to the drawing thread
@@ -58,9 +59,10 @@ public class OverlayController implements Observer {
         mClickListener = new MainViewClickListener();
         mGridButton.setOnClickListener(mClickListener);
         mTerrainButton.setOnClickListener(mClickListener);
+        mObjectsButton.setOnClickListener(mClickListener);
         mTileStyleButton.setOnClickListener(mClickListener);
         mPaintButton.setOnClickListener(mClickListener);
-        mSelectButton.setOnClickListener(mClickListener);
+        mSelectTerrainButton.setOnClickListener(mClickListener);
         mEyedropperButton.setOnClickListener(mClickListener);
         mBlendButton.setOnClickListener(mClickListener);
         mBrushSquare1x1.setOnClickListener(mClickListener);
@@ -70,6 +72,8 @@ public class OverlayController implements Observer {
         mCancelButton.setOnClickListener(mClickListener);
         mUndoButton.setOnClickListener(mClickListener);
         mRedoButton.setOnClickListener(mClickListener);
+        mBuildingsButton.setOnClickListener(mClickListener);
+        mSelectObjectButton.setOnClickListener(mClickListener);
 
         mTouchListener = new MainViewTouchListener();
         mLeftButton.setOnTouchListener(mTouchListener);
@@ -97,10 +101,6 @@ public class OverlayController implements Observer {
             if (v.equals(mGridButton)) {
                 synchronized (mState) {
                     mState.mDrawGridLines = !mState.mDrawGridLines;
-                    mState.mObjectTypeSelected++;
-                    if (mState.mObjectTypeSelected == OBJECTS.count) {
-                        mState.mObjectTypeSelected = 0;
-                    }
                 }
             } else if (v.equals(mTerrainButton)) {
                 synchronized (mState) {
@@ -111,13 +111,35 @@ public class OverlayController implements Observer {
                         mState.resetSelectTool();
                     }
                 }
+            } else if (v.equals(mObjectsButton)) {
+                synchronized (mState) {
+                    if (mState.mMode == CITY_VIEW_MODES.EDIT_OBJECTS) {
+                        mState.mMode = CITY_VIEW_MODES.VIEW;
+                    } else {
+                        mState.mMode = CITY_VIEW_MODES.EDIT_OBJECTS;
+                        mState.mTool = OBJECT_TOOLS.SELECT;
+                        mState.resetSelectTool();
+                    }
+                }
+            } else if (v.equals(mSelectObjectButton)) {
+                synchronized (mState) {
+                    mState.mTool = OBJECT_TOOLS.SELECT;
+                    mState.mSelectedObjectID = -1;
+                    mState.resetSelectTool();
+                }
+            } else if (v.equals(mBuildingsButton)) {
+                synchronized (mState) {
+                    mState.mTool = OBJECT_TOOLS.NEW;
+                    mState.resetSelectTool();
+                }
+                openDialog(GridViewDialogFragment.TYPE_BUILDINGS);
             } else if (v.equals(mTileStyleButton)) {
                 openDialog(GridViewDialogFragment.TYPE_TILES);
             } else if (v.equals(mPaintButton)) {
                 synchronized (mState) {
                     mState.mTool = TERRAIN_TOOLS.BRUSH;
                 }
-            } else if (v.equals(mSelectButton)) {
+            } else if (v.equals(mSelectTerrainButton)) {
                 synchronized (mState) {
                     mState.mTool = TERRAIN_TOOLS.SELECT;
                     mState.resetSelectTool();
@@ -244,12 +266,14 @@ public class OverlayController implements Observer {
         switch (mState.mMode) {
         case CITY_VIEW_MODES.VIEW:
             mTerrainTools.setVisibility(View.GONE);
+            mObjectTools.setVisibility(View.GONE);
             mGeneralTools.setVisibility(View.GONE);
             mBrushTools.setVisibility(View.GONE);
             mMoveButtons.setVisibility(View.GONE);
             break;
         case CITY_VIEW_MODES.EDIT_TERRAIN:
             mTerrainTools.setVisibility(View.VISIBLE);
+            mObjectTools.setVisibility(View.GONE);
             mTileSyleIcon.setImageBitmap(TileBitmaps.getFullTileBitmap(mState.mTerrainTypeSelected));
             mUndoButton.setVisibility(View.GONE);
             mRedoButton.setVisibility(View.GONE);
@@ -279,6 +303,12 @@ public class OverlayController implements Observer {
                 break;
             }
             break;
+        case CITY_VIEW_MODES.EDIT_OBJECTS:
+            mTerrainTools.setVisibility(View.GONE);
+            mObjectTools.setVisibility(View.VISIBLE);
+            mGeneralTools.setVisibility(View.VISIBLE);
+            mBrushTools.setVisibility(View.GONE);
+            mMoveButtons.setVisibility(View.GONE);
         }
         mGridButton.setSelected(mState.mDrawGridLines);
     }

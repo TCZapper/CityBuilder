@@ -24,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jasperb.citybuilder.R;
+import com.jasperb.citybuilder.util.Constant.OBJECTS;
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
 
 /**
@@ -100,25 +101,51 @@ public class GridViewDialogFragment extends DialogFragment {
                 mGridView.setVerticalScrollBarEnabled(true);
             }
 
-            ArrayAdapter<Bitmap> adapter = new ArrayAdapter<Bitmap>(getContext(), R.layout.grid_image_view, TileBitmaps.getFullTileBitmaps()) {
-                @Override
-                public View getView(int position, View convertView, ViewGroup parent) {
-                    View row;
+            if (mType == TYPE_BUILDINGS) {
+                Bitmap[][] choiceBitmaps = ObjectBitmaps.mFullObjectBitmaps;
+                ArrayAdapter<Bitmap[]> adapter = new ArrayAdapter<Bitmap[]>(getContext(), R.layout.grid_image_view, choiceBitmaps) {
+                    @Override
+                    public View getView(int position, View convertView, ViewGroup parent) {
+                        View row;
 
-                    if (null == convertView) {
-                        row = mInflater.inflate(R.layout.grid_image_view, null);
-                    } else {
-                        row = convertView;
+                        if (null == convertView) {
+                            row = mInflater.inflate(R.layout.grid_image_view, null);
+                        } else {
+                            row = convertView;
+                        }
+
+                        ImageView iv = (ImageView) row.findViewById(R.id.grid_image_view);
+                        iv.setImageBitmap(getItem(position)[0]);
+
+                        return row;
                     }
+                };
 
-                    ImageView iv = (ImageView) row.findViewById(R.id.grid_image_view);
-                    iv.setImageBitmap(getItem(position));
+                mGridView.setAdapter(adapter);
+            } else {
+                Bitmap[] choiceBitmaps = TileBitmaps.getFullTileBitmaps();
+                ArrayAdapter<Bitmap> adapter = new ArrayAdapter<Bitmap>(getContext(), R.layout.grid_image_view, choiceBitmaps) {
+                    @Override
+                    public View getView(int position, View convertView, ViewGroup parent) {
+                        View row;
 
-                    return row;
-                }
-            };
+                        if (null == convertView) {
+                            row = mInflater.inflate(R.layout.grid_image_view, null);
+                        } else {
+                            row = convertView;
+                        }
 
-            mGridView.setAdapter(adapter);
+                        ImageView iv = (ImageView) row.findViewById(R.id.grid_image_view);
+                        iv.setImageBitmap(getItem(position));
+
+                        return row;
+                    }
+                };
+
+                mGridView.setAdapter(adapter);
+            }
+            
+            
             mTextDesc = (TextView) findViewById(R.id.DialogDesc);
             mAccept = (Button) findViewById(R.id.DialogAcceptButton);
             mCancel = (Button) findViewById(R.id.DialogCancelButton);
@@ -128,7 +155,11 @@ public class GridViewDialogFragment extends DialogFragment {
             mGridView.setOnItemClickListener(new OnItemClickListener() {
                 public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                     mSelectedIndex = (int) id;
-                    mTextDesc.setText(TERRAIN.getName(mSelectedIndex));
+                    if(mType == TYPE_BUILDINGS) {
+                        mTextDesc.setText(OBJECTS.getName(mSelectedIndex));
+                    } else {
+                        mTextDesc.setText(TERRAIN.getName(mSelectedIndex));
+                    }
                 }
             });
         }

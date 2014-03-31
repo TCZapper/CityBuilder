@@ -42,6 +42,7 @@ public class SharedState {
     public int mTool = TERRAIN_TOOLS.BRUSH;
     public int mPreviousTool = TERRAIN_TOOLS.BRUSH;
     public int mBrushType = BRUSH_TYPES.SQUARE1X1;
+    public int mSelectedObjectID = -1;
     public int mFirstSelectedRow = -1, mFirstSelectedCol = -1, mSecondSelectedRow = -1, mSecondSelectedCol = -1;
     public boolean mSelectingFirstTile = true;
     public boolean mInputActive = false;
