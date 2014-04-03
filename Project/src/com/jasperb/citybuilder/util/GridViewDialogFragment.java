@@ -8,12 +8,19 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -60,6 +67,9 @@ public class GridViewDialogFragment extends DialogFragment {
 
     public class GridViewDialog extends Dialog implements android.view.View.OnClickListener {
 
+        public static final int OBJECT_COL_WIDTH = 250;
+        public static final int OBJECT_ROW_HEIGHT = 300;
+
         private Activity mActivity;
         private Button mAccept, mCancel;
         private GridView mGridView;
@@ -85,37 +95,103 @@ public class GridViewDialogFragment extends DialogFragment {
             window.getDecorView().getWindowVisibleDisplayFrame(displayRectangle);
 
             mGridView = (GridView) findViewById(R.id.DialogGridView);
+
+            //Snap to nearest row
+            mGridView.setOnScrollListener(new OnScrollListener() {
+                @Override
+                public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {}
+
+                @Override
+                public void onScrollStateChanged(AbsListView view, int scrollState) {
+                    switch (scrollState) {
+                    case OnScrollListener.SCROLL_STATE_IDLE:
+                        GridView gridView = (GridView) view;
+                        //Get the first visible child element of the grid view
+                        //Determine where its top/bottom is relative to the top of the grid view
+                        //Use that to determine whether to snap up or down
+                        View itemView = view.getChildAt(0);
+                        int top = itemView.getTop();
+                        int bottom = itemView.getBottom();
+                        int scrollBy = -top > bottom ? bottom : top;
+                        if (scrollBy != 0)
+                            gridView.smoothScrollBy(scrollBy, 10000); //Duration seems to be ignored?
+                        break;
+                    case OnScrollListener.SCROLL_STATE_TOUCH_SCROLL:
+                    case OnScrollListener.SCROLL_STATE_FLING:
+                        break;
+                    }
+                }
+            });
+
             ViewGroup.LayoutParams layoutParams = mGridView.getLayoutParams();
             layoutParams.width = (int) (window.getDecorView().getWidth() * 0.8f);
-            int numRowsVisibile = 4;
-            layoutParams.height = (Constant.TILE_HEIGHT + 10)  * numRowsVisibile;
-            mGridView.setLayoutParams(layoutParams);
+
             if (mType == TYPE_BUILDINGS) {
-                mGridView.setNumColumns(TileBitmaps.getFullTileBitmaps().length);
-                mGridView.setHorizontalScrollBarEnabled(true);
-                mGridView.setVerticalScrollBarEnabled(false);
+                layoutParams.width = layoutParams.width - (layoutParams.width % OBJECT_COL_WIDTH);
+                int numColumns = layoutParams.width / OBJECT_COL_WIDTH;
+                layoutParams.width += (numColumns - 1);
+                mGridView.setNumColumns(numColumns);
+                mGridView.setHorizontalSpacing(1);
+                mGridView.setHorizontalScrollBarEnabled(false);
+                mGridView.setVerticalScrollBarEnabled(true);
+
+                layoutParams.height = OBJECT_ROW_HEIGHT;
             } else {
                 mGridView.setColumnWidth(Constant.TILE_WIDTH + 10);
                 mGridView.setNumColumns(GridView.AUTO_FIT);
                 mGridView.setHorizontalScrollBarEnabled(false);
                 mGridView.setVerticalScrollBarEnabled(true);
+
+                int numRowsVisibile = 4;
+                layoutParams.height = (Constant.TILE_HEIGHT + 10) * numRowsVisibile;
             }
+            mGridView.setLayoutParams(layoutParams);
 
             if (mType == TYPE_BUILDINGS) {
                 Bitmap[][] choiceBitmaps = ObjectBitmaps.mFullObjectBitmaps;
                 ArrayAdapter<Bitmap[]> adapter = new ArrayAdapter<Bitmap[]>(getContext(), R.layout.grid_image_view, choiceBitmaps) {
+                    Canvas mCanvas = new Canvas();
+                    Matrix mMatrix = new Matrix();
+                    Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+
                     @Override
                     public View getView(int position, View convertView, ViewGroup parent) {
-                        View row;
+                        ImageView row;
+                        Bitmap fullBitmap = null;
 
-                        if (null == convertView) {
-                            row = mInflater.inflate(R.layout.grid_image_view, null);
+                        if (convertView == null) {
+                            row = (ImageView) mInflater.inflate(R.layout.grid_image_view, null);
                         } else {
-                            row = convertView;
+                            row = (ImageView) convertView;
+                            BitmapDrawable d = (BitmapDrawable) row.getDrawable();
+                            if (d != null)
+                                fullBitmap = d.getBitmap();
+                        }
+                        if (fullBitmap == null) {
+                            fullBitmap = Bitmap.createBitmap(OBJECT_COL_WIDTH, OBJECT_ROW_HEIGHT, Bitmap.Config.ARGB_8888);
+                            row.setImageBitmap(fullBitmap);
                         }
 
-                        ImageView iv = (ImageView) row.findViewById(R.id.grid_image_view);
-                        iv.setImageBitmap(getItem(position)[0]);
+                        int numSlices = ObjectBitmaps.mFullObjectBitmaps[position].length;
+                        int sliceWidth = ObjectBitmaps.mFullObjectBitmaps[position][0].getWidth();
+                        float imageWidth = (OBJECTS.objectNumRows[position] + OBJECTS.objectNumColumns[position])
+                                * (Constant.TILE_WIDTH / 2);
+                        if (OBJECT_COL_WIDTH < imageWidth) {
+                            float scale = OBJECT_COL_WIDTH / imageWidth;
+                            //Convert the scale to something that will ensure slices are not partially transparent on the left/right edges
+                            scale = (float) (Math.floor(scale * (Constant.TILE_WIDTH / 2))) / (Constant.TILE_WIDTH / 2);
+                            mMatrix.setScale(scale, scale);
+                        } else {
+                            mMatrix.reset();
+                        }
+
+                        fullBitmap.eraseColor(Color.TRANSPARENT);
+                        mCanvas.setBitmap(fullBitmap);
+                        for (int i = 0; i < numSlices; i++) {
+                            mCanvas.drawBitmap(ObjectBitmaps.mFullObjectBitmaps[position][i], mMatrix, mPaint);
+                            mMatrix.preTranslate(sliceWidth, 0);
+                        }
+                        mPaint.setColor(Color.GRAY);
 
                         return row;
                     }
@@ -127,16 +203,15 @@ public class GridViewDialogFragment extends DialogFragment {
                 ArrayAdapter<Bitmap> adapter = new ArrayAdapter<Bitmap>(getContext(), R.layout.grid_image_view, choiceBitmaps) {
                     @Override
                     public View getView(int position, View convertView, ViewGroup parent) {
-                        View row;
+                        ImageView row;
 
-                        if (null == convertView) {
-                            row = mInflater.inflate(R.layout.grid_image_view, null);
+                        if (convertView == null) {
+                            row = (ImageView) mInflater.inflate(R.layout.grid_image_view, null);
                         } else {
-                            row = convertView;
+                            row = (ImageView) convertView;
                         }
 
-                        ImageView iv = (ImageView) row.findViewById(R.id.grid_image_view);
-                        iv.setImageBitmap(getItem(position));
+                        row.setImageBitmap(getItem(position));
 
                         return row;
                     }
@@ -144,8 +219,7 @@ public class GridViewDialogFragment extends DialogFragment {
 
                 mGridView.setAdapter(adapter);
             }
-            
-            
+
             mTextDesc = (TextView) findViewById(R.id.DialogDesc);
             mAccept = (Button) findViewById(R.id.DialogAcceptButton);
             mCancel = (Button) findViewById(R.id.DialogCancelButton);
@@ -155,7 +229,7 @@ public class GridViewDialogFragment extends DialogFragment {
             mGridView.setOnItemClickListener(new OnItemClickListener() {
                 public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                     mSelectedIndex = (int) id;
-                    if(mType == TYPE_BUILDINGS) {
+                    if (mType == TYPE_BUILDINGS) {
                         mTextDesc.setText(OBJECTS.getName(mSelectedIndex));
                     } else {
                         mTextDesc.setText(TERRAIN.getName(mSelectedIndex));
