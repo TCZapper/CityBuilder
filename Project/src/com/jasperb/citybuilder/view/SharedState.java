@@ -12,6 +12,7 @@ import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
 import com.jasperb.citybuilder.util.Constant.OBJECTS;
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
+import com.jasperb.citybuilder.util.ObjectEdit;
 import com.jasperb.citybuilder.util.Observer;
 import com.jasperb.citybuilder.util.TerrainEdit;
 
@@ -27,7 +28,7 @@ public class SharedState {
     public OverScroller mScroller = null;
     public Activity mActivity = null;
     private LinkedList<TerrainEdit> mTerrainEdits = new LinkedList<TerrainEdit>();
-    public int mObjectEdits = OBJECTS.NONE;
+    private ObjectEdit mObjectEdits = null;
 
     // Thread safe member variables (read from by multiple threads, but only written to by UI thread)
     public int mWidth = 0, mHeight = 0;
@@ -46,6 +47,7 @@ public class SharedState {
     public int mFirstSelectedRow = -1, mFirstSelectedCol = -1, mSecondSelectedRow = -1, mSecondSelectedCol = -1;
     public boolean mSelectingFirstTile = true;
     public boolean mInputActive = false;
+    public int mDestRow = -1, mDestCol = -1;
 
     // Only ever read
     public Observer mOverlay;
@@ -78,6 +80,9 @@ public class SharedState {
         mSecondSelectedRow = state.mSecondSelectedRow;
         mSecondSelectedCol = state.mSecondSelectedCol;
         mSelectingFirstTile = state.mSelectingFirstTile;
+        mDestRow = state.mDestRow;
+        mDestCol = state.mDestCol;
+        mObjectTypeSelected = state.mObjectTypeSelected;
     }
 
     /**
@@ -96,8 +101,11 @@ public class SharedState {
         synchronized (mCityModel) {
             for (TerrainEdit edit : mTerrainEdits)
                 edit.setTerrain(mCityModel);
-            if (mObjectEdits != OBJECTS.NONE)
-                mCityModel.addObject(5, 5, mObjectEdits);
+
+            if (mObjectEdits != null) {
+                mObjectEdits.addObject(mCityModel);
+                mObjectEdits = null;
+            }
         }
         mTerrainEdits.clear();
 
@@ -168,6 +176,23 @@ public class SharedState {
             minCol = maxCol;
         }
         mTerrainEdits.add(new TerrainEdit(minRow, minCol, maxRow, maxCol, mTerrainTypeSelected, mDrawWithBlending));
+    }
+
+    public int addObject(int row, int col, int type) {
+        if (mObjectEdits == null) {
+            for (int c = col; c < col + OBJECTS.objectNumColumns[type]; c++) {
+                for (int r = row; r < row + OBJECTS.objectNumRows[type]; r++) {
+                    if (!isTileValid(r, c) || mCityModel.getObjectID(r, c) != OBJECTS.NONE) {
+                        return -3;
+                    }
+                }
+            }
+            int newObjID = mCityModel.allocateNewObjectID();
+            if(newObjID != -1)
+                mObjectEdits = new ObjectEdit(row, col, type, newObjID);
+            return newObjID;
+        }
+        return -2;
     }
 
     /**

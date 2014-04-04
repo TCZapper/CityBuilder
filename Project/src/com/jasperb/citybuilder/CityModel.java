@@ -379,21 +379,16 @@ public class CityModel {
         }
     }
 
-    public boolean addObject(int row, int col, int type) {
-        int id = createObject(row, col, type);
-        if (id != -1) {
-            for (int r = row; r < row + OBJECTS.objectNumRows[type]; r++) {
-                for (int c = col; c < col + OBJECTS.objectNumColumns[type]; c++) {
-                    mObjectMap[c][r] = (short) id;
-                }
+    public void addObject(int row, int col, int type, int id) {
+        createObject(row, col, type, id);
+        for (int r = row; r < row + OBJECTS.objectNumRows[type]; r++) {
+            for (int c = col; c < col + OBJECTS.objectNumColumns[type]; c++) {
+                mObjectMap[c][r] = (short) id;
             }
-            return true;
-        } else {
-            return false;
         }
     }
 
-    private int createObject(int row, int col, int type) {
+    public int allocateNewObjectID() {
         if (mNumObjects == Constant.OBJECT_LIMIT)
             return -1;
         int i = 0;
@@ -408,52 +403,54 @@ public class CityModel {
         if (i == mNumObjects + 1) {
             throw new IllegalStateException("There should be at least one free Object ID"); //This shouldn't be possible
         } else {
-            int sliceColumns = OBJECTS.getSliceWidth(type) / (Constant.TILE_WIDTH / 2);
-            int lastColumn = col + OBJECTS.objectNumColumns[type] - 1;
-            int sliceCount = OBJECTS.getSliceCount(type);
-            //Log.d(TAG, "NUM SLICES: " + sliceCount);
-            int sliceCol = col;
-            int sliceRow = row + OBJECTS.objectNumRows[type] - 1;
-            byte sliceIndex = 0;
-            ObjectSlice currentSlice = mObjectList, previousSlice = null;
-            while (currentSlice != null) {
-                //Log.d(TAG, "SLICE ANALYSIS: " + currentSlice.row + " :: " + currentSlice.col + " -- " + row + " :: " + sliceCol);
-                if (currentSlice.col > sliceCol || (currentSlice.col == sliceCol && currentSlice.row > row)) {
-                    previousSlice = addObjectSlice(previousSlice, new ObjectSlice((short) sliceRow, (short) sliceCol, (short) i,
-                            (byte) type, sliceIndex));
-                    sliceIndex++;
-                    if (sliceIndex == sliceCount) {
-                        return i;
+            return i;
+        }
+    }
+
+    private void createObject(int row, int col, int type, int id) {
+        int sliceColumns = OBJECTS.getSliceWidth(type) / (Constant.TILE_WIDTH / 2);
+        int lastColumn = col + OBJECTS.objectNumColumns[type] - 1;
+        int sliceCount = OBJECTS.getSliceCount(type);
+        //Log.d(TAG, "NUM SLICES: " + sliceCount);
+        int sliceCol = col;
+        int sliceRow = row + OBJECTS.objectNumRows[type] - 1;
+        byte sliceIndex = 0;
+        ObjectSlice currentSlice = mObjectList, previousSlice = null;
+        while (currentSlice != null) {
+            //Log.d(TAG, "SLICE ANALYSIS: " + currentSlice.row + " :: " + currentSlice.col + " -- " + row + " :: " + sliceCol);
+            if (currentSlice.col > sliceCol || (currentSlice.col == sliceCol && currentSlice.row > row)) {
+                previousSlice = addObjectSlice(previousSlice, new ObjectSlice((short) sliceRow, (short) sliceCol, (short) id,
+                        (byte) type, sliceIndex));
+                sliceIndex++;
+                if (sliceIndex == sliceCount) {
+                    return;
+                } else {
+                    if (sliceCol == lastColumn) {
+                        break;
                     } else {
-                        if (sliceCol == lastColumn) {
-                            break;
-                        } else {
-                            sliceCol += sliceColumns;
-                            if (sliceCol > lastColumn) {
-                                sliceCol = lastColumn;
-                            }
+                        sliceCol += sliceColumns;
+                        if (sliceCol > lastColumn) {
+                            sliceCol = lastColumn;
                         }
                     }
-                } else {
-                    previousSlice = currentSlice;
-                    currentSlice = currentSlice.next;
+                }
+            } else {
+                previousSlice = currentSlice;
+                currentSlice = currentSlice.next;
+            }
+        }
+
+        while (sliceIndex < sliceCount) {
+            //Log.d(TAG, "APPEND SLICE: " + sliceIndex);
+            previousSlice = addObjectSlice(previousSlice, new ObjectSlice((short) sliceRow, (short) sliceCol, (short) id, (byte) type,
+                    sliceIndex));
+            sliceIndex++;
+            if (sliceCol != lastColumn) {
+                sliceCol += sliceColumns;
+                if (sliceCol > lastColumn) {
+                    sliceCol = lastColumn;
                 }
             }
-
-            while (sliceIndex < sliceCount) {
-                //Log.d(TAG, "APPEND SLICE: " + sliceIndex);
-                previousSlice = addObjectSlice(previousSlice, new ObjectSlice((short) sliceRow, (short) sliceCol, (short) i, (byte) type,
-                        sliceIndex));
-                sliceIndex++;
-                if (sliceCol != lastColumn) {
-                    sliceCol += sliceColumns;
-                    if (sliceCol > lastColumn) {
-                        sliceCol = lastColumn;
-                    }
-                }
-            }
-
-            return i;
         }
     }
 

@@ -11,6 +11,7 @@ import android.view.ScaleGestureDetector;
 import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
+import com.jasperb.citybuilder.util.Constant.OBJECTS;
 import com.jasperb.citybuilder.util.Constant.OBJECT_TOOLS;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
 import com.jasperb.citybuilder.util.TerrainEdit;
@@ -133,8 +134,13 @@ public class CityViewController {
                         int posY = (int) event.getY() - mState.getOriginY();
                         int row = (int) mState.realToIsoRowUpscaling(posX, posY);
                         int col = (int) mState.realToIsoColUpscaling(posX, posY);
-                        if (mState.isTileValid(row, col)) {
-                            mState.mCityModel.addObject(row, col, mState.mObjectTypeSelected);
+                        if(mState.isTileValid(row, col)) {
+                            row = row + 1 - OBJECTS.objectNumRows[mState.mObjectTypeSelected];
+                            col = col + 1 - OBJECTS.objectNumColumns[mState.mObjectTypeSelected];
+                            if(mState.isTileValid(row, col)) {
+                                mState.mDestRow = row;
+                                mState.mDestCol = col;
+                            }
                         }
                     }
                 } else if (mState.mTool == OBJECT_TOOLS.SELECT) {

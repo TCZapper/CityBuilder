@@ -80,7 +80,7 @@ public class ObjectBitmaps {
                     sliceWidth = OBJECTS.getSliceWidth(i);
                     sliceCount = OBJECTS.getSliceCount(i);
                     getFullObjectBitmaps()[i] = new Bitmap[sliceCount];
-                    Log.d(TAG, "SLICES: " + sliceCount + " :: " + sliceWidth);
+                    //Log.d(TAG, "SLICES: " + sliceCount + " :: " + sliceWidth);
 
                     for (int j = 0; j < sliceCount; j++) {
                         if (j == 0) {

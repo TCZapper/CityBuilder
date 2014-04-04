@@ -112,6 +112,9 @@ public class DrawThread extends Thread {
                                     if (mDrawState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mDrawState.mTool == TERRAIN_TOOLS.SELECT)
                                         drawSelection(c);
                                     drawObjects(c);
+                                    if (mDrawState.mMode == CITY_VIEW_MODES.EDIT_OBJECTS && mDrawState.mDestRow != -1
+                                            && mDrawState.mDestCol != -1)
+                                        drawSelectedObject(c);
                                 } else {
                                     Log.d(TAG, "NOTHING TO DRAW");
                                     Log.d(TAG, "NTD: " + mFirstRow + " : " + mFirstCol);
@@ -394,6 +397,37 @@ public class DrawThread extends Thread {
             }
 
             currentSlice = currentSlice.next;
+        }
+    }
+
+    private void drawSelectedObject(Canvas canvas) {
+        float visualScale = mDrawState.getTileWidth() / (float) Constant.TILE_WIDTH;
+        Rect origin = new Rect();
+        Rect dest = new Rect();
+        Paint p = new Paint();
+        p.setAlpha(200);
+        Rect screen = new Rect(0, 0, mDrawState.mWidth, mDrawState.mHeight);
+        int type = mDrawState.mObjectTypeSelected;
+
+        for (int i = 0; i < ObjectBitmaps.getFullObjectBitmaps()[type].length; i++) {
+            int sliceWidth = OBJECTS.getScaledSliceWidth(type, mDrawState.getTileWidth());
+            int drawX = mDrawState.isoToRealXDownscaling(mDrawState.mDestRow, mDrawState.mDestCol) + mOriginX + mBitmapOffsetX
+                    + sliceWidth * i;
+            int drawY = mDrawState.isoToRealYDownscaling(mDrawState.mDestRow, mDrawState.mDestCol) + mOriginY
+                    + (OBJECTS.objectNumColumns[type] + 1)
+                    * (mDrawState.getTileHeight() / 2);
+
+            Bitmap bitmap = mObjectBitmaps.getScaledObjectBitmap(type, i);
+
+            int height = (int) Math.ceil(bitmap.getHeight() * visualScale);
+            int width = (int) Math.ceil(bitmap.getWidth() * visualScale);
+
+            dest.set(drawX, drawY - height, drawX + width, drawY);
+
+            if (Rect.intersects(dest, screen)) {
+                origin.set(0, 0, width, height);
+                canvas.drawBitmap(bitmap, origin, dest, p);
+            }
         }
     }
 

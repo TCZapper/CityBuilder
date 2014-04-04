@@ -126,11 +126,14 @@ public class OverlayController implements Observer {
                     mState.mTool = OBJECT_TOOLS.SELECT;
                     mState.mSelectedObjectID = -1;
                     mState.resetSelectTool();
+                    mState.mDestRow = -1;
+                    mState.mDestCol = -1;
                 }
             } else if (v.equals(mBuildingsButton)) {
                 synchronized (mState) {
                     mState.mTool = OBJECT_TOOLS.NEW;
-                    mState.resetSelectTool();
+                    mState.mDestRow = -1;
+                    mState.mDestCol = -1;
                 }
                 openDialog(GridViewDialogFragment.TYPE_BUILDINGS);
             } else if (v.equals(mTileStyleButton)) {
@@ -158,8 +161,17 @@ public class OverlayController implements Observer {
                 }
             } else if (v.equals(mAcceptButton)) {
                 synchronized (mState) {
-                    mState.addSelectedTerrainEdit();
-                    mState.resetSelectTool();
+                    if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.mTool == TERRAIN_TOOLS.SELECT) {
+                        mState.addSelectedTerrainEdit();
+                        mState.resetSelectTool();
+                    } else if(mState.mMode == CITY_VIEW_MODES.EDIT_OBJECTS) {
+                        if(mState.mTool == OBJECT_TOOLS.NEW) {
+                          int objID = mState.addObject(mState.mDestRow, mState.mDestCol, mState.mObjectTypeSelected);
+                          if(objID >= 0) {
+                              mState.mSelectedObjectID = objID;
+                          }
+                        }
+                    }
                 }
             } else if (v.equals(mCancelButton)) {
                 synchronized (mState) {
@@ -263,6 +275,9 @@ public class OverlayController implements Observer {
      * When the state is altered in such a way that the overlay visibility needs updating, this method is called.
      */
     public void update() {
+        mUndoButton.setVisibility(View.GONE);
+        mRedoButton.setVisibility(View.GONE);
+        
         switch (mState.mMode) {
         case CITY_VIEW_MODES.VIEW:
             mTerrainTools.setVisibility(View.GONE);
@@ -275,8 +290,6 @@ public class OverlayController implements Observer {
             mTerrainTools.setVisibility(View.VISIBLE);
             mObjectTools.setVisibility(View.GONE);
             mTileSyleIcon.setImageBitmap(TileBitmaps.getFullTileBitmap(mState.mTerrainTypeSelected));
-            mUndoButton.setVisibility(View.GONE);
-            mRedoButton.setVisibility(View.GONE);
             mBlendButton.setSelected(mState.mDrawWithBlending);
             switch (mState.mTool) {
             case TERRAIN_TOOLS.BRUSH:
@@ -309,6 +322,9 @@ public class OverlayController implements Observer {
             mGeneralTools.setVisibility(View.VISIBLE);
             mBrushTools.setVisibility(View.GONE);
             mMoveButtons.setVisibility(View.GONE);
+            
+            mAcceptButton.setVisibility(View.VISIBLE);
+            mCancelButton.setVisibility(View.VISIBLE);
         }
         mGridButton.setSelected(mState.mDrawGridLines);
     }
