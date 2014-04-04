@@ -51,8 +51,7 @@ public class TileBitmaps {
             } catch (NullPointerException e) {//Usually the result of a missing file in the assets folder
                 Log.d(TAG, "Failed to scale for terrain mod: " + i);
                 mFullModBitmaps[i] = mFullModBitmaps[0];
-                mScaledModBitmaps[i] = Bitmap.createScaledBitmap(mFullModBitmaps[i], mFullModBitmaps[i].getWidth(),
-                        mFullModBitmaps[i].getHeight(), false);
+                i--;
             }
         }
     }

@@ -148,7 +148,7 @@ public class GridViewDialogFragment extends DialogFragment {
             mGridView.setLayoutParams(layoutParams);
 
             if (mType == TYPE_BUILDINGS) {
-                Bitmap[][] choiceBitmaps = ObjectBitmaps.mFullObjectBitmaps;
+                Bitmap[][] choiceBitmaps = ObjectBitmaps.getFullObjectBitmaps();
                 ArrayAdapter<Bitmap[]> adapter = new ArrayAdapter<Bitmap[]>(getContext(), R.layout.grid_image_view, choiceBitmaps) {
                     Canvas mCanvas = new Canvas();
                     Matrix mMatrix = new Matrix();
@@ -172,8 +172,8 @@ public class GridViewDialogFragment extends DialogFragment {
                             row.setImageBitmap(fullBitmap);
                         }
 
-                        int numSlices = ObjectBitmaps.mFullObjectBitmaps[position].length;
-                        int sliceWidth = ObjectBitmaps.mFullObjectBitmaps[position][0].getWidth();
+                        int numSlices = ObjectBitmaps.getFullObjectBitmaps()[position].length;
+                        int sliceWidth = ObjectBitmaps.getFullObjectBitmaps()[position][0].getWidth();
                         float imageWidth = (OBJECTS.objectNumRows[position] + OBJECTS.objectNumColumns[position])
                                 * (Constant.TILE_WIDTH / 2);
                         if (OBJECT_COL_WIDTH < imageWidth) {
@@ -188,7 +188,7 @@ public class GridViewDialogFragment extends DialogFragment {
                         fullBitmap.eraseColor(Color.TRANSPARENT);
                         mCanvas.setBitmap(fullBitmap);
                         for (int i = 0; i < numSlices; i++) {
-                            mCanvas.drawBitmap(ObjectBitmaps.mFullObjectBitmaps[position][i], mMatrix, mPaint);
+                            mCanvas.drawBitmap(ObjectBitmaps.getFullObjectBitmaps()[position][i], mMatrix, mPaint);
                             mMatrix.preTranslate(sliceWidth, 0);
                         }
                         mPaint.setColor(Color.GRAY);

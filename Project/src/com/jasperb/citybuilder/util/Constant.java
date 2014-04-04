@@ -183,6 +183,10 @@ public class Constant {
         public static int getSliceWidth(int type) {
             return (Constant.TILE_WIDTH / 2) * (2 + (OBJECTS.objectNumRows[type] - 1));
         }
+        
+        public static int getScaledSliceWidth(int type, int tileWidth) {
+            return (tileWidth / 2) * (2 + (OBJECTS.objectNumRows[type] - 1));
+        }
 
         public static int getSliceCount(int type) {
             int width = (Constant.TILE_WIDTH / 2) * (OBJECTS.objectNumColumns[type] + OBJECTS.objectNumRows[type]);

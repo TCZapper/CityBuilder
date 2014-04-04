@@ -12,10 +12,13 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
 
 import com.jasperb.citybuilder.util.Constant.OBJECTS;
+import com.jasperb.citybuilder.view.SharedState;
 
 /**
  * @author Jasper
@@ -27,9 +30,32 @@ public class ObjectBitmaps {
      */
     public static final String TAG = "ObjectBitmaps";
 
-    public static Bitmap[][] mFullObjectBitmaps = null;
+    private static Bitmap[][] mFullObjectBitmaps = null;
+    private static Bitmap[][] mScaledObjectBitmaps = new Bitmap[OBJECTS.count][];
 
-    public ObjectBitmaps() {}
+    private Canvas mCanvas = new Canvas();
+    private Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+    private Matrix mMatrix = new Matrix();
+
+    public ObjectBitmaps() {
+        for (int i = 0; i < OBJECTS.count; i++) {
+            try {
+                mScaledObjectBitmaps[i] = new Bitmap[mFullObjectBitmaps[i].length];
+                for (int j = 0; j < mFullObjectBitmaps[i].length; j++) {
+                    mScaledObjectBitmaps[i][j] = Bitmap.createScaledBitmap(mFullObjectBitmaps[i][j], mFullObjectBitmaps[i][j].getWidth(),
+                            mFullObjectBitmaps[i][j].getHeight(), false);
+                }
+            } catch (NullPointerException e) {//Usually the result of a missing file in the assets folder
+                Log.d(TAG, "Failed to scale for object: " + i);
+                mFullObjectBitmaps[i] = mFullObjectBitmaps[0];
+                i--;
+            }
+        }
+    }
+
+    public static Bitmap[][] getFullObjectBitmaps() {
+        return mFullObjectBitmaps;
+    }
 
     /**
      * Create a TileBitmaps objects, loading the static bitmaps from the assets into memory.
@@ -37,7 +63,7 @@ public class ObjectBitmaps {
      * @param context
      */
     public static void loadStaticBitmaps(Context context) {
-        if (mFullObjectBitmaps == null) {
+        if (getFullObjectBitmaps() == null) {
             mFullObjectBitmaps = new Bitmap[OBJECTS.count][];
             AssetManager assets = context.getAssets();
             InputStream ims = null;
@@ -53,7 +79,7 @@ public class ObjectBitmaps {
                     width = tempBitmap.getWidth();
                     sliceWidth = OBJECTS.getSliceWidth(i);
                     sliceCount = OBJECTS.getSliceCount(i);
-                    mFullObjectBitmaps[i] = new Bitmap[sliceCount];
+                    getFullObjectBitmaps()[i] = new Bitmap[sliceCount];
                     Log.d(TAG, "SLICES: " + sliceCount + " :: " + sliceWidth);
 
                     for (int j = 0; j < sliceCount; j++) {
@@ -65,8 +91,8 @@ public class ObjectBitmaps {
                             trimmedRect.set(sliceWidth * j, 0, sliceWidth * (j + 1), height);
                         }
                         bitmapRect.set(0, 0, trimmedRect.width(), trimmedRect.height());
-                        mFullObjectBitmaps[i][j] = Bitmap.createBitmap(trimmedRect.width(), height, Config.ARGB_8888);
-                        canvas.setBitmap(mFullObjectBitmaps[i][j]);
+                        getFullObjectBitmaps()[i][j] = Bitmap.createBitmap(trimmedRect.width(), height, Config.ARGB_8888);
+                        canvas.setBitmap(getFullObjectBitmaps()[i][j]);
                         canvas.drawBitmap(tempBitmap, trimmedRect, bitmapRect, null);
                     }
                     ims.close();
@@ -88,5 +114,43 @@ public class ObjectBitmaps {
      */
     public static void freeStaticBitmaps() {
         mFullObjectBitmaps = null;
+    }
+
+    /**
+     * Recreate the bitmaps that getBitmap returns based off the state.
+     * That includes scaling based off the scale factor.
+     * 
+     * @param state
+     *            the state that dictates the properties of the object
+     */
+    public void remakeBitmaps(SharedState state) {
+        // A major part of the bitmap draw cost appears to be related to the size of the bitmap (in memory).
+        // As drawing tile bitmaps is a significant chunk of the total draw time, we try to minimize the bitmap size.
+        // This require recreating the bitmap as it is scaled, which unfortunately means we do memory allocations on the draw thread.
+        // Tile mods take a much smaller chunk of our total draw time, so we just redraw the tile mods into their existing bitmap.
+
+        float visualScale = state.getTileWidth() / (float) Constant.TILE_WIDTH;
+        mMatrix.setScale(visualScale, visualScale);
+
+        for (int i = 0; i < mFullObjectBitmaps.length; i++) {
+            for (int j = 0; j < mFullObjectBitmaps[i].length; j++) {
+                mScaledObjectBitmaps[i][j].eraseColor(android.graphics.Color.TRANSPARENT);
+                mCanvas.setBitmap(mScaledObjectBitmaps[i][j]);
+                mCanvas.drawBitmap(mFullObjectBitmaps[i][j], mMatrix, mPaint);
+            }
+        }
+
+    }
+
+    /**
+     * Fetch the saved bitmap for a specific object type. The bitmap should have already been modified for use by calling remakeBitmaps.
+     * 
+     * @param object
+     *            the type of object to fetch
+     * @param slice
+     *            the slice to fetch
+     */
+    public Bitmap getScaledObjectBitmap(int object, int slice) {
+        return mScaledObjectBitmaps[object][slice];
     }
 }

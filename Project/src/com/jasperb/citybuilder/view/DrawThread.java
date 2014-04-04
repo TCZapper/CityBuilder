@@ -34,6 +34,7 @@ public class DrawThread extends Thread {
     public static final boolean LOG_TTD = false;//Time To Draw
 
     private TileBitmaps mTileBitmaps = null;
+    private ObjectBitmaps mObjectBitmaps = null;
     private Paint mGridPaint = null, mSelectionPaint = null, mSelectedTilePaint = null;
     private SurfaceHolder mSurfaceHolder = null;
     private SharedState mDrawState = new SharedState();
@@ -51,6 +52,8 @@ public class DrawThread extends Thread {
 
         mTileBitmaps = new TileBitmaps();
         mTileBitmaps.remakeBitmaps(mDrawState);
+        mObjectBitmaps = new ObjectBitmaps();
+        mObjectBitmaps.remakeBitmaps(mDrawState);
 
         mGridPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mGridPaint.setStyle(Paint.Style.STROKE);
@@ -92,7 +95,10 @@ public class DrawThread extends Thread {
                                 mMainState.updateThenCopyState(mDrawState);
                             }
                             if (mDrawState.mWidth != 0 && mDrawState.mWidth == c.getWidth() && mDrawState.mHeight == c.getHeight()) {
-                                if (oldTileHeight != mDrawState.getTileHeight() || oldDrawGridLines != mDrawState.mDrawGridLines) {
+                                if (oldTileHeight != mDrawState.getTileHeight()) {
+                                    mTileBitmaps.remakeBitmaps(mDrawState);
+                                    mObjectBitmaps.remakeBitmaps(mDrawState);
+                                } else if (oldDrawGridLines != mDrawState.mDrawGridLines) {
                                     mTileBitmaps.remakeBitmaps(mDrawState);
                                 }
                                 // Log.v(TAG,"DRAW AT: " + mState.mFocusRow + " : " + mState.mFocusRow);
@@ -364,8 +370,8 @@ public class DrawThread extends Thread {
         ObjectSlice currentSlice = mDrawState.mCityModel.getObjectList();
         while (currentSlice != null) {
             //currentSlice.log(TAG);
-            int sliceWidth = OBJECTS.getSliceWidth(currentSlice.type);
-            int sliceColumns = sliceWidth / (Constant.TILE_WIDTH / 2);
+            int sliceWidth = OBJECTS.getScaledSliceWidth(currentSlice.type, mDrawState.getTileWidth());
+            int sliceColumns = sliceWidth / (mDrawState.getTileWidth() / 2);
             int firstCol = currentSlice.col
                     - Math.min(sliceColumns * currentSlice.sliceIndex, OBJECTS.objectNumColumns[currentSlice.type] - 1);
             //Log.d(TAG, "FIRSTCOL: " + firstCol);
@@ -375,7 +381,7 @@ public class DrawThread extends Thread {
                     + (OBJECTS.objectNumColumns[currentSlice.type] + 1)
                     * (mDrawState.getTileHeight() / 2);
 
-            Bitmap bitmap = ObjectBitmaps.mFullObjectBitmaps[currentSlice.type][currentSlice.sliceIndex];
+            Bitmap bitmap = mObjectBitmaps.getScaledObjectBitmap(currentSlice.type, currentSlice.sliceIndex);
 
             int height = (int) Math.ceil(bitmap.getHeight() * visualScale);
             int width = (int) Math.ceil(bitmap.getWidth() * visualScale);
