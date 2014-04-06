@@ -175,11 +175,11 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
     public void onGridViewDialogAccept(int type, int selectedIndex) {
         if (mState != null) {
             if (type == GridViewDialogFragment.TYPE_BUILDINGS) {
-                mState.mObjectTypeSelected = selectedIndex;
+                mState.mSelectedObjectType = selectedIndex;
                 mState.mDestRow = (int) mState.mFocusRow;
                 mState.mDestCol = (int) mState.mFocusCol;
             } else {
-                mState.mTerrainTypeSelected = selectedIndex;
+                mState.mSelectedTerrainType = selectedIndex;
             }
             mState.notifyOverlay();
         }

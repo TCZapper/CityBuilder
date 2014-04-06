@@ -31,7 +31,7 @@ public class DrawThread extends Thread {
      */
     public static final String TAG = "DrawThread";
 
-    public static final boolean LOG_TTD = false;//Time To Draw
+    public static final boolean LOG_TTD = true;//Time To Draw
 
     private TileBitmaps mTileBitmaps = null;
     private ObjectBitmaps mObjectBitmaps = null;
@@ -407,15 +407,13 @@ public class DrawThread extends Thread {
         Paint p = new Paint();
         p.setAlpha(200);
         Rect screen = new Rect(0, 0, mDrawState.mWidth, mDrawState.mHeight);
-        int type = mDrawState.mObjectTypeSelected;
+        int type = mDrawState.mSelectedObjectType;
 
-        for (int i = 0; i < ObjectBitmaps.getFullObjectBitmaps()[type].length; i++) {
-            int sliceWidth = OBJECTS.getScaledSliceWidth(type, mDrawState.getTileWidth());
-            int drawX = mDrawState.isoToRealXDownscaling(mDrawState.mDestRow, mDrawState.mDestCol) + mOriginX + mBitmapOffsetX
-                    + sliceWidth * i;
-            int drawY = mDrawState.isoToRealYDownscaling(mDrawState.mDestRow, mDrawState.mDestCol) + mOriginY
-                    + (OBJECTS.objectNumColumns[type] + 1)
-                    * (mDrawState.getTileHeight() / 2);
+        int sliceWidth = OBJECTS.getScaledSliceWidth(type, mDrawState.getTileWidth());
+        int drawX = mDrawState.isoToRealXDownscaling(mDrawState.mDestRow + OBJECTS.objectNumRows[type] - 1, mDrawState.mDestCol) + mOriginX + mBitmapOffsetX;
+        int drawY = mDrawState.isoToRealYDownscaling(mDrawState.mDestRow + OBJECTS.objectNumRows[type] - 1, mDrawState.mDestCol + OBJECTS.objectNumColumns[type] + 1) + mOriginY;
+        for (int i = 0; i < OBJECTS.getSliceCount(type); i++) {
+            
 
             Bitmap bitmap = mObjectBitmaps.getScaledObjectBitmap(type, i);
 
@@ -428,6 +426,8 @@ public class DrawThread extends Thread {
                 origin.set(0, 0, width, height);
                 canvas.drawBitmap(bitmap, origin, dest, p);
             }
+            
+            drawX += sliceWidth;
         }
     }
 

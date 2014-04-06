@@ -8,6 +8,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
+import com.jasperb.citybuilder.CityModel.ObjectSlice;
 import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
@@ -121,7 +122,7 @@ public class CityViewController {
                         int row = (int) mState.realToIsoRowUpscaling(posX, posY);
                         int col = (int) mState.realToIsoColUpscaling(posX, posY);
                         if (mState.isTileValid(row, col)) {
-                            mState.mTerrainTypeSelected = mState.mCityModel.getTerrain(row, col);
+                            mState.mSelectedTerrainType = mState.mCityModel.getTerrain(row, col);
                             mState.mTool = mState.mPreviousTool;
                             mState.notifyOverlay();
                         }
@@ -134,17 +135,53 @@ public class CityViewController {
                         int posY = (int) event.getY() - mState.getOriginY();
                         int row = (int) mState.realToIsoRowUpscaling(posX, posY);
                         int col = (int) mState.realToIsoColUpscaling(posX, posY);
-                        if(mState.isTileValid(row, col)) {
-                            row = row + 1 - OBJECTS.objectNumRows[mState.mObjectTypeSelected];
-                            col = col + 1 - OBJECTS.objectNumColumns[mState.mObjectTypeSelected];
-                            if(mState.isTileValid(row, col)) {
+                        if (mState.isTileValid(row, col)) {
+                            row = row + 1 - OBJECTS.objectNumRows[mState.mSelectedObjectType];
+                            col = col + 1 - OBJECTS.objectNumColumns[mState.mSelectedObjectType];
+                            if (mState.isTileValid(row, col)) {
                                 mState.mDestRow = row;
                                 mState.mDestCol = col;
                             }
                         }
                     }
                 } else if (mState.mTool == OBJECT_TOOLS.SELECT) {
-
+                    if (mState.mSelectedObjectID == -1) {
+                        synchronized (mState) {
+                            int posX = (int) event.getX() - mState.getOriginX();
+                            int posY = (int) event.getY() - mState.getOriginY();
+                            int row = (int) mState.realToIsoRowUpscaling(posX, posY);
+                            int col = (int) mState.realToIsoColUpscaling(posX, posY);
+                            if (mState.isTileValid(row, col)) {
+                                int id = mState.mCityModel.getObjectID(row, col);
+                                if (id != -1) {
+                                    mState.mSelectedObjectID = id;
+                                    ObjectSlice slice = mState.mCityModel.getObjectSlice(id);
+                                    mState.removeObject(id, true);
+                                    mState.mSelectedObjectType = slice.type;
+                                    mState.mDestRow = slice.row + 1 - OBJECTS.objectNumRows[slice.type];
+                                    mState.mDestCol = slice.col;
+                                    mState.mOrigRow = mState.mDestRow;
+                                    mState.mOrigCol = mState.mDestCol;
+                                    mState.notifyOverlay();
+                                }
+                            }
+                        }
+                    } else {
+                        synchronized (mState) {
+                            int posX = (int) event.getX() - mState.getOriginX();
+                            int posY = (int) event.getY() - mState.getOriginY();
+                            int row = (int) mState.realToIsoRowUpscaling(posX, posY);
+                            int col = (int) mState.realToIsoColUpscaling(posX, posY);
+                            if (mState.isTileValid(row, col)) {
+                                row = row + 1 - OBJECTS.objectNumRows[mState.mSelectedObjectType];
+                                col = col + 1 - OBJECTS.objectNumColumns[mState.mSelectedObjectType];
+                                if (mState.isTileValid(row, col)) {
+                                    mState.mDestRow = row;
+                                    mState.mDestCol = col;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -166,7 +203,7 @@ public class CityViewController {
                 mLastRow = row;
                 mLastCol = col;
                 if (mState.mBrushType == BRUSH_TYPES.SQUARE1X1) {
-                    mState.addTerrainEdit(new TerrainEdit(row, col, mState.mTerrainTypeSelected, mState.mDrawWithBlending));
+                    mState.addTerrainEdit(new TerrainEdit(row, col, mState.mSelectedTerrainType, mState.mDrawWithBlending));
                 } else if (mState.mBrushType == BRUSH_TYPES.SQUARE3X3) {
                     int minRow = row - 1;
                     if (minRow < 0)
@@ -180,7 +217,7 @@ public class CityViewController {
                     int maxCol = col + 1;
                     if (maxCol > mState.mCityModel.getWidth())
                         maxCol = 0;
-                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mTerrainTypeSelected,
+                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mSelectedTerrainType,
                             mState.mDrawWithBlending));
                 } else if (mState.mBrushType == BRUSH_TYPES.SQUARE5X5) {
                     int minRow = row - 2;
@@ -195,7 +232,7 @@ public class CityViewController {
                     int maxCol = col + 2;
                     if (maxCol > mState.mCityModel.getWidth())
                         maxCol = 0;
-                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mTerrainTypeSelected,
+                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mSelectedTerrainType,
                             mState.mDrawWithBlending));
                 }
             }

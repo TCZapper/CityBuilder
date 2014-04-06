@@ -22,6 +22,26 @@ public class CityModel {
      */
     public static final String TAG = "CityModel";
 
+    public class ObjectSlice {
+        public short row, col;
+        public short id;
+        public byte type;
+        public byte sliceIndex;
+        public ObjectSlice next = null;
+
+        public ObjectSlice(short row, short col, short id, byte type, byte sliceIndex) {
+            this.row = row;
+            this.col = col;
+            this.id = id;
+            this.type = type;
+            this.sliceIndex = sliceIndex;
+        }
+
+        public void log(String tag) {
+            Log.d(tag, id + ": [R" + row + ",C" + col + "] = " + type + "[" + sliceIndex + "]");
+        }
+    }
+
     private int mWidth, mHeight;
     private byte[][] mTerrainMap;
     private byte[][] mTerrainModMap;
@@ -62,7 +82,7 @@ public class CityModel {
                 }
                 mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS] = TERRAIN_MODS.NONE;
                 mTerrainBlend[col][row] = true;
-                mObjectMap[col][row] = OBJECTS.NONE;
+                mObjectMap[col][row] = -1;
             }
         }
         for (int col = 0; col < mWidth; col++) {
@@ -71,12 +91,6 @@ public class CityModel {
                 determineTerrainMods(row, col);
             }
         }
-//        for (int col = 0; col < mWidth; col += OBJECTS.objectNumColumns[OBJECTS.TEST2X4]) {
-//            for (int row = 0; row < mHeight; row += OBJECTS.objectNumRows[OBJECTS.TEST2X4]) {
-//                addObject(row, col, OBJECTS.TEST2X4);
-//            }
-//        }
-        //addObject(0, 0, OBJECTS.TEST2X4);
     }
 
     /**
@@ -474,23 +488,42 @@ public class CityModel {
         return newSlice;
     }
 
-    public class ObjectSlice {
-        public short row, col;
-        public short id;
-        public byte type;
-        public byte sliceIndex;
-        public ObjectSlice next = null;
+    public ObjectSlice removeObject(int id) {
+        ObjectSlice firstSlice = null;
+        ObjectSlice currentSlice = mObjectList, previousSlice = null;
+        int slicesRemoved = 0;
+        while (currentSlice != null) {
+            if (currentSlice.id == id) {
+                if (firstSlice == null)
+                    firstSlice = currentSlice;
 
-        public ObjectSlice(short row, short col, short id, byte type, byte sliceIndex) {
-            this.row = row;
-            this.col = col;
-            this.id = id;
-            this.type = type;
-            this.sliceIndex = sliceIndex;
+                currentSlice = removeObjectSlice(previousSlice);
+                slicesRemoved++;
+                if (slicesRemoved == OBJECTS.getSliceCount(firstSlice.type))
+                    break;
+            } else {
+                previousSlice = currentSlice;
+                currentSlice = currentSlice.next;
+            }
         }
+        return firstSlice;
+    }
 
-        public void log(String tag) {
-            Log.d(tag, id + ": [R" + row + ",C" + col + "] = " + type + "[" + sliceIndex + "]");
+    public ObjectSlice removeObjectSlice(ObjectSlice parentNode) {
+        if (parentNode == null) {
+            mObjectList = mObjectList.next;
+            return mObjectList;
+        } else {
+            parentNode.next = parentNode.next.next;
+            return parentNode.next;
         }
+    }
+
+    public ObjectSlice getObjectSlice(int id) {
+        ObjectSlice currentSlice = mObjectList;
+        while (currentSlice != null && currentSlice.id != id)
+            currentSlice = currentSlice.next;
+
+        return currentSlice;
     }
 }

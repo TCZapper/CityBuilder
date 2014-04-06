@@ -37,8 +37,8 @@ public class SharedState {
     private int mTileHeight;
     public CityModel mCityModel = null;
     public boolean mDrawGridLines = false;
-    public int mTerrainTypeSelected = TERRAIN.GRASS;
-    public int mObjectTypeSelected = OBJECTS.TEST2X4;
+    public int mSelectedTerrainType = TERRAIN.GRASS;
+    public int mSelectedObjectType = OBJECTS.TEST2X4;
     public int mMode = CITY_VIEW_MODES.VIEW;
     public int mTool = TERRAIN_TOOLS.BRUSH;
     public int mPreviousTool = TERRAIN_TOOLS.BRUSH;
@@ -48,6 +48,7 @@ public class SharedState {
     public boolean mSelectingFirstTile = true;
     public boolean mInputActive = false;
     public int mDestRow = -1, mDestCol = -1;
+    public int mOrigRow = -1, mOrigCol = -1;
 
     // Only ever read
     public Observer mOverlay;
@@ -82,7 +83,7 @@ public class SharedState {
         mSelectingFirstTile = state.mSelectingFirstTile;
         mDestRow = state.mDestRow;
         mDestCol = state.mDestCol;
-        mObjectTypeSelected = state.mObjectTypeSelected;
+        mSelectedObjectType = state.mSelectedObjectType;
     }
 
     /**
@@ -103,7 +104,7 @@ public class SharedState {
                 edit.setTerrain(mCityModel);
 
             if (mObjectEdits != null) {
-                mObjectEdits.addObject(mCityModel);
+                mObjectEdits.processEdit(mCityModel);
                 mObjectEdits = null;
             }
         }
@@ -175,24 +176,68 @@ public class SharedState {
             minRow = maxRow;
             minCol = maxCol;
         }
-        mTerrainEdits.add(new TerrainEdit(minRow, minCol, maxRow, maxCol, mTerrainTypeSelected, mDrawWithBlending));
+        mTerrainEdits.add(new TerrainEdit(minRow, minCol, maxRow, maxCol, mSelectedTerrainType, mDrawWithBlending));
     }
 
     public int addObject(int row, int col, int type) {
         if (mObjectEdits == null) {
             for (int c = col; c < col + OBJECTS.objectNumColumns[type]; c++) {
                 for (int r = row; r < row + OBJECTS.objectNumRows[type]; r++) {
-                    if (!isTileValid(r, c) || mCityModel.getObjectID(r, c) != OBJECTS.NONE) {
+                    if (!isTileValid(r, c) || mCityModel.getObjectID(r, c) != -1) {
                         return -3;
                     }
                 }
             }
             int newObjID = mCityModel.allocateNewObjectID();
-            if(newObjID != -1)
-                mObjectEdits = new ObjectEdit(row, col, type, newObjID);
+            if (newObjID != -1)
+                mObjectEdits = new ObjectEdit(ObjectEdit.EDIT_TYPE.ADD, row, col, type, newObjID);
             return newObjID;
         }
+        //It is currently acceptable to not add an object
         return -2;
+    }
+
+    public int addObject(int row, int col, int type, int id) {
+        if (mObjectEdits == null) {
+            for (int c = col; c < col + OBJECTS.objectNumColumns[type]; c++) {
+                for (int r = row; r < row + OBJECTS.objectNumRows[type]; r++) {
+                    if (!isTileValid(r, c) || mCityModel.getObjectID(r, c) != -1) {
+                        return -3;
+                    }
+                }
+            }
+            mObjectEdits = new ObjectEdit(ObjectEdit.EDIT_TYPE.ADD, row, col, type, id);
+            return id;
+        }
+        return -2;
+    }
+
+    public void cancelMoveObject() {
+        while (mObjectEdits != null) {}
+
+        mObjectEdits = new ObjectEdit(ObjectEdit.EDIT_TYPE.ADD, mOrigRow, mOrigCol, mSelectedObjectType, mSelectedObjectID);
+        
+        mSelectedObjectID = -1;
+        mDestRow = -1;
+        mDestCol = -1;
+    }
+
+    public boolean removeObject(int id, boolean block) {
+        ObjectEdit newEdit = new ObjectEdit(ObjectEdit.EDIT_TYPE.REMOVE, id);
+        if (mObjectEdits == null) {
+            mObjectEdits = newEdit;
+            return true;
+        } else if (block) {
+            if (!mObjectEdits.equals(newEdit)) {
+                //new object edit doesn't match existing one, so block until we can perform it
+                //this is bad (blocking UI thread), but it's worth it to ensure the state isn't corrupted
+                while (mObjectEdits != null) {}
+                removeObject(id, true);
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
