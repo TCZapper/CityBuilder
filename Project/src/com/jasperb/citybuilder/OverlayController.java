@@ -13,6 +13,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.jasperb.citybuilder.Constant.BRUSH_TYPES;
 import com.jasperb.citybuilder.Constant.CITY_VIEW_MODES;
@@ -171,6 +172,8 @@ public class OverlayController implements Observer {
                             int objID = mState.addObject(mState.mDestRow, mState.mDestCol, mState.mSelectedObjectType);
                             if (objID >= 0) {
                                 mState.mSelectedObjectID = objID;
+                            } else {
+                                Toast.makeText(mState.mActivity, "Error: Placement Failed. Code: " + objID, Toast.LENGTH_LONG).show();
                             }
                         } else if (mState.mTool == OBJECT_TOOLS.SELECT) {
                             int objID = mState.addObject(mState.mDestRow, mState.mDestCol, mState.mSelectedObjectType,

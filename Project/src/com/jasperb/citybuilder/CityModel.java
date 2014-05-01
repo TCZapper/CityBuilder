@@ -607,6 +607,10 @@ public class CityModel {
                 mTerrainBlend = new byte[mWidth][mHeight];
                 mObjectMap = new short[mWidth][mHeight];
                 mUsedObjectIDs = new boolean[Constant.OBJECT_LIMIT];
+                Arrays.fill(mUsedObjectIDs, false);
+                for(short[] arr : mObjectMap) {
+                    Arrays.fill(arr, (short) -1);
+                }
             }
             for (int i = 0; i < mWidth; i++) {
                 stream.readBytes(mTerrainMap[i], mHeight);
