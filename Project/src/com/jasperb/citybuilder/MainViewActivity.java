@@ -59,6 +59,9 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
         } catch (FileNotFoundException e) {
             mCityModel = new CityModel(intent.getIntExtra(STATE_CITY_WIDTH, 200), intent.getIntExtra(STATE_CITY_HEIGHT, 200));
         }
+        if(mCityModel.getWidth() == 0 || mCityModel.getHeight() == 0) {//Error (probably in restoring from saved model)
+            finish();
+        }
         mState = new SharedState();
         mState.mActivity = this;
         mState.mScroller = new OverScroller(this, new AccelerateInterpolator(Constant.INTERPOLATE_ACCELERATION));
@@ -135,13 +138,13 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
 
     @Override
     protected void onResume() {
-        super.onStart();
+        super.onResume();
         Log.v(TAG, "ON RESUME");
     }
 
     @Override
     protected void onPause() {
-        super.onStart();
+        super.onPause();
         Log.v(TAG, "ON PAUSE");
     }
 

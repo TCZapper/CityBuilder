@@ -116,7 +116,10 @@ public class CityModel {
     }
 
     public CityModel(FileStreamUtils stream) {
-        restore(stream);
+        if(!restore(stream)) {
+            mWidth = 0;
+            mHeight = 0;
+        }
         Log.v(TAG, "Create City: " + mWidth + "x" + mHeight);
     }
 
@@ -563,7 +566,7 @@ public class CityModel {
      * boolean[][] mTerrainBlend;
      * ObjectSlice mObjectList;
      */
-    public void save(FileStreamUtils stream) {
+    public boolean save(FileStreamUtils stream) {
         Log.v(TAG, "Saving...");
         try {
             stream.write(Constant.CURRENT_VERSION_NUM);
@@ -584,20 +587,29 @@ public class CityModel {
                 curSlice.write(stream);
                 curSlice = curSlice.next;
             }
+            stream.write((short)-1);//Mark ending for object slice loop
+            stream.write(0xDEADBEEF);//Mark EOF
             stream.flush();
         } catch (IOException e) {
+            Log.d(TAG, "IO Exception on saving City Model: " + e.getLocalizedMessage());
             e.printStackTrace();
+            return false;
         } finally {
             try {
                 stream.close();
-            } catch (IOException e) {}
+            } catch (IOException e) {
+                return false;
+            }
         }
         Log.v(TAG, "Done Saving");
+        return true;
     }
 
-    public void restore(FileStreamUtils stream) {
+    public boolean restore(FileStreamUtils stream) {
         Log.v(TAG, "Restoring...");
         try {
+            @SuppressWarnings("unused")
+            int curVersion = stream.readInt();
             mWidth = stream.readInt();
             mHeight = stream.readInt();
             mNumObjects = stream.readShort();
@@ -638,14 +650,23 @@ public class CityModel {
             } else {
                 mObjectList = null;
             }
+            if(stream.readInt() != 0xDEADBEEF) {//Check for EOF
+                Log.d(TAG, "Missing DEADBEEF at EOF");
+                return false;
+            }
         } catch (IOException e) {
+            Log.d(TAG, "IO Exception on restoring City Model: " + e.getLocalizedMessage());
             e.printStackTrace();
+            return false;
         } finally {
             try {
                 stream.close();
-            } catch (IOException e) {}
+            } catch (IOException e) {
+                return false;
+            }
         }
         Log.v(TAG, "Done Restoring");
+        return true;
     }
 
     private void setupReadObject(ObjectSlice slice) {
