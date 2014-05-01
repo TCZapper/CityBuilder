@@ -5,6 +5,9 @@ package com.jasperb.citybuilder.cityview;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
@@ -36,7 +39,9 @@ public class DrawThread extends Thread {
 
     private TileBitmaps mTileBitmaps = null;
     private ObjectBitmaps mObjectBitmaps = null;
-    private Paint mGridPaint = null, mSelectionPaint = null, mSelectedTilePaint = null;
+    private Paint mGridPaint = null, mSelectionPaint = null, mSelectedTilePaint = null, mTilePaint = null;
+    private ColorFilter mSelectedTileFilter = null, mSelectedCornerFilter = null, mCoveredTileFilter = null,
+            mCoveredSelectedTileFilter = null, mCoveredSelectedCornerFilter = null;
     private SurfaceHolder mSurfaceHolder = null;
     private SharedState mDrawState = new SharedState();
     private SharedState mMainState = null;
@@ -69,6 +74,13 @@ public class DrawThread extends Thread {
         mSelectionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mSelectionPaint.setStyle(Paint.Style.FILL);
         mSelectionPaint.setARGB(100, 0, 255, 0);
+
+        mTilePaint = new Paint();
+        mSelectedTileFilter = new LightingColorFilter(0xFF9B9B9B, 0xFF006400);//Color: 0xAARRGGBB, Alpha ignored
+        mSelectedCornerFilter = new LightingColorFilter(0xFF646464, 0xFF009B00);
+        mCoveredTileFilter = new LightingColorFilter(0xFF9B9B9B, 0xFF006400);
+        mCoveredSelectedTileFilter = new LightingColorFilter(0xFF9B9B9B, 0xFF006400);
+        mCoveredSelectedCornerFilter = new LightingColorFilter(0xFF9B9B9B, 0xFF006400);
     }
 
     /**
@@ -239,6 +251,32 @@ public class DrawThread extends Thread {
     private void drawGround(Canvas canvas) {
         //Log.d(TAG, "DRAW FIRST: " + firstRow + " : " + firstCol);
         float visualScale = mDrawState.getTileWidth() / (float) Constant.TILE_WIDTH;
+        int minSelectedRow = 0, maxSelectedRow = 0, minSelectedCol = 0, maxSelectedCol = 0;
+        if (mDrawState.mFirstSelectedRow != -1) {
+            if (mDrawState.mSecondSelectedRow == -1) {
+                minSelectedRow = mDrawState.mFirstSelectedRow;
+                maxSelectedRow = mDrawState.mFirstSelectedRow;
+                minSelectedCol = mDrawState.mFirstSelectedCol;
+                maxSelectedCol = mDrawState.mFirstSelectedCol;
+            } else {
+                if (mDrawState.mFirstSelectedRow < mDrawState.mSecondSelectedRow) {
+                    minSelectedRow = mDrawState.mFirstSelectedRow;
+                    maxSelectedRow = mDrawState.mSecondSelectedRow;
+                } else {
+                    minSelectedRow = mDrawState.mSecondSelectedRow;
+                    maxSelectedRow = mDrawState.mFirstSelectedRow;
+                }
+                if (mDrawState.mFirstSelectedCol < mDrawState.mSecondSelectedCol) {
+                    minSelectedCol = mDrawState.mFirstSelectedCol;
+                    maxSelectedCol = mDrawState.mSecondSelectedCol;
+                } else {
+                    minSelectedCol = mDrawState.mSecondSelectedCol;
+                    maxSelectedCol = mDrawState.mFirstSelectedCol;
+                }
+            }
+        } else {
+            mTilePaint.setColorFilter(null);
+        }
         for (int col = mFirstCol; col <= mLastCol; col++) {
             // Find the last row by figuring out the rows where this column crosses the bottom and left edge,
             // and draw up to the whichever row corresponds edge we hit first
@@ -255,16 +293,28 @@ public class DrawThread extends Thread {
             for (; row <= lastRow; row++) {
                 // Time to draw the terrain to the buffer. TileBitmaps handles resizing the tiles, we just draw/position them
 //                    Log.d(TAG, "Paint Tile: " + row + " : " + col);
+                if (mDrawState.mFirstSelectedRow != -1) {
+                    if (row >= minSelectedRow && row <= maxSelectedRow && col >= minSelectedCol && col <= maxSelectedCol) {
+                        if ((mDrawState.mSelectingFirstTile && row == mDrawState.mFirstSelectedRow && col == mDrawState.mFirstSelectedCol)
+                                || (!mDrawState.mSelectingFirstTile && row == mDrawState.mSecondSelectedRow && col == mDrawState.mSecondSelectedCol)) {
+                            mTilePaint.setColorFilter(mSelectedCornerFilter);
+                        } else {
+                            mTilePaint.setColorFilter(mSelectedTileFilter);
+                        }
+                    } else {
+                        mTilePaint.setColorFilter(null);
+                    }
+                }
                 int drawX = mDrawState.isoToRealXDownscaling(row, col) + mOriginX + mBitmapOffsetX;
                 int drawY = mDrawState.isoToRealYDownscaling(row, col) + mOriginY;
-                canvas.drawBitmap(mTileBitmaps.getScaledTileBitmap(mDrawState.mCityModel.getTerrain(row, col)), drawX, drawY, null);
+                canvas.drawBitmap(mTileBitmaps.getScaledTileBitmap(mDrawState.mCityModel.getTerrain(row, col)), drawX, drawY, mTilePaint);
                 int mod = mDrawState.mCityModel.getMod(row, col, 0);
                 if (mod != TERRAIN_MODS.NONE) {
                     int index = 0;
 
                     while (mod != TERRAIN_MODS.NONE) {
                         canvas.drawBitmap(mTileBitmaps.getScaledModBitmap(mod), drawX + TileBitmaps.getModOffsetX(mod) * visualScale, drawY
-                                + TileBitmaps.getModOffsetY(mod) * visualScale, null);
+                                + TileBitmaps.getModOffsetY(mod) * visualScale, mTilePaint);
                         index++;
                         if (index >= Constant.MAX_NUMBER_OF_TERRAIN_MODS)
                             break;
@@ -345,7 +395,7 @@ public class DrawThread extends Thread {
                 path.lineTo(topX, topY + mDrawState.getTileHeight());//bottom
                 path.lineTo(topX - mDrawState.getTileWidth() / 2, topY + mDrawState.getTileHeight() / 2);//left
                 path.close();
-                canvas.drawPath(path, mSelectionPaint);
+                //canvas.drawPath(path, mSelectionPaint);
                 canvas.drawPath(path, mSelectedTilePaint);
                 path.reset();
             }
@@ -359,7 +409,7 @@ public class DrawThread extends Thread {
                     mDrawState.isoToRealYDownscaling(maxRow, minCol) + mOriginY);//left
             path.lineTo(mDrawState.isoToRealXDownscaling(minRow, minCol) + mOriginX,
                     mDrawState.isoToRealYDownscaling(minRow, minCol) + mOriginY);//top
-            canvas.drawPath(path, mSelectionPaint);
+            //canvas.drawPath(path, mSelectionPaint);
             canvas.drawPath(path, mSelectedTilePaint);
         }
     }
@@ -411,10 +461,12 @@ public class DrawThread extends Thread {
         int type = mDrawState.mSelectedObjectType;
 
         int sliceWidth = OBJECTS.getScaledSliceWidth(type, mDrawState.getTileWidth());
-        int drawX = mDrawState.isoToRealXDownscaling(mDrawState.mDestRow + OBJECTS.objectNumRows[type] - 1, mDrawState.mDestCol) + mOriginX + mBitmapOffsetX;
-        int drawY = mDrawState.isoToRealYDownscaling(mDrawState.mDestRow + OBJECTS.objectNumRows[type] - 1, mDrawState.mDestCol + OBJECTS.objectNumColumns[type] + 1) + mOriginY;
+        int drawX = mDrawState.isoToRealXDownscaling(mDrawState.mDestRow + OBJECTS.objectNumRows[type] - 1, mDrawState.mDestCol) + mOriginX
+                + mBitmapOffsetX;
+        int drawY = mDrawState.isoToRealYDownscaling(mDrawState.mDestRow + OBJECTS.objectNumRows[type] - 1, mDrawState.mDestCol
+                + OBJECTS.objectNumColumns[type] + 1)
+                + mOriginY;
         for (int i = 0; i < OBJECTS.getSliceCount(type); i++) {
-            
 
             Bitmap bitmap = mObjectBitmaps.getScaledObjectBitmap(type, i);
 
@@ -427,7 +479,7 @@ public class DrawThread extends Thread {
                 origin.set(0, 0, width, height);
                 canvas.drawBitmap(bitmap, origin, dest, p);
             }
-            
+
             drawX += sliceWidth;
         }
     }
