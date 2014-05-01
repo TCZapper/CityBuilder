@@ -5,7 +5,6 @@ package com.jasperb.citybuilder.cityview;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
@@ -14,13 +13,13 @@ import android.graphics.Rect;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
-import com.jasperb.citybuilder.Constant;
-import com.jasperb.citybuilder.SharedState;
 import com.jasperb.citybuilder.CityModel.ObjectSlice;
+import com.jasperb.citybuilder.Constant;
 import com.jasperb.citybuilder.Constant.CITY_VIEW_MODES;
 import com.jasperb.citybuilder.Constant.OBJECTS;
 import com.jasperb.citybuilder.Constant.TERRAIN_MODS;
 import com.jasperb.citybuilder.Constant.TERRAIN_TOOLS;
+import com.jasperb.citybuilder.SharedState;
 import com.jasperb.citybuilder.util.ObjectBitmaps;
 import com.jasperb.citybuilder.util.PerfTools;
 import com.jasperb.citybuilder.util.TileBitmaps;
@@ -78,9 +77,9 @@ public class DrawThread extends Thread {
         mTilePaint = new Paint();
         mSelectedTileFilter = new LightingColorFilter(0xFF9B9B9B, 0xFF006400);//Color: 0xAARRGGBB, Alpha ignored
         mSelectedCornerFilter = new LightingColorFilter(0xFF646464, 0xFF009B00);
-        mCoveredTileFilter = new LightingColorFilter(0xFF9B9B9B, 0xFF006400);
-        mCoveredSelectedTileFilter = new LightingColorFilter(0xFF9B9B9B, 0xFF006400);
-        mCoveredSelectedCornerFilter = new LightingColorFilter(0xFF9B9B9B, 0xFF006400);
+        mCoveredTileFilter = new LightingColorFilter(0xFFC8C8C8, 0xFF000000);
+        mCoveredSelectedTileFilter = new LightingColorFilter(0xFFC8C8C8, 0xFF003200);
+        mCoveredSelectedCornerFilter = new LightingColorFilter(0xFF9B9B9B, 0xFF004B00);
     }
 
     /**
@@ -274,9 +273,8 @@ public class DrawThread extends Thread {
                     maxSelectedCol = mDrawState.mFirstSelectedCol;
                 }
             }
-        } else {
-            mTilePaint.setColorFilter(null);
         }
+        mTilePaint.setColorFilter(null);
         for (int col = mFirstCol; col <= mLastCol; col++) {
             // Find the last row by figuring out the rows where this column crosses the bottom and left edge,
             // and draw up to the whichever row corresponds edge we hit first
@@ -293,14 +291,28 @@ public class DrawThread extends Thread {
             for (; row <= lastRow; row++) {
                 // Time to draw the terrain to the buffer. TileBitmaps handles resizing the tiles, we just draw/position them
 //                    Log.d(TAG, "Paint Tile: " + row + " : " + col);
-                if (mDrawState.mFirstSelectedRow != -1) {
-                    if (row >= minSelectedRow && row <= maxSelectedRow && col >= minSelectedCol && col <= maxSelectedCol) {
-                        if ((mDrawState.mSelectingFirstTile && row == mDrawState.mFirstSelectedRow && col == mDrawState.mFirstSelectedCol)
-                                || (!mDrawState.mSelectingFirstTile && row == mDrawState.mSecondSelectedRow && col == mDrawState.mSecondSelectedCol)) {
-                            mTilePaint.setColorFilter(mSelectedCornerFilter);
+                if (mDrawState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN) {
+                    if (mDrawState.mFirstSelectedRow != -1) {
+                        if (row >= minSelectedRow && row <= maxSelectedRow && col >= minSelectedCol && col <= maxSelectedCol) {
+                            if ((mDrawState.mSelectingFirstTile && row == mDrawState.mFirstSelectedRow && col == mDrawState.mFirstSelectedCol)
+                                    || (!mDrawState.mSelectingFirstTile && row == mDrawState.mSecondSelectedRow && col == mDrawState.mSecondSelectedCol)) {
+                                if (mDrawState.mCityModel.getObjectID(row, col) != -1) {
+                                    mTilePaint.setColorFilter(mCoveredSelectedCornerFilter);
+                                } else {
+                                    mTilePaint.setColorFilter(mSelectedCornerFilter);
+                                }
+                            } else if (mDrawState.mCityModel.getObjectID(row, col) != -1) {
+                                mTilePaint.setColorFilter(mCoveredSelectedTileFilter);
+                            } else {
+                                mTilePaint.setColorFilter(mSelectedTileFilter);
+                            }
+                        } else if (mDrawState.mCityModel.getObjectID(row, col) != -1) {
+                            mTilePaint.setColorFilter(mCoveredTileFilter);
                         } else {
-                            mTilePaint.setColorFilter(mSelectedTileFilter);
+                            mTilePaint.setColorFilter(null);
                         }
+                    } else if (mDrawState.mCityModel.getObjectID(row, col) != -1) {
+                        mTilePaint.setColorFilter(mCoveredTileFilter);
                     } else {
                         mTilePaint.setColorFilter(null);
                     }
@@ -419,6 +431,8 @@ public class DrawThread extends Thread {
         Rect origin = new Rect();
         Rect dest = new Rect();
         Paint p = new Paint();
+        if (mDrawState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN)
+            p.setAlpha(100);
         Rect screen = new Rect(0, 0, mDrawState.mWidth, mDrawState.mHeight);
 
         ObjectSlice currentSlice = mDrawState.mCityModel.getObjectList();
