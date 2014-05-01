@@ -672,8 +672,9 @@ public class CityModel {
     private void setupReadObject(ObjectSlice slice) {
         if (!mUsedObjectIDs[slice.id]) {
             mUsedObjectIDs[slice.id] = true;
+            int sliceRow = slice.row - OBJECTS.objectNumRows[slice.type] + 1;
             for (int c = slice.col; c < slice.col + OBJECTS.objectNumColumns[slice.type]; c++) {
-                for (int r = slice.row; r < slice.row + OBJECTS.objectNumRows[slice.type]; r++) {
+                for (int r = sliceRow; r < sliceRow + OBJECTS.objectNumRows[slice.type]; r++) {
                     mObjectMap[c][r] = (short) slice.id;
                 }
             }
