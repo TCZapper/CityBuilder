@@ -171,7 +171,8 @@ public class OverlayController implements Observer {
                         if (mState.mTool == OBJECT_TOOLS.NEW) {
                             int objID = mState.addObject(mState.mDestRow, mState.mDestCol, mState.mSelectedObjectType);
                             if (objID >= 0) {
-                                mState.mSelectedObjectID = objID;
+                                mState.mDestCol = -1;
+                                mState.mDestRow = -1;
                             } else {
                                 Toast.makeText(mState.mActivity, "Error: Placement Failed. Code: " + objID, Toast.LENGTH_LONG).show();
                             }

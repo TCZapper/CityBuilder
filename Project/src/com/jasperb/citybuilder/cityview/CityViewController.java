@@ -142,6 +142,7 @@ public class CityViewController {
                             if (mState.isTileValid(row, col)) {
                                 mState.mDestRow = row;
                                 mState.mDestCol = col;
+                                mState.notifyOverlay();
                             }
                         }
                     }
