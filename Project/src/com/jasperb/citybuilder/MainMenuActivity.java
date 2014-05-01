@@ -1,9 +1,10 @@
 package com.jasperb.citybuilder;
 
-import Dialog.CitySelectDialogFragment;
-import Dialog.CitySelectDialogFragment.CitySelectDialogListener;
-import Dialog.CreateCityDialogFragment;
-import Dialog.CreateCityDialogFragment.CreateCityDialogListener;
+import com.jasperb.citybuilder.dialog.CitySelectDialogFragment;
+import com.jasperb.citybuilder.dialog.CreateCityDialogFragment;
+import com.jasperb.citybuilder.dialog.CitySelectDialogFragment.CitySelectDialogListener;
+import com.jasperb.citybuilder.dialog.CreateCityDialogFragment.CreateCityDialogListener;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;

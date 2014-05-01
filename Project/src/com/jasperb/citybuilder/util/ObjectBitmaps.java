@@ -17,8 +17,9 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
 
-import com.jasperb.citybuilder.util.Constant.OBJECTS;
-import com.jasperb.citybuilder.view.SharedState;
+import com.jasperb.citybuilder.Constant;
+import com.jasperb.citybuilder.SharedState;
+import com.jasperb.citybuilder.Constant.OBJECTS;
 
 /**
  * @author Jasper

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.jasperb.citybuilder.view;
+package com.jasperb.citybuilder.cityview;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -11,12 +11,13 @@ import android.graphics.Rect;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import com.jasperb.citybuilder.Constant;
+import com.jasperb.citybuilder.SharedState;
 import com.jasperb.citybuilder.CityModel.ObjectSlice;
-import com.jasperb.citybuilder.util.Constant;
-import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
-import com.jasperb.citybuilder.util.Constant.OBJECTS;
-import com.jasperb.citybuilder.util.Constant.TERRAIN_MODS;
-import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
+import com.jasperb.citybuilder.Constant.CITY_VIEW_MODES;
+import com.jasperb.citybuilder.Constant.OBJECTS;
+import com.jasperb.citybuilder.Constant.TERRAIN_MODS;
+import com.jasperb.citybuilder.Constant.TERRAIN_TOOLS;
 import com.jasperb.citybuilder.util.ObjectBitmaps;
 import com.jasperb.citybuilder.util.PerfTools;
 import com.jasperb.citybuilder.util.TileBitmaps;

@@ -1,7 +1,9 @@
 /**
  * 
  */
-package com.jasperb.citybuilder.view;
+package com.jasperb.citybuilder.cityview;
+
+import com.jasperb.citybuilder.SharedState;
 
 import android.content.Context;
 import android.util.AttributeSet;

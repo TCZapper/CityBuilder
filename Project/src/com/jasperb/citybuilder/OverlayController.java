@@ -3,7 +3,6 @@
  */
 package com.jasperb.citybuilder;
 
-import Dialog.GridViewDialogFragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -15,14 +14,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
-import com.jasperb.citybuilder.util.Constant;
-import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
-import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
-import com.jasperb.citybuilder.util.Constant.OBJECT_TOOLS;
-import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
+import com.jasperb.citybuilder.Constant.BRUSH_TYPES;
+import com.jasperb.citybuilder.Constant.CITY_VIEW_MODES;
+import com.jasperb.citybuilder.Constant.OBJECT_TOOLS;
+import com.jasperb.citybuilder.Constant.TERRAIN_TOOLS;
+import com.jasperb.citybuilder.dialog.GridViewDialogFragment;
 import com.jasperb.citybuilder.util.Observer;
 import com.jasperb.citybuilder.util.TileBitmaps;
-import com.jasperb.citybuilder.view.SharedState;
 
 /**
  * @author Jasper

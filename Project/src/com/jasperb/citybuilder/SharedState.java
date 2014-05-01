@@ -1,17 +1,15 @@
-package com.jasperb.citybuilder.view;
+package com.jasperb.citybuilder;
 
 import java.util.LinkedList;
 
 import android.app.Activity;
 import android.widget.OverScroller;
 
-import com.jasperb.citybuilder.CityModel;
-import com.jasperb.citybuilder.util.Constant;
-import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
-import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
-import com.jasperb.citybuilder.util.Constant.OBJECTS;
-import com.jasperb.citybuilder.util.Constant.TERRAIN;
-import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
+import com.jasperb.citybuilder.Constant.BRUSH_TYPES;
+import com.jasperb.citybuilder.Constant.CITY_VIEW_MODES;
+import com.jasperb.citybuilder.Constant.OBJECTS;
+import com.jasperb.citybuilder.Constant.TERRAIN;
+import com.jasperb.citybuilder.Constant.TERRAIN_TOOLS;
 import com.jasperb.citybuilder.util.ObjectEdit;
 import com.jasperb.citybuilder.util.Observer;
 import com.jasperb.citybuilder.util.TerrainEdit;
@@ -93,7 +91,7 @@ public class SharedState {
      * @param to
      *            the object to copy the state into
      */
-    protected void updateThenCopyState(SharedState to) {
+    public void updateThenCopyState(SharedState to) {
         // The purpose of this method is to be used by the draw thread to update the CityView's state and then retrieve that state
         // This lets us easily continuously update the CityView's state and keep the update rate synced with the FPS of the draw thread
 

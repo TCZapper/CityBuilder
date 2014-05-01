@@ -16,9 +16,10 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.util.Log;
 
-import com.jasperb.citybuilder.util.Constant.TERRAIN;
-import com.jasperb.citybuilder.util.Constant.TERRAIN_MODS;
-import com.jasperb.citybuilder.view.SharedState;
+import com.jasperb.citybuilder.Constant;
+import com.jasperb.citybuilder.SharedState;
+import com.jasperb.citybuilder.Constant.TERRAIN;
+import com.jasperb.citybuilder.Constant.TERRAIN_MODS;
 
 /**
  * @author Jasper

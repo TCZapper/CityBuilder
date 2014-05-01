@@ -1,20 +1,21 @@
 /**
  * 
  */
-package com.jasperb.citybuilder.view;
+package com.jasperb.citybuilder.cityview;
 
 import android.content.Context;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 
+import com.jasperb.citybuilder.Constant;
+import com.jasperb.citybuilder.SharedState;
 import com.jasperb.citybuilder.CityModel.ObjectSlice;
-import com.jasperb.citybuilder.util.Constant;
-import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
-import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
-import com.jasperb.citybuilder.util.Constant.OBJECTS;
-import com.jasperb.citybuilder.util.Constant.OBJECT_TOOLS;
-import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
+import com.jasperb.citybuilder.Constant.BRUSH_TYPES;
+import com.jasperb.citybuilder.Constant.CITY_VIEW_MODES;
+import com.jasperb.citybuilder.Constant.OBJECTS;
+import com.jasperb.citybuilder.Constant.OBJECT_TOOLS;
+import com.jasperb.citybuilder.Constant.TERRAIN_TOOLS;
 import com.jasperb.citybuilder.util.TerrainEdit;
 
 /**

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.jasperb.citybuilder.util;
+package com.jasperb.citybuilder;
 
 /**
  * @author Jasper

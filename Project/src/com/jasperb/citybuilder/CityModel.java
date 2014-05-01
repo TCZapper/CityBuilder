@@ -8,10 +8,9 @@ import java.util.Arrays;
 
 import android.util.Log;
 
-import com.jasperb.citybuilder.util.Constant;
-import com.jasperb.citybuilder.util.Constant.OBJECTS;
-import com.jasperb.citybuilder.util.Constant.TERRAIN;
-import com.jasperb.citybuilder.util.Constant.TERRAIN_MODS;
+import com.jasperb.citybuilder.Constant.OBJECTS;
+import com.jasperb.citybuilder.Constant.TERRAIN;
+import com.jasperb.citybuilder.Constant.TERRAIN_MODS;
 import com.jasperb.citybuilder.util.FileStreamUtils;
 
 /**

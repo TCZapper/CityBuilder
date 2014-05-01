@@ -1,4 +1,4 @@
-package Dialog;
+package com.jasperb.citybuilder.dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;

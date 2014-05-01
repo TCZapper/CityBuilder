@@ -2,8 +2,6 @@ package com.jasperb.citybuilder;
 
 import java.io.FileNotFoundException;
 
-import Dialog.GridViewDialogFragment;
-import Dialog.GridViewDialogFragment.GridViewDialogListener;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -17,13 +15,13 @@ import android.widget.LinearLayout;
 import android.widget.OverScroller;
 import android.widget.RelativeLayout;
 
-import com.jasperb.citybuilder.util.Constant;
+import com.jasperb.citybuilder.cityview.CityView;
+import com.jasperb.citybuilder.cityview.CityViewController;
+import com.jasperb.citybuilder.dialog.GridViewDialogFragment;
+import com.jasperb.citybuilder.dialog.GridViewDialogFragment.GridViewDialogListener;
 import com.jasperb.citybuilder.util.FileStreamUtils;
 import com.jasperb.citybuilder.util.ObjectBitmaps;
 import com.jasperb.citybuilder.util.TileBitmaps;
-import com.jasperb.citybuilder.view.CityView;
-import com.jasperb.citybuilder.view.CityViewController;
-import com.jasperb.citybuilder.view.SharedState;
 
 public class MainViewActivity extends Activity implements GridViewDialogListener {
     /**

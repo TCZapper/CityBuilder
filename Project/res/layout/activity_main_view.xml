@@ -2,7 +2,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <com.jasperb.citybuilder.view.CityView
+    <com.jasperb.citybuilder.cityview.CityView
         android:id="@+id/City"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

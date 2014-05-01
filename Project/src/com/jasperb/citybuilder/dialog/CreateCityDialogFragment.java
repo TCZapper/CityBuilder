@@ -1,4 +1,4 @@
-package Dialog;
+package com.jasperb.citybuilder.dialog;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -12,8 +12,8 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.NumberPicker;
 
+import com.jasperb.citybuilder.Constant;
 import com.jasperb.citybuilder.R;
-import com.jasperb.citybuilder.util.Constant;
 
 public class CreateCityDialogFragment extends DialogFragment {
     public interface CreateCityDialogListener {
