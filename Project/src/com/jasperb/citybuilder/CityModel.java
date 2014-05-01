@@ -566,6 +566,7 @@ public class CityModel {
     public void save(FileStreamUtils stream) {
         Log.v(TAG, "Saving...");
         try {
+            stream.write(Constant.CURRENT_VERSION_NUM);
             stream.write(mWidth);
             stream.write(mHeight);
             stream.write(mNumObjects);
@@ -597,7 +598,6 @@ public class CityModel {
     public void restore(FileStreamUtils stream) {
         Log.v(TAG, "Restoring...");
         try {
-
             mWidth = stream.readInt();
             mHeight = stream.readInt();
             mNumObjects = stream.readShort();

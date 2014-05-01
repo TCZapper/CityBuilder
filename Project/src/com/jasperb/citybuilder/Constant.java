@@ -8,6 +8,8 @@ package com.jasperb.citybuilder;
  * 
  */
 public class Constant {
+    public static final int CURRENT_VERSION_NUM = 1;
+    
     /**
      * Maximum amount of zoom for the contents of the city view.
      */
