@@ -52,6 +52,7 @@ public class SharedState {
 
     // Only ever read
     public Observer mOverlay;
+    public String mCityName;
 
     // Single thread use
     public boolean mDrawWithBlending = true;

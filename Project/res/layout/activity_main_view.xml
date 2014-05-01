@@ -40,6 +40,15 @@
             android:layout_marginTop="5dp"
             android:clickable="true"
             android:src="@drawable/grid_button" />
+        
+        <ImageView
+            android:id="@+id/MenuButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="5dp"
+            android:clickable="true"
+            android:src="@drawable/gears" />
     </LinearLayout>
 
     <LinearLayout

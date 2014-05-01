@@ -3,6 +3,7 @@
  */
 package com.jasperb.citybuilder;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import android.util.Log;
@@ -11,6 +12,7 @@ import com.jasperb.citybuilder.util.Constant;
 import com.jasperb.citybuilder.util.Constant.OBJECTS;
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_MODS;
+import com.jasperb.citybuilder.util.FileStreamUtils;
 
 /**
  * @author Jasper
@@ -37,15 +39,36 @@ public class CityModel {
             this.sliceIndex = sliceIndex;
         }
 
+        public ObjectSlice() {}
+
         public void log(String tag) {
             Log.d(tag, id + ": [R" + row + ",C" + col + "] = " + type + "[" + sliceIndex + "]");
+        }
+
+        public void write(FileStreamUtils stream) throws IOException {
+            stream.write(row);
+            stream.write(col);
+            stream.write(id);
+            stream.write(type);
+            stream.write(sliceIndex);
+        }
+
+        public boolean read(FileStreamUtils stream) throws IOException {
+            row = stream.readShort();
+            if (row == -1)
+                return false;
+            col = stream.readShort();
+            id = stream.readShort();
+            type = stream.readByte();
+            sliceIndex = stream.readByte();
+            return true;
         }
     }
 
     private int mWidth, mHeight;
-    private byte[][] mTerrainMap;
+    private byte[][] mTerrainMap = null;
     private byte[][] mTerrainModMap;
-    private boolean[][] mTerrainBlend;
+    private byte[][] mTerrainBlend;
     private short[][] mObjectMap;
     private boolean[] mUsedObjectIDs;
     private ObjectSlice mObjectList = null;
@@ -67,7 +90,7 @@ public class CityModel {
 
         // Try to be clever with memory by keeping all of the terrain mods close in memory
         mTerrainModMap = new byte[mWidth][mHeight * Constant.MAX_NUMBER_OF_TERRAIN_MODS];
-        mTerrainBlend = new boolean[mWidth][mHeight];
+        mTerrainBlend = new byte[mWidth][mHeight];
 
         for (int col = 0; col < mWidth; col++) {
             for (int row = 0; row < mHeight; row++) {
@@ -81,7 +104,7 @@ public class CityModel {
                     }
                 }
                 mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS] = TERRAIN_MODS.NONE;
-                mTerrainBlend[col][row] = true;
+                mTerrainBlend[col][row] = 1;
                 mObjectMap[col][row] = -1;
             }
         }
@@ -91,6 +114,11 @@ public class CityModel {
                 determineTerrainMods(row, col);
             }
         }
+    }
+
+    public CityModel(FileStreamUtils stream) {
+        restore(stream);
+        Log.v(TAG, "Create City: " + mWidth + "x" + mHeight);
     }
 
     /**
@@ -177,7 +205,7 @@ public class CityModel {
         for (int col = startCol; col <= endCol; col++) {
             for (int row = startRow; row <= endRow; row++) {
                 mTerrainMap[col][row] = (byte) terrain;
-                mTerrainBlend[col][row] = blend;
+                mTerrainBlend[col][row] = (byte) (blend ? 1 : 0);
                 determineTerrainDecorations(row, col);
             }
         }
@@ -197,7 +225,7 @@ public class CityModel {
      */
     public void setTerrain(int row, int col, int terrain, boolean blend) {
         mTerrainMap[col][row] = (byte) terrain;
-        mTerrainBlend[col][row] = blend;
+        mTerrainBlend[col][row] = (byte) (blend ? 1 : 0);
         determineTerrainDecorations(row, col);
         for (int c = Math.max(col - 1, 0); c <= Math.min(col + 1, mWidth - 1); c++) {
             for (int r = Math.max(row - 1, 0); r <= Math.min(row + 1, mHeight - 1); r++) {
@@ -222,7 +250,7 @@ public class CityModel {
         if (TERRAIN_MODS.isTerrainDecoration(mTerrainModMap[col][row * Constant.MAX_NUMBER_OF_TERRAIN_MODS + modIndex]))
             modIndex++;
 
-        if (mTerrainBlend[col][row]) {
+        if (mTerrainBlend[col][row] != 0) {
             if (TERRAIN_MODS.supportsStandardRounding(terrain)) {
                 if (col - 1 >= 0) {
                     blendTerrain = TERRAIN.getBaseType(mTerrainMap[col - 1][row]);
@@ -395,8 +423,8 @@ public class CityModel {
 
     public void addObject(int row, int col, int type, int id) {
         createObject(row, col, type, id);
-        for (int r = row; r < row + OBJECTS.objectNumRows[type]; r++) {
-            for (int c = col; c < col + OBJECTS.objectNumColumns[type]; c++) {
+        for (int c = col; c < col + OBJECTS.objectNumColumns[type]; c++) {
+            for (int r = row; r < row + OBJECTS.objectNumRows[type]; r++) {
                 mObjectMap[c][r] = (short) id;
             }
         }
@@ -525,5 +553,106 @@ public class CityModel {
             currentSlice = currentSlice.next;
 
         return currentSlice;
+    }
+
+    /*
+     * Format:
+     * int mWidth, mHeight;
+     * short mNumObjects;
+     * byte[][] mTerrainMap;
+     * byte[][] mTerrainModMap;
+     * boolean[][] mTerrainBlend;
+     * ObjectSlice mObjectList;
+     */
+    public void save(FileStreamUtils stream) {
+        Log.v(TAG, "Saving...");
+        try {
+            stream.write(mWidth);
+            stream.write(mHeight);
+            stream.write(mNumObjects);
+            for (byte[] arr : mTerrainMap) {
+                stream.write(arr);
+            }
+            for (byte[] arr : mTerrainModMap) {
+                stream.write(arr);
+            }
+            for (byte[] arr : mTerrainBlend) {
+                stream.write(arr);
+            }
+            ObjectSlice curSlice = mObjectList;
+            while (curSlice != null) {
+                curSlice.write(stream);
+                curSlice = curSlice.next;
+            }
+            stream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                stream.close();
+            } catch (IOException e) {}
+        }
+        Log.v(TAG, "Done Saving");
+    }
+
+    public void restore(FileStreamUtils stream) {
+        Log.v(TAG, "Restoring...");
+        try {
+
+            mWidth = stream.readInt();
+            mHeight = stream.readInt();
+            mNumObjects = stream.readShort();
+            if (mTerrainMap == null) {
+                mTerrainMap = new byte[mWidth][mHeight];
+                mTerrainModMap = new byte[mWidth][mHeight * Constant.MAX_NUMBER_OF_TERRAIN_MODS];
+                mTerrainBlend = new byte[mWidth][mHeight];
+                mObjectMap = new short[mWidth][mHeight];
+                mUsedObjectIDs = new boolean[Constant.OBJECT_LIMIT];
+            }
+            for (int i = 0; i < mWidth; i++) {
+                stream.readBytes(mTerrainMap[i], mHeight);
+            }
+            for (int i = 0; i < mWidth; i++) {
+                stream.readBytes(mTerrainModMap[i], mHeight * Constant.MAX_NUMBER_OF_TERRAIN_MODS);
+            }
+            for (int i = 0; i < mWidth; i++) {
+                stream.readBytes(mTerrainBlend[i], mHeight);
+            }
+            ObjectSlice curSlice, newSlice = new ObjectSlice();
+            if (newSlice.read(stream)) {
+                setupReadObject(newSlice);
+                curSlice = newSlice;
+                mObjectList = newSlice;
+                newSlice = new ObjectSlice();
+                while (newSlice.read(stream)) {
+                    setupReadObject(newSlice);
+                    curSlice.next = newSlice;
+                    curSlice = newSlice;
+                    newSlice = new ObjectSlice();
+                }
+
+                curSlice.next = null;
+            } else {
+                mObjectList = null;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                stream.close();
+            } catch (IOException e) {}
+        }
+        Log.v(TAG, "Done Restoring");
+    }
+
+    private void setupReadObject(ObjectSlice slice) {
+        if (!mUsedObjectIDs[slice.id]) {
+            mUsedObjectIDs[slice.id] = true;
+            for (int c = slice.col; c < slice.col + OBJECTS.objectNumColumns[slice.type]; c++) {
+                for (int r = slice.row; r < slice.row + OBJECTS.objectNumRows[slice.type]; r++) {
+                    mObjectMap[c][r] = (short) slice.id;
+                }
+            }
+        }
     }
 }

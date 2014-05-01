@@ -31,7 +31,7 @@ public class DrawThread extends Thread {
      */
     public static final String TAG = "DrawThread";
 
-    public static final boolean LOG_TTD = true;//Time To Draw
+    public static final boolean LOG_TTD = false;//Time To Draw
 
     private TileBitmaps mTileBitmaps = null;
     private ObjectBitmaps mObjectBitmaps = null;
@@ -117,15 +117,15 @@ public class DrawThread extends Thread {
                                         drawSelectedObject(c);
                                 } else {
                                     Log.d(TAG, "NOTHING TO DRAW");
-                                    Log.d(TAG, "NTD: " + mFirstRow + " : " + mFirstCol);
-                                    Log.d(TAG, "NTD2: " + mDrawState.isTileValid(mFirstRow, mFirstCol) + " : " +
-                                            mDrawState.isTileVisible(mDrawState.isoToRealXDownscaling(mFirstRow, mFirstCol) + mOriginX,
-                                                    mDrawState.isoToRealYDownscaling(mFirstRow, mFirstCol) + mOriginY));
-                                    Log.d(TAG, "NTD3: " + mDrawState.isoToRealXDownscaling(mFirstRow, mFirstCol) + " : " + mOriginX + " : "
-                                            +
-                                            mDrawState.isoToRealYDownscaling(mFirstRow, mFirstCol) + " : " + mOriginY);
-                                    Log.v(TAG, "NTD4: " + mTopBoundRow + " : " + mTopBoundCol + " :: " + mRightBoundRow + " : "
-                                            + mRightBoundCol);
+//                                    Log.d(TAG, "NTD: " + mFirstRow + " : " + mFirstCol);
+//                                    Log.d(TAG, "NTD2: " + mDrawState.isTileValid(mFirstRow, mFirstCol) + " : " +
+//                                            mDrawState.isTileVisible(mDrawState.isoToRealXDownscaling(mFirstRow, mFirstCol) + mOriginX,
+//                                                    mDrawState.isoToRealYDownscaling(mFirstRow, mFirstCol) + mOriginY));
+//                                    Log.d(TAG, "NTD3: " + mDrawState.isoToRealXDownscaling(mFirstRow, mFirstCol) + " : " + mOriginX + " : "
+//                                            +
+//                                            mDrawState.isoToRealYDownscaling(mFirstRow, mFirstCol) + " : " + mOriginY);
+//                                    Log.v(TAG, "NTD4: " + mTopBoundRow + " : " + mTopBoundCol + " :: " + mRightBoundRow + " : "
+//                                            + mRightBoundCol);
                                 }
                                 //drawCenterLines(c);
                                 setEndTime();

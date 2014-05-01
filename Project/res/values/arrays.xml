@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <array name="menu_options">
+        <item>Save/</item>
+        <item>Restore</item>
+        <item>Settings</item>
+        <item>Main Menu</item>
+    </array>
+
+</resources>

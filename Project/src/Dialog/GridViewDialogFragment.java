@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.jasperb.citybuilder.util;
+package Dialog;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -31,6 +31,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jasperb.citybuilder.R;
+import com.jasperb.citybuilder.util.Constant;
+import com.jasperb.citybuilder.util.ObjectBitmaps;
+import com.jasperb.citybuilder.util.TileBitmaps;
 import com.jasperb.citybuilder.util.Constant.OBJECTS;
 import com.jasperb.citybuilder.util.Constant.TERRAIN;
 

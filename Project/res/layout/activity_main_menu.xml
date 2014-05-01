@@ -30,19 +30,27 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="24dp"
-        android:background="@color/black_overlay"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         tools:ignore="UselessParent" >
 
         <Button
             android:id="@+id/dummy_button"
-            style="?buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:maxWidth="240dp"
             android:minWidth="240dp"
             android:text="@string/dummy_button"
             android:onClick="gotoMainView" />
+        
+        <Button
+            android:id="@+id/clear_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="240dp"
+            android:minWidth="240dp"
+            android:layout_marginTop="5dp"
+            android:text="Clear"
+            android:onClick="clearSave" />
     </LinearLayout>
     
     <ImageView

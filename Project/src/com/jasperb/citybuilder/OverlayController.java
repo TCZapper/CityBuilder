@@ -3,6 +3,7 @@
  */
 package com.jasperb.citybuilder;
 
+import Dialog.GridViewDialogFragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -19,7 +20,6 @@ import com.jasperb.citybuilder.util.Constant.BRUSH_TYPES;
 import com.jasperb.citybuilder.util.Constant.CITY_VIEW_MODES;
 import com.jasperb.citybuilder.util.Constant.OBJECT_TOOLS;
 import com.jasperb.citybuilder.util.Constant.TERRAIN_TOOLS;
-import com.jasperb.citybuilder.util.GridViewDialogFragment;
 import com.jasperb.citybuilder.util.Observer;
 import com.jasperb.citybuilder.util.TileBitmaps;
 import com.jasperb.citybuilder.view.SharedState;
@@ -40,7 +40,7 @@ public class OverlayController implements Observer {
     private MainViewTouchListener mTouchListener = null;
 
     //Main View buttons and layouts
-    public ImageView mGridButton, mTerrainButton, mObjectsButton;
+    public ImageView mGridButton, mTerrainButton, mObjectsButton, mMenuButton;
     public ImageView mPaintButton, mSelectTerrainButton, mTileSyleIcon, mBlendButton, mEyedropperButton;
     public ImageView mBrushSquare1x1, mBrushSquare3x3, mBrushSquare5x5;
     public ImageView mLeftButton, mUpButton, mDownButton, mRightButton;
@@ -60,6 +60,7 @@ public class OverlayController implements Observer {
         mGridButton.setOnClickListener(mClickListener);
         mTerrainButton.setOnClickListener(mClickListener);
         mObjectsButton.setOnClickListener(mClickListener);
+        mMenuButton.setOnClickListener(mClickListener);
         mTileStyleButton.setOnClickListener(mClickListener);
         mPaintButton.setOnClickListener(mClickListener);
         mSelectTerrainButton.setOnClickListener(mClickListener);
@@ -123,6 +124,8 @@ public class OverlayController implements Observer {
                         mState.resetSelectTool();
                     }
                 }
+            } else if (v.equals(mMenuButton)) {
+                
             } else if (v.equals(mSelectObjectButton)) {
                 synchronized (mState) {
                     mState.mTool = OBJECT_TOOLS.SELECT;

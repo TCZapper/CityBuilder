@@ -1,6 +1,12 @@
 package com.jasperb.citybuilder;
 
+import java.io.FileNotFoundException;
+
+import Dialog.GridViewDialogFragment;
+import Dialog.GridViewDialogFragment.GridViewDialogListener;
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -12,9 +18,8 @@ import android.widget.OverScroller;
 import android.widget.RelativeLayout;
 
 import com.jasperb.citybuilder.util.Constant;
-import com.jasperb.citybuilder.util.GridViewDialogFragment;
+import com.jasperb.citybuilder.util.FileStreamUtils;
 import com.jasperb.citybuilder.util.ObjectBitmaps;
-import com.jasperb.citybuilder.util.GridViewDialogFragment.GridViewDialogListener;
 import com.jasperb.citybuilder.util.TileBitmaps;
 import com.jasperb.citybuilder.view.CityView;
 import com.jasperb.citybuilder.view.CityViewController;
@@ -25,10 +30,13 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
      * String used for identifying this class
      */
     private static final String TAG = "MainView";
-    private static final String STATE_FOCUS_ROW = "focusRow";
-    private static final String STATE_FOCUS_COL = "focusCol";
-    private static final String STATE_SCALE_FACTOR = "scaleFactor";
-    private static final String STATE_DRAW_GRID_LINES = "drawGridLines";
+    public static final String STATE_CITY_NAME = "cityName";
+    public static final String STATE_CITY_WIDTH = "cityWidth";
+    public static final String STATE_CITY_HEIGHT = "cityHeight";
+    public static final String STATE_FOCUS_ROW = "focusRow";
+    public static final String STATE_FOCUS_COL = "focusCol";
+    public static final String STATE_SCALE_FACTOR = "scaleFactor";
+    public static final String STATE_DRAW_GRID_LINES = "drawGridLines";
 
     private SharedState mState;
     private CityViewController mCityViewController;
@@ -43,8 +51,16 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_view);
-
-        mCityModel = new CityModel(200, 200);
+        
+        Intent intent = getIntent();
+        String cityName = intent.getStringExtra(STATE_CITY_NAME);
+        Log.v(TAG,"ON CREATE: " + cityName);
+        
+        try {
+            mCityModel = new CityModel(new FileStreamUtils(openFileInput(cityName)));
+        } catch (FileNotFoundException e) {
+            mCityModel = new CityModel(intent.getIntExtra(STATE_CITY_WIDTH, 200), intent.getIntExtra(STATE_CITY_HEIGHT, 200));
+        }
         mState = new SharedState();
         mState.mActivity = this;
         mState.mScroller = new OverScroller(this, new AccelerateInterpolator(Constant.INTERPOLATE_ACCELERATION));
@@ -52,12 +68,14 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
         mCityViewController = new CityViewController();
         mOverlayController = new OverlayController();
         mState.mOverlay = mOverlayController;
+        mState.mCityName = cityName;
 
         mCityView = (CityView) findViewById(R.id.City);
 
         mOverlayController.mGridButton = (ImageView) findViewById(R.id.GridButton);
         mOverlayController.mTerrainButton = (ImageView) findViewById(R.id.TerrainButton);
         mOverlayController.mObjectsButton = (ImageView) findViewById(R.id.ObjectsButton);
+        mOverlayController.mMenuButton = (ImageView) findViewById(R.id.MenuButton);
         
         mOverlayController.mObjectTools = (LinearLayout) findViewById(R.id.ObjectTools);
         mOverlayController.mBuildingsButton = (ImageView) findViewById(R.id.BuildingsButton);
@@ -135,6 +153,11 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
         Log.v(TAG, "ON STOP");
 
         mCityView.stopDrawThread();
+        try {
+            mCityModel.save(new FileStreamUtils(openFileOutput(mState.mCityName, Context.MODE_PRIVATE)));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

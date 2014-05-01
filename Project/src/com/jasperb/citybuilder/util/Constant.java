@@ -54,6 +54,9 @@ public class Constant {
     public static final int FOCUS_EXTENDED_BOUNDARY = 8;
 
     public static final short OBJECT_LIMIT = 3000;
+    
+    public static final int MAX_WORLD_SIZE = 500;//Must be multiple of MIN_WORLD_SIZE
+    public static final int MIN_WORLD_SIZE = 25;
 
     /**
      * Types of available terrain.
