@@ -34,7 +34,7 @@ public class DrawThread extends Thread {
      */
     public static final String TAG = "DrawThread";
 
-    public static final boolean LOG_TTD = false;//Time To Draw
+    public static final boolean LOG_TTD = true;//Time To Draw
 
     private TileBitmaps mTileBitmaps = null;
     private ObjectBitmaps mObjectBitmaps = null;
@@ -292,31 +292,37 @@ public class DrawThread extends Thread {
                 // Time to draw the terrain to the buffer. TileBitmaps handles resizing the tiles, we just draw/position them
 //                    Log.d(TAG, "Paint Tile: " + row + " : " + col);
                 if (mDrawState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN) {
-                    if (mDrawState.mFirstSelectedRow != -1) {
-                        if (row >= minSelectedRow && row <= maxSelectedRow && col >= minSelectedCol && col <= maxSelectedCol) {
-                            if ((mDrawState.mSelectingFirstTile && row == mDrawState.mFirstSelectedRow && col == mDrawState.mFirstSelectedCol)
-                                    || (!mDrawState.mSelectingFirstTile && row == mDrawState.mSecondSelectedRow && col == mDrawState.mSecondSelectedCol)) {
-                                if (mDrawState.mCityModel.getObjectID(row, col) != -1) {
-                                    mTilePaint.setColorFilter(mCoveredSelectedCornerFilter);
-                                } else {
-                                    mTilePaint.setColorFilter(mSelectedCornerFilter);
-                                }
-                            } else if (mDrawState.mCityModel.getObjectID(row, col) != -1) {
-                                mTilePaint.setColorFilter(mCoveredSelectedTileFilter);
-                            } else {
-                                mTilePaint.setColorFilter(mSelectedTileFilter);
-                            }
-                        } else if (mDrawState.mCityModel.getObjectID(row, col) != -1) {
-                            mTilePaint.setColorFilter(mCoveredTileFilter);
-                        } else {
-                            mTilePaint.setColorFilter(null);
-                        }
-                    } else if (mDrawState.mCityModel.getObjectID(row, col) != -1) {
+//                    if (mDrawState.mFirstSelectedRow != -1) {
+//                        if (row >= minSelectedRow && row <= maxSelectedRow && col >= minSelectedCol && col <= maxSelectedCol) {
+//                            if ((mDrawState.mSelectingFirstTile && row == mDrawState.mFirstSelectedRow && col == mDrawState.mFirstSelectedCol)
+//                                    || (!mDrawState.mSelectingFirstTile && row == mDrawState.mSecondSelectedRow && col == mDrawState.mSecondSelectedCol)) {
+//                                if (mDrawState.mCityModel.getObjectID(row, col) != -1) {
+//                                    mTilePaint.setColorFilter(mCoveredSelectedCornerFilter);
+//                                } else {
+//                                    mTilePaint.setColorFilter(mSelectedCornerFilter);
+//                                }
+//                            } else if (mDrawState.mCityModel.getObjectID(row, col) != -1) {
+//                                mTilePaint.setColorFilter(mCoveredSelectedTileFilter);
+//                            } else {
+//                                mTilePaint.setColorFilter(mSelectedTileFilter);
+//                            }
+//                        } else if (mDrawState.mCityModel.getObjectID(row, col) != -1) {
+//                            mTilePaint.setColorFilter(mCoveredTileFilter);
+//                        } else {
+//                            mTilePaint.setColorFilter(null);
+//                        }
+//                    } else if (mDrawState.mCityModel.getObjectID(row, col) != -1) {
+//                        mTilePaint.setColorFilter(mCoveredTileFilter);
+//                    } else {
+//                        mTilePaint.setColorFilter(null);
+//                    }
+                    if (mDrawState.mCityModel.getObjectID(row, col) != -1) {
                         mTilePaint.setColorFilter(mCoveredTileFilter);
                     } else {
                         mTilePaint.setColorFilter(null);
                     }
                 }
+                
                 int drawX = mDrawState.isoToRealXDownscaling(row, col) + mOriginX + mBitmapOffsetX;
                 int drawY = mDrawState.isoToRealYDownscaling(row, col) + mOriginY;
                 canvas.drawBitmap(mTileBitmaps.getScaledTileBitmap(mDrawState.mCityModel.getTerrain(row, col)), drawX, drawY, mTilePaint);
@@ -407,7 +413,7 @@ public class DrawThread extends Thread {
                 path.lineTo(topX, topY + mDrawState.getTileHeight());//bottom
                 path.lineTo(topX - mDrawState.getTileWidth() / 2, topY + mDrawState.getTileHeight() / 2);//left
                 path.close();
-                //canvas.drawPath(path, mSelectionPaint);
+                canvas.drawPath(path, mSelectionPaint);
                 canvas.drawPath(path, mSelectedTilePaint);
                 path.reset();
             }
@@ -421,7 +427,7 @@ public class DrawThread extends Thread {
                     mDrawState.isoToRealYDownscaling(maxRow, minCol) + mOriginY);//left
             path.lineTo(mDrawState.isoToRealXDownscaling(minRow, minCol) + mOriginX,
                     mDrawState.isoToRealYDownscaling(minRow, minCol) + mOriginY);//top
-            //canvas.drawPath(path, mSelectionPaint);
+            canvas.drawPath(path, mSelectionPaint);
             canvas.drawPath(path, mSelectedTilePaint);
         }
     }
