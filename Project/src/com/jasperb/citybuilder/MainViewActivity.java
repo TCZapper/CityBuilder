@@ -106,6 +106,7 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
         mOverlayController.mCancelButton = (ImageView) findViewById(R.id.CancelButton);
         mOverlayController.mUndoButton = (ImageView) findViewById(R.id.UndoButton);
         mOverlayController.mRedoButton = (ImageView) findViewById(R.id.RedoButton);
+        mOverlayController.mDeleteButton = (ImageView) findViewById(R.id.TrashButton);
 
         if (savedInstanceState != null) {
             // Restore state of the city view

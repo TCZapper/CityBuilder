@@ -39,6 +39,7 @@ public class DrawThread extends Thread {
     private TileBitmaps mTileBitmaps = null;
     private ObjectBitmaps mObjectBitmaps = null;
     private Paint mGridPaint = null, mSelectionPaint = null, mSelectedTilePaint = null, mTilePaint = null;
+    @SuppressWarnings("unused")
     private ColorFilter mSelectedTileFilter = null, mSelectedCornerFilter = null, mCoveredTileFilter = null,
             mCoveredSelectedTileFilter = null, mCoveredSelectedCornerFilter = null;
     private SurfaceHolder mSurfaceHolder = null;
@@ -250,30 +251,30 @@ public class DrawThread extends Thread {
     private void drawGround(Canvas canvas) {
         //Log.d(TAG, "DRAW FIRST: " + firstRow + " : " + firstCol);
         float visualScale = mDrawState.getTileWidth() / (float) Constant.TILE_WIDTH;
-        int minSelectedRow = 0, maxSelectedRow = 0, minSelectedCol = 0, maxSelectedCol = 0;
-        if (mDrawState.mFirstSelectedRow != -1) {
-            if (mDrawState.mSecondSelectedRow == -1) {
-                minSelectedRow = mDrawState.mFirstSelectedRow;
-                maxSelectedRow = mDrawState.mFirstSelectedRow;
-                minSelectedCol = mDrawState.mFirstSelectedCol;
-                maxSelectedCol = mDrawState.mFirstSelectedCol;
-            } else {
-                if (mDrawState.mFirstSelectedRow < mDrawState.mSecondSelectedRow) {
-                    minSelectedRow = mDrawState.mFirstSelectedRow;
-                    maxSelectedRow = mDrawState.mSecondSelectedRow;
-                } else {
-                    minSelectedRow = mDrawState.mSecondSelectedRow;
-                    maxSelectedRow = mDrawState.mFirstSelectedRow;
-                }
-                if (mDrawState.mFirstSelectedCol < mDrawState.mSecondSelectedCol) {
-                    minSelectedCol = mDrawState.mFirstSelectedCol;
-                    maxSelectedCol = mDrawState.mSecondSelectedCol;
-                } else {
-                    minSelectedCol = mDrawState.mSecondSelectedCol;
-                    maxSelectedCol = mDrawState.mFirstSelectedCol;
-                }
-            }
-        }
+//        int minSelectedRow = 0, maxSelectedRow = 0, minSelectedCol = 0, maxSelectedCol = 0;
+//        if (mDrawState.mFirstSelectedRow != -1) {
+//            if (mDrawState.mSecondSelectedRow == -1) {
+//                minSelectedRow = mDrawState.mFirstSelectedRow;
+//                maxSelectedRow = mDrawState.mFirstSelectedRow;
+//                minSelectedCol = mDrawState.mFirstSelectedCol;
+//                maxSelectedCol = mDrawState.mFirstSelectedCol;
+//            } else {
+//                if (mDrawState.mFirstSelectedRow < mDrawState.mSecondSelectedRow) {
+//                    minSelectedRow = mDrawState.mFirstSelectedRow;
+//                    maxSelectedRow = mDrawState.mSecondSelectedRow;
+//                } else {
+//                    minSelectedRow = mDrawState.mSecondSelectedRow;
+//                    maxSelectedRow = mDrawState.mFirstSelectedRow;
+//                }
+//                if (mDrawState.mFirstSelectedCol < mDrawState.mSecondSelectedCol) {
+//                    minSelectedCol = mDrawState.mFirstSelectedCol;
+//                    maxSelectedCol = mDrawState.mSecondSelectedCol;
+//                } else {
+//                    minSelectedCol = mDrawState.mSecondSelectedCol;
+//                    maxSelectedCol = mDrawState.mFirstSelectedCol;
+//                }
+//            }
+//        }
         mTilePaint.setColorFilter(null);
         for (int col = mFirstCol; col <= mLastCol; col++) {
             // Find the last row by figuring out the rows where this column crosses the bottom and left edge,

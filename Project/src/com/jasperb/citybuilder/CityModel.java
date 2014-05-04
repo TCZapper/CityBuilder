@@ -69,7 +69,7 @@ public class CityModel {
     private byte[][] mTerrainModMap;
     private byte[][] mTerrainBlend;
     private short[][] mObjectMap;
-    private boolean[] mUsedObjectIDs;
+    private boolean[] mUsedObjectIDs;//Not thread-safe (should only be read/written to by UI thread)
     private ObjectSlice mObjectList = null;
     private short mNumObjects = 0;
 
@@ -449,6 +449,10 @@ public class CityModel {
         } else {
             return i;
         }
+    }
+    
+    public void freeObjectID(int id) {
+        mUsedObjectIDs[id] = false;
     }
 
     private void createObject(int row, int col, int type, int id) {

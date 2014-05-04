@@ -43,7 +43,7 @@ public class OverlayController implements Observer {
     public ImageView mPaintButton, mSelectTerrainButton, mTileSyleIcon, mBlendButton, mEyedropperButton;
     public ImageView mBrushSquare1x1, mBrushSquare3x3, mBrushSquare5x5;
     public ImageView mLeftButton, mUpButton, mDownButton, mRightButton;
-    public ImageView mAcceptButton, mCancelButton, mUndoButton, mRedoButton;
+    public ImageView mAcceptButton, mCancelButton, mUndoButton, mRedoButton, mDeleteButton;
     public ImageView mBuildingsButton, mSelectObjectButton;
     public FrameLayout mTileStyleButton;
     public RelativeLayout mMoveButtons;
@@ -72,6 +72,7 @@ public class OverlayController implements Observer {
         mCancelButton.setOnClickListener(mClickListener);
         mUndoButton.setOnClickListener(mClickListener);
         mRedoButton.setOnClickListener(mClickListener);
+        mDeleteButton.setOnClickListener(mClickListener);
         mBuildingsButton.setOnClickListener(mClickListener);
         mSelectObjectButton.setOnClickListener(mClickListener);
 
@@ -124,7 +125,7 @@ public class OverlayController implements Observer {
                     }
                 }
             } else if (v.equals(mMenuButton)) {
-                
+
             } else if (v.equals(mSelectObjectButton)) {
                 synchronized (mState) {
                     mState.mTool = OBJECT_TOOLS.SELECT;
@@ -201,6 +202,13 @@ public class OverlayController implements Observer {
 
             } else if (v.equals(mRedoButton)) {
 
+            } else if (v.equals(mDeleteButton)) {
+                synchronized (mState) {
+                    mState.mCityModel.freeObjectID(mState.mSelectedObjectID);
+                    mState.mSelectedObjectID = -1;
+                    mState.mDestCol = -1;
+                    mState.mDestRow = -1;
+                }
             } else if (v.equals(mBlendButton)) {
                 mState.mDrawWithBlending = !mState.mDrawWithBlending;
             } else if (v.equals(mEyedropperButton)) {
@@ -333,6 +341,7 @@ public class OverlayController implements Observer {
                     mAcceptButton.setVisibility(View.GONE);
                     mCancelButton.setVisibility(View.GONE);
                 }
+                mDeleteButton.setVisibility(View.GONE);
                 break;
             case TERRAIN_TOOLS.EYEDROPPER:
                 mMoveButtons.setVisibility(View.GONE);
@@ -352,13 +361,19 @@ public class OverlayController implements Observer {
                 mAcceptButton.setVisibility(View.VISIBLE);
                 if (mState.mTool == OBJECT_TOOLS.NEW) {
                     mCancelButton.setVisibility(View.GONE);
+                    mDeleteButton.setVisibility(View.GONE);
                 } else if (mState.mTool == OBJECT_TOOLS.SELECT) {
                     mCancelButton.setVisibility(View.VISIBLE);
+                    mDeleteButton.setVisibility(View.VISIBLE);
                 }
             } else {
                 mAcceptButton.setVisibility(View.GONE);
                 mCancelButton.setVisibility(View.GONE);
+                mDeleteButton.setVisibility(View.GONE);
             }
+            
+            
+            break;
         }
         mGridButton.setSelected(mState.mDrawGridLines);
     }
