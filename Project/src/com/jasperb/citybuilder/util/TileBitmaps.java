@@ -284,7 +284,7 @@ public class TileBitmaps {
         Log.v(TAG, "REMAKE BITMAPS");
         float visualScale = state.getTileWidth() / (float) Constant.TILE_WIDTH;
         mMatrix.setScale(visualScale, visualScale);
-        if (state.mDrawGridLines) {//Draw gridlines onto the terrain tiles and mods
+        if (state.UIS_DrawGridLines) {//Draw gridlines onto the terrain tiles and mods
             for (int i = 0; i < mFullTileBitmaps.length; i++) {
                 if (TERRAIN.getBaseType(i) == i) {
                     mScaledTileBitmaps[i] = Bitmap.createScaledBitmap(mFullTileBitmaps[i], state.getTileWidth(), state.getTileHeight(),

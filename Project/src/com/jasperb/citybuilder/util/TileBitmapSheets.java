@@ -92,7 +92,7 @@ public class TileBitmapSheets {
         mRect.set(0, 0, state.getTileWidth() * TERRAIN.count, state.getTileHeight());
         //mCanvas.
         mCanvas.drawBitmap(mFullBitmap, null, mRect, mBitmapPaint);
-        if (state.mDrawGridLines) {
+        if (state.UIS_DrawGridLines) {
             for (int i = 0; i < TERRAIN.count; i++) {
                 mCanvas.drawLine(i * state.getTileWidth() + state.getTileWidth() / 2, 0,
                         i * state.getTileWidth() + state.getTileWidth(), state.getTileHeight() / 2, mPaint);

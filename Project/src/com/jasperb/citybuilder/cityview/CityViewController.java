@@ -65,105 +65,105 @@ public class CityViewController {
     public boolean onTouchEvent(MotionEvent event) {
         synchronized (mState) {//Keep track of when user is supplying input
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                mState.mInputActive = true;
+                mState.UIS_InputActive = true;
                 mInputClick = true;
                 mLastRow = -1;
                 mLastCol = -1;
             } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                mState.mInputActive = false;
+                mState.UIS_InputActive = false;
             }
         }
         // Let the GestureDetectors interpret this event
         boolean result = mPanDetector.onTouchEvent(event);
         mScaleDetector.onTouchEvent(event);
         if (!result && event.getAction() == MotionEvent.ACTION_UP && mInputClick) {
-            if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN) {
-                if (mState.mTool == TERRAIN_TOOLS.BRUSH) {
+            if (mState.UIS_Mode == CITY_VIEW_MODES.EDIT_TERRAIN) {
+                if (mState.UIS_Tool == TERRAIN_TOOLS.BRUSH) {
                     paintWithBrush(event, false);
-                } else if (mState.mTool == TERRAIN_TOOLS.SELECT) {
+                } else if (mState.UIS_Tool == TERRAIN_TOOLS.SELECT) {
                     synchronized (mState) {
                         int posX = (int) event.getX() - mState.getOriginX();
                         int posY = (int) event.getY() - mState.getOriginY();
                         int row = (int) mState.realToIsoRowUpscaling(posX, posY);
                         int col = (int) mState.realToIsoColUpscaling(posX, posY);
                         if (mState.isTileValid(row, col)) {
-                            if (row == mState.mFirstSelectedRow && col == mState.mFirstSelectedCol) {
-                                mState.mSelectingFirstTile = true;
-                            } else if (row == mState.mSecondSelectedRow && col == mState.mSecondSelectedCol) {
-                                mState.mSelectingFirstTile = false;
-                            } else if (row == mState.mFirstSelectedRow && col == mState.mSecondSelectedCol) {
-                                int temp = mState.mFirstSelectedRow;
-                                mState.mFirstSelectedRow = mState.mSecondSelectedRow;
-                                mState.mSecondSelectedRow = temp;
-                                mState.mSelectingFirstTile = false;
-                            } else if (row == mState.mSecondSelectedRow && col == mState.mFirstSelectedCol) {
-                                int temp = mState.mFirstSelectedRow;
-                                mState.mFirstSelectedRow = mState.mSecondSelectedRow;
-                                mState.mSecondSelectedRow = temp;
-                                mState.mSelectingFirstTile = true;
+                            if (row == mState.UIS_FirstSelectedRow && col == mState.UIS_FirstSelectedCol) {
+                                mState.UIS_SelectingFirstTile = true;
+                            } else if (row == mState.UIS_SecondSelectedRow && col == mState.UIS_SecondSelectedCol) {
+                                mState.UIS_SelectingFirstTile = false;
+                            } else if (row == mState.UIS_FirstSelectedRow && col == mState.UIS_SecondSelectedCol) {
+                                int temp = mState.UIS_FirstSelectedRow;
+                                mState.UIS_FirstSelectedRow = mState.UIS_SecondSelectedRow;
+                                mState.UIS_SecondSelectedRow = temp;
+                                mState.UIS_SelectingFirstTile = false;
+                            } else if (row == mState.UIS_SecondSelectedRow && col == mState.UIS_FirstSelectedCol) {
+                                int temp = mState.UIS_FirstSelectedRow;
+                                mState.UIS_FirstSelectedRow = mState.UIS_SecondSelectedRow;
+                                mState.UIS_SecondSelectedRow = temp;
+                                mState.UIS_SelectingFirstTile = true;
                             } else {
-                                if (mState.mSelectingFirstTile) {
-                                    mState.mFirstSelectedRow = row;
-                                    mState.mFirstSelectedCol = col;
-                                    if (mState.mSecondSelectedRow == -1) {
-                                        mState.mSelectingFirstTile = false;
+                                if (mState.UIS_SelectingFirstTile) {
+                                    mState.UIS_FirstSelectedRow = row;
+                                    mState.UIS_FirstSelectedCol = col;
+                                    if (mState.UIS_SecondSelectedRow == -1) {
+                                        mState.UIS_SelectingFirstTile = false;
                                         mState.notifyOverlay();
                                     }
                                 } else {
-                                    mState.mSecondSelectedRow = row;
-                                    mState.mSecondSelectedCol = col;
+                                    mState.UIS_SecondSelectedRow = row;
+                                    mState.UIS_SecondSelectedCol = col;
                                 }
                             }
                         }
                     }
-                } else if (mState.mTool == TERRAIN_TOOLS.EYEDROPPER) {
+                } else if (mState.UIS_Tool == TERRAIN_TOOLS.EYEDROPPER) {
                     synchronized (mState) {
                         int posX = (int) event.getX() - mState.getOriginX();
                         int posY = (int) event.getY() - mState.getOriginY();
                         int row = (int) mState.realToIsoRowUpscaling(posX, posY);
                         int col = (int) mState.realToIsoColUpscaling(posX, posY);
                         if (mState.isTileValid(row, col)) {
-                            mState.mSelectedTerrainType = mState.mCityModel.getTerrain(row, col);
-                            mState.mTool = mState.mPreviousTool;
+                            mState.UIS_SelectedTerrainType = mState.UIS_CityModel.getTerrain(row, col);
+                            mState.UIS_Tool = mState.UIS_PreviousTool;
                             mState.notifyOverlay();
                         }
                     }
                 }
-            } else if (mState.mMode == CITY_VIEW_MODES.EDIT_OBJECTS) {
-                if (mState.mTool == OBJECT_TOOLS.NEW) {
+            } else if (mState.UIS_Mode == CITY_VIEW_MODES.EDIT_OBJECTS) {
+                if (mState.UIS_Tool == OBJECT_TOOLS.NEW) {
                     synchronized (mState) {
                         int posX = (int) event.getX() - mState.getOriginX();
                         int posY = (int) event.getY() - mState.getOriginY();
                         int row = (int) mState.realToIsoRowUpscaling(posX, posY);
                         int col = (int) mState.realToIsoColUpscaling(posX, posY);
                         if (mState.isTileValid(row, col)) {
-                            row = row + 1 - OBJECTS.objectNumRows[mState.mSelectedObjectType];
-                            col = col + 1 - OBJECTS.objectNumColumns[mState.mSelectedObjectType];
+                            row = row + 1 - OBJECTS.objectNumRows[mState.UIS_SelectedObjectType];
+                            col = col + 1 - OBJECTS.objectNumColumns[mState.UIS_SelectedObjectType];
                             if (mState.isTileValid(row, col)) {
-                                mState.mDestRow = row;
-                                mState.mDestCol = col;
+                                mState.UIS_DestRow = row;
+                                mState.UIS_DestCol = col;
                                 mState.notifyOverlay();
                             }
                         }
                     }
-                } else if (mState.mTool == OBJECT_TOOLS.SELECT) {
-                    if (mState.mSelectedObjectID == -1) {
+                } else if (mState.UIS_Tool == OBJECT_TOOLS.SELECT) {
+                    if (mState.UIS_SelectedObjectID == -1) {
                         synchronized (mState) {
                             int posX = (int) event.getX() - mState.getOriginX();
                             int posY = (int) event.getY() - mState.getOriginY();
                             int row = (int) mState.realToIsoRowUpscaling(posX, posY);
                             int col = (int) mState.realToIsoColUpscaling(posX, posY);
                             if (mState.isTileValid(row, col)) {
-                                int id = mState.mCityModel.getObjectID(row, col);
+                                int id = mState.UIS_CityModel.getObjectID(row, col);
                                 if (id != -1) {
-                                    mState.mSelectedObjectID = id;
-                                    ObjectSlice slice = mState.mCityModel.getObjectSlice(id);
+                                    mState.UIS_SelectedObjectID = id;
+                                    ObjectSlice slice = mState.UIS_CityModel.getObjectSlice(id);
                                     mState.removeObject(id, true);
-                                    mState.mSelectedObjectType = slice.type;
-                                    mState.mDestRow = slice.row + 1 - OBJECTS.objectNumRows[slice.type];
-                                    mState.mDestCol = slice.col;
-                                    mState.mOrigRow = mState.mDestRow;
-                                    mState.mOrigCol = mState.mDestCol;
+                                    mState.UIS_SelectedObjectType = slice.type;
+                                    mState.UIS_DestRow = slice.row + 1 - OBJECTS.objectNumRows[slice.type];
+                                    mState.UIS_DestCol = slice.col;
+                                    mState.UIS_OrigRow = mState.UIS_DestRow;
+                                    mState.UIS_OrigCol = mState.UIS_DestCol;
                                     mState.notifyOverlay();
                                 }
                             }
@@ -175,11 +175,11 @@ public class CityViewController {
                             int row = (int) mState.realToIsoRowUpscaling(posX, posY);
                             int col = (int) mState.realToIsoColUpscaling(posX, posY);
                             if (mState.isTileValid(row, col)) {
-                                row = row + 1 - OBJECTS.objectNumRows[mState.mSelectedObjectType];
-                                col = col + 1 - OBJECTS.objectNumColumns[mState.mSelectedObjectType];
+                                row = row + 1 - OBJECTS.objectNumRows[mState.UIS_SelectedObjectType];
+                                col = col + 1 - OBJECTS.objectNumColumns[mState.UIS_SelectedObjectType];
                                 if (mState.isTileValid(row, col)) {
-                                    mState.mDestRow = row;
-                                    mState.mDestCol = col;
+                                    mState.UIS_DestRow = row;
+                                    mState.UIS_DestCol = col;
                                 }
                             }
                         }
@@ -204,9 +204,9 @@ public class CityViewController {
             if (mState.isTileValid(row, col) && (row != mLastRow || col != mLastCol)) {
                 mLastRow = row;
                 mLastCol = col;
-                if (mState.mBrushType == BRUSH_TYPES.SQUARE1X1) {
-                    mState.addTerrainEdit(new TerrainEdit(row, col, mState.mSelectedTerrainType, mState.mDrawWithBlending));
-                } else if (mState.mBrushType == BRUSH_TYPES.SQUARE3X3) {
+                if (mState.UIS_BrushType == BRUSH_TYPES.SQUARE1X1) {
+                    mState.addTerrainEdit(new TerrainEdit(row, col, mState.UIS_SelectedTerrainType, mState.NS_DrawWithBlending));
+                } else if (mState.UIS_BrushType == BRUSH_TYPES.SQUARE3X3) {
                     int minRow = row - 1;
                     if (minRow < 0)
                         minRow = 0;
@@ -214,14 +214,14 @@ public class CityViewController {
                     if (minCol < 0)
                         minCol = 0;
                     int maxRow = row + 1;
-                    if (maxRow > mState.mCityModel.getHeight())
+                    if (maxRow > mState.UIS_CityModel.getHeight())
                         maxRow = 0;
                     int maxCol = col + 1;
-                    if (maxCol > mState.mCityModel.getWidth())
+                    if (maxCol > mState.UIS_CityModel.getWidth())
                         maxCol = 0;
-                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mSelectedTerrainType,
-                            mState.mDrawWithBlending));
-                } else if (mState.mBrushType == BRUSH_TYPES.SQUARE5X5) {
+                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.UIS_SelectedTerrainType,
+                            mState.NS_DrawWithBlending));
+                } else if (mState.UIS_BrushType == BRUSH_TYPES.SQUARE5X5) {
                     int minRow = row - 2;
                     if (minRow < 0)
                         minRow = 0;
@@ -229,13 +229,13 @@ public class CityViewController {
                     if (minCol < 0)
                         minCol = 0;
                     int maxRow = row + 2;
-                    if (maxRow > mState.mCityModel.getHeight())
+                    if (maxRow > mState.UIS_CityModel.getHeight())
                         maxRow = 0;
                     int maxCol = col + 2;
-                    if (maxCol > mState.mCityModel.getWidth())
+                    if (maxCol > mState.UIS_CityModel.getWidth())
                         maxCol = 0;
-                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.mSelectedTerrainType,
-                            mState.mDrawWithBlending));
+                    mState.addTerrainEdit(new TerrainEdit(minRow, minCol, maxRow, maxCol, mState.UIS_SelectedTerrainType,
+                            mState.NS_DrawWithBlending));
                 }
             }
         }
@@ -245,15 +245,15 @@ public class CityViewController {
      * Constrains the focus to within the extended boundaries permitted
      */
     private void constrainFocus() {
-        if (mState.mFocusRow < -Constant.FOCUS_EXTENDED_BOUNDARY) {
-            mState.mFocusRow = -Constant.FOCUS_EXTENDED_BOUNDARY;
-        } else if (mState.mFocusRow > mState.mCityModel.getHeight() + Constant.FOCUS_EXTENDED_BOUNDARY) {
-            mState.mFocusRow = mState.mCityModel.getHeight() + Constant.FOCUS_EXTENDED_BOUNDARY;
+        if (mState.TS_FocusRow < -Constant.FOCUS_EXTENDED_BOUNDARY) {
+            mState.TS_FocusRow = -Constant.FOCUS_EXTENDED_BOUNDARY;
+        } else if (mState.TS_FocusRow > mState.UIS_CityModel.getHeight() + Constant.FOCUS_EXTENDED_BOUNDARY) {
+            mState.TS_FocusRow = mState.UIS_CityModel.getHeight() + Constant.FOCUS_EXTENDED_BOUNDARY;
         }
-        if (mState.mFocusCol < -Constant.FOCUS_EXTENDED_BOUNDARY) {
-            mState.mFocusCol = -Constant.FOCUS_EXTENDED_BOUNDARY;
-        } else if (mState.mFocusCol > mState.mCityModel.getWidth() + Constant.FOCUS_EXTENDED_BOUNDARY) {
-            mState.mFocusCol = mState.mCityModel.getWidth() + Constant.FOCUS_EXTENDED_BOUNDARY;
+        if (mState.TS_FocusCol < -Constant.FOCUS_EXTENDED_BOUNDARY) {
+            mState.TS_FocusCol = -Constant.FOCUS_EXTENDED_BOUNDARY;
+        } else if (mState.TS_FocusCol > mState.UIS_CityModel.getWidth() + Constant.FOCUS_EXTENDED_BOUNDARY) {
+            mState.TS_FocusCol = mState.UIS_CityModel.getWidth() + Constant.FOCUS_EXTENDED_BOUNDARY;
         }
     }
 
@@ -274,13 +274,13 @@ public class CityViewController {
             //e1 defines start of the scroll, e2 is the destination of the scroll
             if (e2.getPointerCount() == 1) {
                 mInputClick = false;
-                if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.mTool == TERRAIN_TOOLS.BRUSH) {
+                if (mState.UIS_Mode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.UIS_Tool == TERRAIN_TOOLS.BRUSH) {
 //                  Log.d(TAG,"SCROLL: " + e1.getX() + " : " + e1.getY() + " --- " + e2.getX() + " : " + e2.getY() + " --- " + distanceX + " : " + distanceY);
                     paintWithBrush(e2, true);
                 } else {
                     synchronized (mState) {
-                        mState.mFocusRow += mState.realToIsoRowUpscaling(Math.round(distanceX), Math.round(distanceY));
-                        mState.mFocusCol += mState.realToIsoColUpscaling(Math.round(distanceX), Math.round(distanceY));
+                        mState.TS_FocusRow += mState.realToIsoRowUpscaling(Math.round(distanceX), Math.round(distanceY));
+                        mState.TS_FocusCol += mState.realToIsoColUpscaling(Math.round(distanceX), Math.round(distanceY));
                         constrainFocus();
                     }
                 }
@@ -292,17 +292,17 @@ public class CityViewController {
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            if (!(mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.mTool == TERRAIN_TOOLS.BRUSH)) {
+            if (!(mState.UIS_Mode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.UIS_Tool == TERRAIN_TOOLS.BRUSH)) {
                 mInputClick = false;
 
                 int minRow = 0;
                 int minCol = 0;
-                int maxRow = mState.mCityModel.getHeight() * Constant.TILE_WIDTH - 1;
-                int maxCol = mState.mCityModel.getWidth() * Constant.TILE_WIDTH - 1;
+                int maxRow = mState.UIS_CityModel.getHeight() * Constant.TILE_WIDTH - 1;
+                int maxCol = mState.UIS_CityModel.getWidth() * Constant.TILE_WIDTH - 1;
                 synchronized (mState) {
-                    mState.mScroller.fling(
-                            Math.round(mState.mFocusRow * Constant.TILE_WIDTH),
-                            Math.round(mState.mFocusCol * Constant.TILE_WIDTH),
+                    mState.TS_Scroller.fling(
+                            Math.round(mState.TS_FocusRow * Constant.TILE_WIDTH),
+                            Math.round(mState.TS_FocusCol * Constant.TILE_WIDTH),
                             Math.round(mState.realToIsoRowUpscaling((int) -velocityX, (int) -velocityY) * Constant.TILE_WIDTH),
                             Math.round(mState.realToIsoColUpscaling((int) -velocityX, (int) -velocityY) * Constant.TILE_WIDTH),
                             minRow, maxRow, minCol, maxCol,

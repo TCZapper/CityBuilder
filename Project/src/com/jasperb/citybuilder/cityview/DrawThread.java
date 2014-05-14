@@ -103,15 +103,15 @@ public class DrawThread extends Thread {
                     synchronized (mSurfaceHolder) {
                         if (mRun) {
                             float oldTileHeight = mDrawState.getTileHeight();
-                            boolean oldDrawGridLines = mDrawState.mDrawGridLines;
+                            boolean oldDrawGridLines = mDrawState.UIS_DrawGridLines;
                             synchronized (mMainState) {
                                 mMainState.updateThenCopyState(mDrawState);
                             }
-                            if (mDrawState.mWidth != 0 && mDrawState.mWidth == c.getWidth() && mDrawState.mHeight == c.getHeight()) {
+                            if (mDrawState.UIS_Width != 0 && mDrawState.UIS_Width == c.getWidth() && mDrawState.UIS_Height == c.getHeight()) {
                                 if (oldTileHeight != mDrawState.getTileHeight()) {
                                     mTileBitmaps.remakeBitmaps(mDrawState);
                                     mObjectBitmaps.remakeBitmaps(mDrawState);
-                                } else if (oldDrawGridLines != mDrawState.mDrawGridLines) {
+                                } else if (oldDrawGridLines != mDrawState.UIS_DrawGridLines) {
                                     mTileBitmaps.remakeBitmaps(mDrawState);
                                 }
                                 // Log.v(TAG,"DRAW AT: " + mState.mFocusRow + " : " + mState.mFocusRow);
@@ -122,11 +122,11 @@ public class DrawThread extends Thread {
                                 calculateBoundaries();
                                 if (visibileTilesExist()) {
                                     drawGround(c);
-                                    if (mDrawState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mDrawState.mTool == TERRAIN_TOOLS.SELECT)
+                                    if (mDrawState.UIS_Mode == CITY_VIEW_MODES.EDIT_TERRAIN && mDrawState.UIS_Tool == TERRAIN_TOOLS.SELECT)
                                         drawSelection(c);
                                     drawObjects(c);
-                                    if (mDrawState.mMode == CITY_VIEW_MODES.EDIT_OBJECTS && mDrawState.mDestRow != -1
-                                            && mDrawState.mDestCol != -1)
+                                    if (mDrawState.UIS_Mode == CITY_VIEW_MODES.EDIT_OBJECTS && mDrawState.UIS_DestRow != -1
+                                            && mDrawState.UIS_DestCol != -1)
                                         drawSelectedObject(c);
                                 } else {
                                     Log.d(TAG, "NOTHING TO DRAW");
@@ -169,10 +169,10 @@ public class DrawThread extends Thread {
         // Calculate the tile that is at the top left corner of the view, and the one at the bottom right corner
         mTopLeftRow = (int) Math.floor(mDrawState.realToIsoRowUpscaling(-mOriginX, -mOriginY));
         mTopLeftCol = (int) Math.floor(mDrawState.realToIsoColUpscaling(-mOriginX, -mOriginY));
-        mBottomRightRow = (int) Math.floor(mDrawState.realToIsoRowUpscaling((-mOriginX + mDrawState.mWidth),
-                (-mOriginY + mDrawState.mHeight)));
-        mBottomRightCol = (int) Math.floor(mDrawState.realToIsoColUpscaling((-mOriginX + mDrawState.mWidth),
-                (-mOriginY + mDrawState.mHeight)));
+        mBottomRightRow = (int) Math.floor(mDrawState.realToIsoRowUpscaling((-mOriginX + mDrawState.UIS_Width),
+                (-mOriginY + mDrawState.UIS_Height)));
+        mBottomRightCol = (int) Math.floor(mDrawState.realToIsoColUpscaling((-mOriginX + mDrawState.UIS_Width),
+                (-mOriginY + mDrawState.UIS_Height)));
 //        Log.d(TAG, "TL TILE: " + topLeftRow + " : " + topLeftCol);
 //        Log.d(TAG, "BR TILE: " + bottomRightRow + " : " + bottomRightCol);
 
@@ -194,7 +194,7 @@ public class DrawThread extends Thread {
 
         mRightBoundRow = mBottomRightRow;
         mRightBoundCol = mBottomRightCol;
-        if (mDrawState.isoToRealXDownscaling(mBottomRightRow, mBottomRightCol) + mOriginX < mDrawState.mWidth) {
+        if (mDrawState.isoToRealXDownscaling(mBottomRightRow, mBottomRightCol) + mOriginX < mDrawState.UIS_Width) {
             mRightBoundRow--;
         }
 
@@ -206,7 +206,7 @@ public class DrawThread extends Thread {
 
         mBottomBoundRow = mBottomRightRow;
         mBottomBoundCol = mBottomRightCol;
-        if ((mDrawState.isoToRealYDownscaling(mBottomRightRow, mBottomRightCol) + (mDrawState.getTileHeight() / 2)) + mOriginY < mDrawState.mHeight) {
+        if ((mDrawState.isoToRealYDownscaling(mBottomRightRow, mBottomRightCol) + (mDrawState.getTileHeight() / 2)) + mOriginY < mDrawState.UIS_Height) {
             mBottomBoundRow++;
         }
 
@@ -217,8 +217,8 @@ public class DrawThread extends Thread {
         // or the tile (topLeftRow, 0) is below the top edge and right of the left edge, and thus the first column is the 0th
         if (mTopBoundRow < 0) {
             mFirstCol = Math.max(0, mLeftBoundCol - mLeftBoundRow);
-        } else if (mTopBoundRow >= mDrawState.mCityModel.getHeight()) {
-            mFirstCol = Math.max(0, mTopBoundCol + (mTopBoundRow - (mDrawState.mCityModel.getHeight() - 1)));
+        } else if (mTopBoundRow >= mDrawState.UIS_CityModel.getHeight()) {
+            mFirstCol = Math.max(0, mTopBoundCol + (mTopBoundRow - (mDrawState.UIS_CityModel.getHeight() - 1)));
         } else {
             mFirstCol = Math.max(0, mTopLeftCol);
         }
@@ -228,16 +228,16 @@ public class DrawThread extends Thread {
 
         // Calculate last column to draw by using same logic as first column (except bottom/right boundaries)
         if (mBottomRightRow < 0) {
-            mLastCol = Math.min(mDrawState.mCityModel.getWidth() - 1, mBottomBoundCol + mBottomBoundRow);
-        } else if (mBottomRightRow >= mDrawState.mCityModel.getHeight()) {
-            mLastCol = Math.min(mDrawState.mCityModel.getWidth() - 1, mRightBoundCol
-                    - (mRightBoundRow - (mDrawState.mCityModel.getHeight() - 1)));
+            mLastCol = Math.min(mDrawState.UIS_CityModel.getWidth() - 1, mBottomBoundCol + mBottomBoundRow);
+        } else if (mBottomRightRow >= mDrawState.UIS_CityModel.getHeight()) {
+            mLastCol = Math.min(mDrawState.UIS_CityModel.getWidth() - 1, mRightBoundCol
+                    - (mRightBoundRow - (mDrawState.UIS_CityModel.getHeight() - 1)));
         } else {
-            mLastCol = Math.min(mDrawState.mCityModel.getWidth() - 1, mBottomRightCol);
+            mLastCol = Math.min(mDrawState.UIS_CityModel.getWidth() - 1, mBottomRightCol);
         }
 
         //For now, let drawGround handle this
-        mMinRow = mDrawState.mCityModel.getHeight() - 1;
+        mMinRow = mDrawState.UIS_CityModel.getHeight() - 1;
         mMaxRow = 0;
     }
 
@@ -279,7 +279,7 @@ public class DrawThread extends Thread {
         for (int col = mFirstCol; col <= mLastCol; col++) {
             // Find the last row by figuring out the rows where this column crosses the bottom and left edge,
             // and draw up to the whichever row corresponds edge we hit first
-            int lastRow = Math.min(mDrawState.mCityModel.getHeight() - 1,
+            int lastRow = Math.min(mDrawState.UIS_CityModel.getHeight() - 1,
                     Math.min(mLeftBoundRow + (col - mLeftBoundCol), mBottomBoundRow + (mBottomBoundCol - col)));
             // Find the first row by checking against where it collides with the right and top edges, same as with the last row
             int row = Math.max(0, Math.max(mTopBoundRow - (col - mTopBoundCol), mRightBoundRow - (mRightBoundCol - col)));
@@ -292,7 +292,7 @@ public class DrawThread extends Thread {
             for (; row <= lastRow; row++) {
                 // Time to draw the terrain to the buffer. TileBitmaps handles resizing the tiles, we just draw/position them
 //                    Log.d(TAG, "Paint Tile: " + row + " : " + col);
-                if (mDrawState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN) {
+                if (mDrawState.UIS_Mode == CITY_VIEW_MODES.EDIT_TERRAIN) {
 //                    if (mDrawState.mFirstSelectedRow != -1) {
 //                        if (row >= minSelectedRow && row <= maxSelectedRow && col >= minSelectedCol && col <= maxSelectedCol) {
 //                            if ((mDrawState.mSelectingFirstTile && row == mDrawState.mFirstSelectedRow && col == mDrawState.mFirstSelectedCol)
@@ -317,7 +317,7 @@ public class DrawThread extends Thread {
 //                    } else {
 //                        mTilePaint.setColorFilter(null);
 //                    }
-                    if (mDrawState.mCityModel.getObjectID(row, col) != -1) {
+                    if (mDrawState.UIS_CityModel.getObjectID(row, col) != -1) {
                         mTilePaint.setColorFilter(mCoveredTileFilter);
                     } else {
                         mTilePaint.setColorFilter(null);
@@ -326,8 +326,8 @@ public class DrawThread extends Thread {
                 
                 int drawX = mDrawState.isoToRealXDownscaling(row, col) + mOriginX + mBitmapOffsetX;
                 int drawY = mDrawState.isoToRealYDownscaling(row, col) + mOriginY;
-                canvas.drawBitmap(mTileBitmaps.getScaledTileBitmap(mDrawState.mCityModel.getTerrain(row, col)), drawX, drawY, mTilePaint);
-                int mod = mDrawState.mCityModel.getMod(row, col, 0);
+                canvas.drawBitmap(mTileBitmaps.getScaledTileBitmap(mDrawState.UIS_CityModel.getTerrain(row, col)), drawX, drawY, mTilePaint);
+                int mod = mDrawState.UIS_CityModel.getMod(row, col, 0);
                 if (mod != TERRAIN_MODS.NONE) {
                     int index = 0;
 
@@ -337,7 +337,7 @@ public class DrawThread extends Thread {
                         index++;
                         if (index >= Constant.MAX_NUMBER_OF_TERRAIN_MODS)
                             break;
-                        mod = mDrawState.mCityModel.getMod(row, col, index);
+                        mod = mDrawState.UIS_CityModel.getMod(row, col, index);
                     }
                 }
             }
@@ -350,7 +350,7 @@ public class DrawThread extends Thread {
                     mDrawState.isoToRealXDownscaling(mMaxRow + 1, 0) + mOriginX,
                     mDrawState.isoToRealYDownscaling(mMaxRow + 1, 0) + mOriginY, mGridPaint);
         }
-        if (mLastCol == mDrawState.mCityModel.getWidth() - 1) {
+        if (mLastCol == mDrawState.UIS_CityModel.getWidth() - 1) {
             canvas.drawLine(mDrawState.isoToRealXDownscaling(mMinRow, mLastCol + 1) + mOriginX + 1,
                     mDrawState.isoToRealYDownscaling(mMinRow, mLastCol + 1) + mOriginY,
                     mDrawState.isoToRealXDownscaling(mMaxRow + 1, mLastCol + 1) + mOriginX,
@@ -362,7 +362,7 @@ public class DrawThread extends Thread {
                     mDrawState.isoToRealXDownscaling(0, mLastCol + 1) + mOriginX,
                     mDrawState.isoToRealYDownscaling(0, mLastCol + 1) + mOriginY, mGridPaint);
         }
-        if (mMaxRow == mDrawState.mCityModel.getHeight() - 1) {
+        if (mMaxRow == mDrawState.UIS_CityModel.getHeight() - 1) {
             canvas.drawLine(mDrawState.isoToRealXDownscaling(mMaxRow + 1, mFirstCol) + mOriginX - 1,
                     mDrawState.isoToRealYDownscaling(mMaxRow + 1, mFirstCol) + mOriginY,
                     mDrawState.isoToRealXDownscaling(mMaxRow + 1, mLastCol + 1) + mOriginX,
@@ -378,36 +378,36 @@ public class DrawThread extends Thread {
      */
     private void drawSelection(Canvas canvas) {
         int minRow, maxRow, minCol, maxCol;
-        if (mDrawState.mFirstSelectedRow != -1) {
+        if (mDrawState.UIS_FirstSelectedRow != -1) {
             Path path = new Path();
-            if (mDrawState.mSecondSelectedRow == -1) {
-                minRow = mDrawState.mFirstSelectedRow;
-                maxRow = mDrawState.mFirstSelectedRow + 1;
-                minCol = mDrawState.mFirstSelectedCol;
-                maxCol = mDrawState.mFirstSelectedCol + 1;
+            if (mDrawState.UIS_SecondSelectedRow == -1) {
+                minRow = mDrawState.UIS_FirstSelectedRow;
+                maxRow = mDrawState.UIS_FirstSelectedRow + 1;
+                minCol = mDrawState.UIS_FirstSelectedCol;
+                maxCol = mDrawState.UIS_FirstSelectedCol + 1;
             } else {
-                if (mDrawState.mFirstSelectedRow < mDrawState.mSecondSelectedRow) {
-                    minRow = mDrawState.mFirstSelectedRow;
-                    maxRow = mDrawState.mSecondSelectedRow + 1;
+                if (mDrawState.UIS_FirstSelectedRow < mDrawState.UIS_SecondSelectedRow) {
+                    minRow = mDrawState.UIS_FirstSelectedRow;
+                    maxRow = mDrawState.UIS_SecondSelectedRow + 1;
                 } else {
-                    minRow = mDrawState.mSecondSelectedRow;
-                    maxRow = mDrawState.mFirstSelectedRow + 1;
+                    minRow = mDrawState.UIS_SecondSelectedRow;
+                    maxRow = mDrawState.UIS_FirstSelectedRow + 1;
                 }
-                if (mDrawState.mFirstSelectedCol < mDrawState.mSecondSelectedCol) {
-                    minCol = mDrawState.mFirstSelectedCol;
-                    maxCol = mDrawState.mSecondSelectedCol + 1;
+                if (mDrawState.UIS_FirstSelectedCol < mDrawState.UIS_SecondSelectedCol) {
+                    minCol = mDrawState.UIS_FirstSelectedCol;
+                    maxCol = mDrawState.UIS_SecondSelectedCol + 1;
                 } else {
-                    minCol = mDrawState.mSecondSelectedCol;
-                    maxCol = mDrawState.mFirstSelectedCol + 1;
+                    minCol = mDrawState.UIS_SecondSelectedCol;
+                    maxCol = mDrawState.UIS_FirstSelectedCol + 1;
                 }
 
                 int topX, topY;
-                if (mDrawState.mSelectingFirstTile) {
-                    topX = mDrawState.isoToRealXDownscaling(mDrawState.mFirstSelectedRow, mDrawState.mFirstSelectedCol) + mOriginX;
-                    topY = mDrawState.isoToRealYDownscaling(mDrawState.mFirstSelectedRow, mDrawState.mFirstSelectedCol) + mOriginY;
+                if (mDrawState.UIS_SelectingFirstTile) {
+                    topX = mDrawState.isoToRealXDownscaling(mDrawState.UIS_FirstSelectedRow, mDrawState.UIS_FirstSelectedCol) + mOriginX;
+                    topY = mDrawState.isoToRealYDownscaling(mDrawState.UIS_FirstSelectedRow, mDrawState.UIS_FirstSelectedCol) + mOriginY;
                 } else {
-                    topX = mDrawState.isoToRealXDownscaling(mDrawState.mSecondSelectedRow, mDrawState.mSecondSelectedCol) + mOriginX;
-                    topY = mDrawState.isoToRealYDownscaling(mDrawState.mSecondSelectedRow, mDrawState.mSecondSelectedCol) + mOriginY;
+                    topX = mDrawState.isoToRealXDownscaling(mDrawState.UIS_SecondSelectedRow, mDrawState.UIS_SecondSelectedCol) + mOriginX;
+                    topY = mDrawState.isoToRealYDownscaling(mDrawState.UIS_SecondSelectedRow, mDrawState.UIS_SecondSelectedCol) + mOriginY;
                 }
                 path.moveTo(topX, topY);//top
                 path.lineTo(topX + mDrawState.getTileWidth() / 2, topY + mDrawState.getTileHeight() / 2);//right
@@ -438,11 +438,11 @@ public class DrawThread extends Thread {
         Rect origin = new Rect();
         Rect dest = new Rect();
         Paint p = new Paint();
-        if (mDrawState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN)
+        if (mDrawState.UIS_Mode == CITY_VIEW_MODES.EDIT_TERRAIN)
             p.setAlpha(100);
-        Rect screen = new Rect(0, 0, mDrawState.mWidth, mDrawState.mHeight);
+        Rect screen = new Rect(0, 0, mDrawState.UIS_Width, mDrawState.UIS_Height);
 
-        ObjectSlice currentSlice = mDrawState.mCityModel.getObjectList();
+        ObjectSlice currentSlice = mDrawState.UIS_CityModel.getObjectList();
         while (currentSlice != null) {
             //currentSlice.log(TAG);
             int sliceWidth = OBJECTS.getScaledSliceWidth(currentSlice.type, mDrawState.getTileWidth());
@@ -478,13 +478,13 @@ public class DrawThread extends Thread {
         Rect dest = new Rect();
         Paint p = new Paint();
         p.setAlpha(200);
-        Rect screen = new Rect(0, 0, mDrawState.mWidth, mDrawState.mHeight);
-        int type = mDrawState.mSelectedObjectType;
+        Rect screen = new Rect(0, 0, mDrawState.UIS_Width, mDrawState.UIS_Height);
+        int type = mDrawState.UIS_SelectedObjectType;
 
         int sliceWidth = OBJECTS.getScaledSliceWidth(type, mDrawState.getTileWidth());
-        int drawX = mDrawState.isoToRealXDownscaling(mDrawState.mDestRow + OBJECTS.objectNumRows[type] - 1, mDrawState.mDestCol) + mOriginX
+        int drawX = mDrawState.isoToRealXDownscaling(mDrawState.UIS_DestRow + OBJECTS.objectNumRows[type] - 1, mDrawState.UIS_DestCol) + mOriginX
                 + mBitmapOffsetX;
-        int drawY = mDrawState.isoToRealYDownscaling(mDrawState.mDestRow + OBJECTS.objectNumRows[type] - 1, mDrawState.mDestCol
+        int drawY = mDrawState.isoToRealYDownscaling(mDrawState.UIS_DestRow + OBJECTS.objectNumRows[type] - 1, mDrawState.UIS_DestCol
                 + OBJECTS.objectNumColumns[type] + 1)
                 + mOriginY;
         for (int i = 0; i < OBJECTS.getSliceCount(type); i++) {
@@ -513,8 +513,8 @@ public class DrawThread extends Thread {
      */
     @SuppressWarnings("unused")
     private void drawCenterLines(Canvas canvas) {
-        canvas.drawLine(mDrawState.mWidth / 2, 0, mDrawState.mWidth / 2, mDrawState.mHeight, mGridPaint);
-        canvas.drawLine(0, mDrawState.mHeight / 2, mDrawState.mWidth, mDrawState.mHeight / 2, mGridPaint);
+        canvas.drawLine(mDrawState.UIS_Width / 2, 0, mDrawState.UIS_Width / 2, mDrawState.UIS_Height, mGridPaint);
+        canvas.drawLine(0, mDrawState.UIS_Height / 2, mDrawState.UIS_Width, mDrawState.UIS_Height / 2, mGridPaint);
     }
 
     /**

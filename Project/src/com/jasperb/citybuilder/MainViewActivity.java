@@ -63,13 +63,13 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
             finish();
         }
         mState = new SharedState();
-        mState.mActivity = this;
-        mState.mScroller = new OverScroller(this, new AccelerateInterpolator(Constant.INTERPOLATE_ACCELERATION));
-        mState.mScroller.setFriction(Constant.FLING_FRICTION);
+        mState.NS_Activity = this;
+        mState.TS_Scroller = new OverScroller(this, new AccelerateInterpolator(Constant.INTERPOLATE_ACCELERATION));
+        mState.TS_Scroller.setFriction(Constant.FLING_FRICTION);
         mCityViewController = new CityViewController();
         mOverlayController = new OverlayController();
-        mState.mOverlay = mOverlayController;
-        mState.mCityName = cityName;
+        mState.NS_Overlay = mOverlayController;
+        mState.NS_CityName = cityName;
 
         mCityView = (CityView) findViewById(R.id.City);
 
@@ -111,10 +111,10 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
         if (savedInstanceState != null) {
             // Restore state of the city view
             synchronized (mState) {
-                mState.mFocusRow = savedInstanceState.getFloat(STATE_FOCUS_ROW);
-                mState.mFocusCol = savedInstanceState.getFloat(STATE_FOCUS_COL);
+                mState.TS_FocusRow = savedInstanceState.getFloat(STATE_FOCUS_ROW);
+                mState.TS_FocusCol = savedInstanceState.getFloat(STATE_FOCUS_COL);
                 mState.setScaleFactor(savedInstanceState.getFloat(STATE_SCALE_FACTOR));
-                mState.mDrawGridLines = savedInstanceState.getBoolean(STATE_DRAW_GRID_LINES);
+                mState.UIS_DrawGridLines = savedInstanceState.getBoolean(STATE_DRAW_GRID_LINES);
             }
         }
     }
@@ -127,7 +127,7 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
         if (!mAllocated) {
             TileBitmaps.loadStaticBitmaps(this);
             ObjectBitmaps.loadStaticBitmaps(this);
-            mState.mCityModel = mCityModel;
+            mState.UIS_CityModel = mCityModel;
             mCityViewController.init(this, mState);
             mOverlayController.init(this, mState);
             mOverlayController.update();
@@ -156,7 +156,7 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
 
         mCityView.stopDrawThread();
         try {
-            mCityModel.save(new FileStreamUtils(openFileOutput(mState.mCityName, Context.MODE_PRIVATE)));
+            mCityModel.save(new FileStreamUtils(openFileOutput(mState.NS_CityName, Context.MODE_PRIVATE)));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -181,10 +181,10 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         synchronized (mState) {
-            savedInstanceState.putFloat(STATE_FOCUS_ROW, mState.mFocusRow);
-            savedInstanceState.putFloat(STATE_FOCUS_COL, mState.mFocusRow);
+            savedInstanceState.putFloat(STATE_FOCUS_ROW, mState.TS_FocusRow);
+            savedInstanceState.putFloat(STATE_FOCUS_COL, mState.TS_FocusRow);
             savedInstanceState.putFloat(STATE_SCALE_FACTOR, mState.getScaleFactor());
-            savedInstanceState.putBoolean(STATE_DRAW_GRID_LINES, mState.mDrawGridLines);
+            savedInstanceState.putBoolean(STATE_DRAW_GRID_LINES, mState.UIS_DrawGridLines);
         }
 
         super.onSaveInstanceState(savedInstanceState);
@@ -200,11 +200,11 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
     public void onGridViewDialogAccept(int type, int selectedIndex) {
         if (mState != null) {
             if (type == GridViewDialogFragment.TYPE_BUILDINGS) {
-                mState.mSelectedObjectType = selectedIndex;
-                mState.mDestRow = (int) mState.mFocusRow;
-                mState.mDestCol = (int) mState.mFocusCol;
+                mState.UIS_SelectedObjectType = selectedIndex;
+                mState.UIS_DestRow = (int) mState.TS_FocusRow;
+                mState.UIS_DestCol = (int) mState.TS_FocusCol;
             } else {
-                mState.mSelectedTerrainType = selectedIndex;
+                mState.UIS_SelectedTerrainType = selectedIndex;
             }
             mState.notifyOverlay();
         }

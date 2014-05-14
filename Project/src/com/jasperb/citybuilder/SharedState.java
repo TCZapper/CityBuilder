@@ -18,42 +18,48 @@ import com.jasperb.citybuilder.util.TerrainEdit;
  * NOTE: No methods within this class are thread-safe with regards to this class's content.
  * Modifications to the city model however are synchronized on the model.
  * 
+ * The variable naming convention indicates how the variable should be protected.
+ * TS_* indicates all reads and writes must be protected (completely Thread Safe)
+ * UIS_* indicates the UI thread reads and writes to it, but the draw thread only reads, so only UI thread reading can be unprotected
+ * NS_* indicates Not Safe, meaning no protection needed
+ * 
  * @author Jasper
  */
 public class SharedState {
+    
     // Thread safe member variables (read from and written to by multiple threads)
-    public float mFocusRow = 0, mFocusCol = 0;
-    public OverScroller mScroller = null;
-    public Activity mActivity = null;
-    private LinkedList<TerrainEdit> mTerrainEdits = new LinkedList<TerrainEdit>();
-    private ObjectEdit mObjectEdits = null;
+    public float TS_FocusRow = 0, TS_FocusCol = 0;
+    public OverScroller TS_Scroller = null;
+    private LinkedList<TerrainEdit> TS_TerrainEdits = new LinkedList<TerrainEdit>();
+    private ObjectEdit TS_ObjectEdits = null;
 
     // Thread safe member variables (read from by multiple threads, but only written to by UI thread)
-    public int mWidth = 0, mHeight = 0;
-    private float mScaleFactor;
-    private int mTileWidth;
-    private int mTileHeight;
-    public CityModel mCityModel = null;
-    public boolean mDrawGridLines = false;
-    public int mSelectedTerrainType = TERRAIN.GRASS;
-    public int mSelectedObjectType = OBJECTS.TEST2X4;
-    public int mMode = CITY_VIEW_MODES.VIEW;
-    public int mTool = TERRAIN_TOOLS.BRUSH;
-    public int mPreviousTool = TERRAIN_TOOLS.BRUSH;
-    public int mBrushType = BRUSH_TYPES.SQUARE1X1;
-    public int mSelectedObjectID = -1;
-    public int mFirstSelectedRow = -1, mFirstSelectedCol = -1, mSecondSelectedRow = -1, mSecondSelectedCol = -1;
-    public boolean mSelectingFirstTile = true;
-    public boolean mInputActive = false;
-    public int mDestRow = -1, mDestCol = -1;
-    public int mOrigRow = -1, mOrigCol = -1;
+    public int UIS_Width = 0, UIS_Height = 0;
+    private float UIS_ScaleFactor;
+    private int UIS_TileWidth;
+    private int UIS_TileHeight;
+    public CityModel UIS_CityModel = null;
+    public boolean UIS_DrawGridLines = false;
+    public int UIS_SelectedTerrainType = TERRAIN.GRASS;
+    public int UIS_SelectedObjectType = OBJECTS.TEST2X4;
+    public int UIS_Mode = CITY_VIEW_MODES.VIEW;
+    public int UIS_Tool = TERRAIN_TOOLS.BRUSH;
+    public int UIS_PreviousTool = TERRAIN_TOOLS.BRUSH;
+    public int UIS_BrushType = BRUSH_TYPES.SQUARE1X1;
+    public int UIS_SelectedObjectID = -1;
+    public int UIS_FirstSelectedRow = -1, UIS_FirstSelectedCol = -1, UIS_SecondSelectedRow = -1, UIS_SecondSelectedCol = -1;
+    public boolean UIS_SelectingFirstTile = true;
+    public boolean UIS_InputActive = false;
+    public int UIS_DestRow = -1, UIS_DestCol = -1;
+    public int UIS_OrigRow = -1, UIS_OrigCol = -1;
 
     // Only ever read
-    public Observer mOverlay;
-    public String mCityName;
-
-    // Single thread use
-    public boolean mDrawWithBlending = true;
+    public Observer NS_Overlay;
+    public String NS_CityName;
+    public Activity NS_Activity = null;
+    
+    // Only used by UI thread 
+    public boolean NS_DrawWithBlending = true;
 
     public SharedState() {
         setScaleFactor(Constant.MAXIMUM_SCALE_FACTOR);
@@ -66,23 +72,23 @@ public class SharedState {
      *            the CityViewState object to copy from
      */
     public void copyFrom(SharedState state) {
-        mFocusRow = state.mFocusRow;
-        mFocusCol = state.mFocusCol;
-        mWidth = state.mWidth;
-        mHeight = state.mHeight;
+        TS_FocusRow = state.TS_FocusRow;
+        TS_FocusCol = state.TS_FocusCol;
+        UIS_Width = state.UIS_Width;
+        UIS_Height = state.UIS_Height;
         setScaleFactor(state.getScaleFactor());
-        mCityModel = state.mCityModel;
-        mDrawGridLines = state.mDrawGridLines;
-        mMode = state.mMode;
-        mTool = state.mTool;
-        mFirstSelectedRow = state.mFirstSelectedRow;
-        mFirstSelectedCol = state.mFirstSelectedCol;
-        mSecondSelectedRow = state.mSecondSelectedRow;
-        mSecondSelectedCol = state.mSecondSelectedCol;
-        mSelectingFirstTile = state.mSelectingFirstTile;
-        mDestRow = state.mDestRow;
-        mDestCol = state.mDestCol;
-        mSelectedObjectType = state.mSelectedObjectType;
+        UIS_CityModel = state.UIS_CityModel;
+        UIS_DrawGridLines = state.UIS_DrawGridLines;
+        UIS_Mode = state.UIS_Mode;
+        UIS_Tool = state.UIS_Tool;
+        UIS_FirstSelectedRow = state.UIS_FirstSelectedRow;
+        UIS_FirstSelectedCol = state.UIS_FirstSelectedCol;
+        UIS_SecondSelectedRow = state.UIS_SecondSelectedRow;
+        UIS_SecondSelectedCol = state.UIS_SecondSelectedCol;
+        UIS_SelectingFirstTile = state.UIS_SelectingFirstTile;
+        UIS_DestRow = state.UIS_DestRow;
+        UIS_DestCol = state.UIS_DestCol;
+        UIS_SelectedObjectType = state.UIS_SelectedObjectType;
     }
 
     /**
@@ -98,43 +104,43 @@ public class SharedState {
         // Process all of the terrain edits since our last update
         // Doing all modifications to the model on the draw thread means the draw thread doesn't need to waste time with
         // thread-safety on reading from the model (which it must do many, many times).
-        synchronized (mCityModel) {
-            for (TerrainEdit edit : mTerrainEdits)
-                edit.setTerrain(mCityModel);
+        synchronized (UIS_CityModel) {
+            for (TerrainEdit edit : TS_TerrainEdits)
+                edit.setTerrain(UIS_CityModel);
 
-            if (mObjectEdits != null) {
-                mObjectEdits.processEdit(mCityModel);
-                mObjectEdits = null;
+            if (TS_ObjectEdits != null) {
+                TS_ObjectEdits.processEdit(UIS_CityModel);
+                TS_ObjectEdits = null;
             }
         }
-        mTerrainEdits.clear();
+        TS_TerrainEdits.clear();
 
-        if (mScroller == null)// Happens if cleanup was called but the draw thread is still active
+        if (TS_Scroller == null)// Happens if cleanup was called but the draw thread is still active
             return;
 
         // Update the focus based off an active scroller
         // Or if the user input is not active and we are out of bounds, create a new scroller to put us in bounds
-        if (!mScroller.isFinished()) {
-            mScroller.computeScrollOffset();
-            mFocusRow = mScroller.getCurrX() / Constant.TILE_WIDTH;
-            mFocusCol = mScroller.getCurrY() / Constant.TILE_WIDTH;
-        } else if (!mInputActive && !isTileValid(mFocusRow, mFocusCol)) {
-            int startRow = Math.round(mFocusRow * Constant.TILE_WIDTH);
-            int startCol = Math.round(mFocusCol * Constant.TILE_WIDTH);
+        if (!TS_Scroller.isFinished()) {
+            TS_Scroller.computeScrollOffset();
+            TS_FocusRow = TS_Scroller.getCurrX() / Constant.TILE_WIDTH;
+            TS_FocusCol = TS_Scroller.getCurrY() / Constant.TILE_WIDTH;
+        } else if (!UIS_InputActive && !isTileValid(TS_FocusRow, TS_FocusCol)) {
+            int startRow = Math.round(TS_FocusRow * Constant.TILE_WIDTH);
+            int startCol = Math.round(TS_FocusCol * Constant.TILE_WIDTH);
             int endRow = startRow;
             int endCol = startCol;
 
-            if (mFocusRow < 0) {
+            if (TS_FocusRow < 0) {
                 endRow = 0;
-            } else if (mFocusRow >= mCityModel.getHeight()) {
-                endRow = mCityModel.getHeight() * Constant.TILE_WIDTH - 1;
+            } else if (TS_FocusRow >= UIS_CityModel.getHeight()) {
+                endRow = UIS_CityModel.getHeight() * Constant.TILE_WIDTH - 1;
             }
-            if (mFocusCol < 0) {
+            if (TS_FocusCol < 0) {
                 endCol = 0;
-            } else if (mFocusCol >= mCityModel.getWidth()) {
-                endCol = mCityModel.getWidth() * Constant.TILE_WIDTH - 1;
+            } else if (TS_FocusCol >= UIS_CityModel.getWidth()) {
+                endCol = UIS_CityModel.getWidth() * Constant.TILE_WIDTH - 1;
             }
-            mScroller.startScroll(startRow, startCol, endRow - startRow, endCol - startCol, Constant.FOCUS_CONSTRAIN_TIME);
+            TS_Scroller.startScroll(startRow, startCol, endRow - startRow, endCol - startCol, Constant.FOCUS_CONSTRAIN_TIME);
         }
 
         to.copyFrom(this);
@@ -147,49 +153,49 @@ public class SharedState {
      *            the terrain edit to queue up
      */
     public void addTerrainEdit(TerrainEdit edit) {
-        mTerrainEdits.add(edit);
+        TS_TerrainEdits.add(edit);
     }
 
     /**
      * Creates and queues up a terrain edit that fills the selected region with the selected tile type
      */
     public void addSelectedTerrainEdit() {
-        if (mFirstSelectedRow == -1)
+        if (UIS_FirstSelectedRow == -1)
             return;
         int minRow, maxRow, minCol, maxCol;
-        if (mFirstSelectedRow < mSecondSelectedRow) {
-            minRow = mFirstSelectedRow;
-            maxRow = mSecondSelectedRow;
+        if (UIS_FirstSelectedRow < UIS_SecondSelectedRow) {
+            minRow = UIS_FirstSelectedRow;
+            maxRow = UIS_SecondSelectedRow;
         } else {
-            minRow = mSecondSelectedRow;
-            maxRow = mFirstSelectedRow;
+            minRow = UIS_SecondSelectedRow;
+            maxRow = UIS_FirstSelectedRow;
         }
-        if (mFirstSelectedCol < mSecondSelectedCol) {
-            minCol = mFirstSelectedCol;
-            maxCol = mSecondSelectedCol;
+        if (UIS_FirstSelectedCol < UIS_SecondSelectedCol) {
+            minCol = UIS_FirstSelectedCol;
+            maxCol = UIS_SecondSelectedCol;
         } else {
-            minCol = mSecondSelectedCol;
-            maxCol = mFirstSelectedCol;
+            minCol = UIS_SecondSelectedCol;
+            maxCol = UIS_FirstSelectedCol;
         }
-        if (mSecondSelectedRow == -1) {
+        if (UIS_SecondSelectedRow == -1) {
             minRow = maxRow;
             minCol = maxCol;
         }
-        mTerrainEdits.add(new TerrainEdit(minRow, minCol, maxRow, maxCol, mSelectedTerrainType, mDrawWithBlending));
+        TS_TerrainEdits.add(new TerrainEdit(minRow, minCol, maxRow, maxCol, UIS_SelectedTerrainType, NS_DrawWithBlending));
     }
 
     public int addObject(int row, int col, int type) {
-        if (mObjectEdits == null) {
+        if (TS_ObjectEdits == null) {
             for (int c = col; c < col + OBJECTS.objectNumColumns[type]; c++) {
                 for (int r = row; r < row + OBJECTS.objectNumRows[type]; r++) {
-                    if (!isTileValid(r, c) || mCityModel.getObjectID(r, c) != -1) {
+                    if (!isTileValid(r, c) || UIS_CityModel.getObjectID(r, c) != -1) {
                         return -3;
                     }
                 }
             }
-            int newObjID = mCityModel.allocateNewObjectID();
+            int newObjID = UIS_CityModel.allocateNewObjectID();
             if (newObjID != -1)
-                mObjectEdits = new ObjectEdit(ObjectEdit.EDIT_TYPE.ADD, row, col, type, newObjID);
+                TS_ObjectEdits = new ObjectEdit(ObjectEdit.EDIT_TYPE.ADD, row, col, type, newObjID);
             return newObjID;
         }
         //It is currently acceptable to not add an object
@@ -197,40 +203,40 @@ public class SharedState {
     }
 
     public int addObject(int row, int col, int type, int id) {
-        if (mObjectEdits == null) {
+        if (TS_ObjectEdits == null) {
             for (int c = col; c < col + OBJECTS.objectNumColumns[type]; c++) {
                 for (int r = row; r < row + OBJECTS.objectNumRows[type]; r++) {
-                    if (!isTileValid(r, c) || mCityModel.getObjectID(r, c) != -1) {
+                    if (!isTileValid(r, c) || UIS_CityModel.getObjectID(r, c) != -1) {
                         return -3;
                     }
                 }
             }
-            mObjectEdits = new ObjectEdit(ObjectEdit.EDIT_TYPE.ADD, row, col, type, id);
+            TS_ObjectEdits = new ObjectEdit(ObjectEdit.EDIT_TYPE.ADD, row, col, type, id);
             return id;
         }
         return -2;
     }
 
     public void cancelMoveObject() {
-        while (mObjectEdits != null) {}
+        while (TS_ObjectEdits != null) {}
 
-        mObjectEdits = new ObjectEdit(ObjectEdit.EDIT_TYPE.ADD, mOrigRow, mOrigCol, mSelectedObjectType, mSelectedObjectID);
+        TS_ObjectEdits = new ObjectEdit(ObjectEdit.EDIT_TYPE.ADD, UIS_OrigRow, UIS_OrigCol, UIS_SelectedObjectType, UIS_SelectedObjectID);
         
-        mSelectedObjectID = -1;
-        mDestRow = -1;
-        mDestCol = -1;
+        UIS_SelectedObjectID = -1;
+        UIS_DestRow = -1;
+        UIS_DestCol = -1;
     }
 
     public boolean removeObject(int id, boolean block) {
         ObjectEdit newEdit = new ObjectEdit(ObjectEdit.EDIT_TYPE.REMOVE, id);
-        if (mObjectEdits == null) {
-            mObjectEdits = newEdit;
+        if (TS_ObjectEdits == null) {
+            TS_ObjectEdits = newEdit;
             return true;
         } else if (block) {
-            if (!mObjectEdits.equals(newEdit)) {
+            if (!TS_ObjectEdits.equals(newEdit)) {
                 //new object edit doesn't match existing one, so block until we can perform it
                 //this is bad (blocking UI thread), but it's worth it to ensure the state isn't corrupted
-                while (mObjectEdits != null) {}
+                while (TS_ObjectEdits != null) {}
                 removeObject(id, true);
             }
             return true;
@@ -247,11 +253,11 @@ public class SharedState {
      * @return true if the size of a tile changed
      */
     public boolean setScaleFactor(float scaleFactor) {
-        mScaleFactor = scaleFactor;
+        UIS_ScaleFactor = scaleFactor;
         int newHeight = Math.round(scaleFactor * (Constant.TILE_HEIGHT / 2)) * 2;
-        if (newHeight != mTileHeight) {
-            mTileHeight = newHeight;
-            mTileWidth = mTileHeight * 2;
+        if (newHeight != UIS_TileHeight) {
+            UIS_TileHeight = newHeight;
+            UIS_TileWidth = UIS_TileHeight * 2;
             return true;
         } else {
             return false;
@@ -262,21 +268,21 @@ public class SharedState {
      * Get the real scale factor, unaffected by the size requirements placed on the tile dimensions.
      */
     public float getScaleFactor() {
-        return mScaleFactor;
+        return UIS_ScaleFactor;
     }
 
     /**
      * Get the tile width accounting for the scale factor and maintaining the property that tile height is divisible by 2.
      */
     public int getTileWidth() {
-        return mTileWidth;
+        return UIS_TileWidth;
     }
 
     /**
      * Get the tile width accounting for the scale factor and maintaining the property that tile height is divisible by 2.
      */
     public int getTileHeight() {
-        return mTileHeight;
+        return UIS_TileHeight;
     }
 
     /**
@@ -284,7 +290,7 @@ public class SharedState {
      * Takes row/column unscaled and returns the real X coordinate scaled down by the scale factor.
      */
     public int isoToRealXDownscaling(int row, int col) {
-        return (mTileWidth / 2) * (col - row);
+        return (UIS_TileWidth / 2) * (col - row);
     }
 
     /**
@@ -292,7 +298,7 @@ public class SharedState {
      * Takes row/column unscaled and returns the real Y coordinate scaled down by the scale factor.
      */
     public int isoToRealYDownscaling(int row, int col) {
-        return (mTileHeight / 2) * (col + row);
+        return (UIS_TileHeight / 2) * (col + row);
     }
 
     /**
@@ -300,7 +306,7 @@ public class SharedState {
      * Takes row/column unscaled and returns the real X coordinate scaled down by the scale factor.
      */
     public int isoToRealXDownscaling(float row, float col) {
-        return Math.round((mTileWidth / 2) * (col - row));
+        return Math.round((UIS_TileWidth / 2) * (col - row));
     }
 
     /**
@@ -308,7 +314,7 @@ public class SharedState {
      * Takes row/column unscaled and returns the real Y coordinate scaled down by the scale factor.
      */
     public int isoToRealYDownscaling(float row, float col) {
-        return Math.round((mTileHeight / 2) * (col + row));
+        return Math.round((UIS_TileHeight / 2) * (col + row));
     }
 
     /**
@@ -316,7 +322,7 @@ public class SharedState {
      * Takes the real coordinates and scales them up by the scale factor.
      */
     public float realToIsoRowUpscaling(int x, int y) {
-        return (y / (float) mTileHeight) - (x / (float) mTileWidth);
+        return (y / (float) UIS_TileHeight) - (x / (float) UIS_TileWidth);
     }
 
     /**
@@ -324,7 +330,7 @@ public class SharedState {
      * Takes the real coordinates and scales them up by the scale factor.
      */
     public float realToIsoColUpscaling(int x, int y) {
-        return (y / (float) mTileHeight) + (x / (float) mTileWidth);
+        return (y / (float) UIS_TileHeight) + (x / (float) UIS_TileWidth);
     }
 
     /**
@@ -336,7 +342,7 @@ public class SharedState {
      *            the column of the tile to test
      */
     public boolean isTileValid(int row, int col) {
-        return row >= 0 && col >= 0 && row < mCityModel.getHeight() && col < mCityModel.getWidth();
+        return row >= 0 && col >= 0 && row < UIS_CityModel.getHeight() && col < UIS_CityModel.getWidth();
     }
 
     /**
@@ -348,7 +354,7 @@ public class SharedState {
      *            the column of the tile to test
      */
     public boolean isTileValid(float row, float col) {
-        return row >= 0 && col >= 0 && row < mCityModel.getHeight() && col < mCityModel.getWidth();
+        return row >= 0 && col >= 0 && row < UIS_CityModel.getHeight() && col < UIS_CityModel.getWidth();
     }
 
     /**
@@ -360,35 +366,35 @@ public class SharedState {
      *            the y coordinate for where the tile would be drawn in the view's canvas
      */
     public boolean isTileVisible(int x, int y) {
-        return !(y >= mHeight
-                || y + mTileHeight < 0
-                || x + mTileWidth / 2 < 0
-                || x - mTileWidth / 2 >= mWidth);
+        return !(y >= UIS_Height
+                || y + UIS_TileHeight < 0
+                || x + UIS_TileWidth / 2 < 0
+                || x - UIS_TileWidth / 2 >= UIS_Width);
     }
 
     /**
      * Get the real X coordinate for the origin tile (row 0, column 0).
      */
     public int getOriginX() {
-        return mWidth / 2 - isoToRealXDownscaling(mFocusRow, mFocusCol);
+        return UIS_Width / 2 - isoToRealXDownscaling(TS_FocusRow, TS_FocusCol);
     }
 
     /**
      * Get the real Y coordinate for the origin tile (row 0, column 0).
      */
     public int getOriginY() {
-        return mHeight / 2 - isoToRealYDownscaling(mFocusRow, mFocusCol);
+        return UIS_Height / 2 - isoToRealYDownscaling(TS_FocusRow, TS_FocusCol);
     }
 
     /**
      * Force the scroller to stop, but not before updating the current location
      */
     public void forceStopScroller() {
-        if (!mScroller.isFinished()) {
-            mScroller.computeScrollOffset();//compute current offset before forcing finish
-            mFocusRow = mScroller.getCurrX() / Constant.TILE_WIDTH;
-            mFocusCol = mScroller.getCurrY() / Constant.TILE_WIDTH;
-            mScroller.forceFinished(true);
+        if (!TS_Scroller.isFinished()) {
+            TS_Scroller.computeScrollOffset();//compute current offset before forcing finish
+            TS_FocusRow = TS_Scroller.getCurrX() / Constant.TILE_WIDTH;
+            TS_FocusCol = TS_Scroller.getCurrY() / Constant.TILE_WIDTH;
+            TS_Scroller.forceFinished(true);
         }
     }
 
@@ -396,17 +402,17 @@ public class SharedState {
      * Reset the components of the terrain selection tool
      */
     public void resetSelectTool() {
-        mFirstSelectedRow = -1;
-        mFirstSelectedCol = -1;
-        mSecondSelectedRow = -1;
-        mSecondSelectedCol = -1;
-        mSelectingFirstTile = true;
+        UIS_FirstSelectedRow = -1;
+        UIS_FirstSelectedCol = -1;
+        UIS_SecondSelectedRow = -1;
+        UIS_SecondSelectedCol = -1;
+        UIS_SelectingFirstTile = true;
     }
 
     /**
      * Notify the associated overlay that it should update.
      */
     public void notifyOverlay() {
-        mOverlay.update();
+        NS_Overlay.update();
     }
 }

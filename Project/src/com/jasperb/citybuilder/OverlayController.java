@@ -99,28 +99,28 @@ public class OverlayController implements Observer {
     private class MainViewClickListener implements OnClickListener {
         @Override
         public void onClick(View v) {
-            int initMode = mState.mMode;
-            int initTool = mState.mTool;
+            int initMode = mState.UIS_Mode;
+            int initTool = mState.UIS_Tool;
             if (v.equals(mGridButton)) {
                 synchronized (mState) {
-                    mState.mDrawGridLines = !mState.mDrawGridLines;
+                    mState.UIS_DrawGridLines = !mState.UIS_DrawGridLines;
                 }
             } else if (v.equals(mTerrainButton)) {
                 synchronized (mState) {
-                    if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN) {
-                        mState.mMode = CITY_VIEW_MODES.VIEW;
+                    if (mState.UIS_Mode == CITY_VIEW_MODES.EDIT_TERRAIN) {
+                        mState.UIS_Mode = CITY_VIEW_MODES.VIEW;
                     } else {
-                        mState.mMode = CITY_VIEW_MODES.EDIT_TERRAIN;
+                        mState.UIS_Mode = CITY_VIEW_MODES.EDIT_TERRAIN;
                         mState.resetSelectTool();
                     }
                 }
             } else if (v.equals(mObjectsButton)) {
                 synchronized (mState) {
-                    if (mState.mMode == CITY_VIEW_MODES.EDIT_OBJECTS) {
-                        mState.mMode = CITY_VIEW_MODES.VIEW;
+                    if (mState.UIS_Mode == CITY_VIEW_MODES.EDIT_OBJECTS) {
+                        mState.UIS_Mode = CITY_VIEW_MODES.VIEW;
                     } else {
-                        mState.mMode = CITY_VIEW_MODES.EDIT_OBJECTS;
-                        mState.mTool = OBJECT_TOOLS.SELECT;
+                        mState.UIS_Mode = CITY_VIEW_MODES.EDIT_OBJECTS;
+                        mState.UIS_Tool = OBJECT_TOOLS.SELECT;
                         mState.resetSelectTool();
                     }
                 }
@@ -128,72 +128,72 @@ public class OverlayController implements Observer {
 
             } else if (v.equals(mSelectObjectButton)) {
                 synchronized (mState) {
-                    mState.mTool = OBJECT_TOOLS.SELECT;
-                    mState.mSelectedObjectID = -1;
-                    mState.mDestRow = -1;
-                    mState.mDestCol = -1;
+                    mState.UIS_Tool = OBJECT_TOOLS.SELECT;
+                    mState.UIS_SelectedObjectID = -1;
+                    mState.UIS_DestRow = -1;
+                    mState.UIS_DestCol = -1;
                 }
             } else if (v.equals(mBuildingsButton)) {
                 synchronized (mState) {
-                    mState.mTool = OBJECT_TOOLS.NEW;
-                    mState.mDestRow = -1;
-                    mState.mDestCol = -1;
+                    mState.UIS_Tool = OBJECT_TOOLS.NEW;
+                    mState.UIS_DestRow = -1;
+                    mState.UIS_DestCol = -1;
                 }
                 openDialog(GridViewDialogFragment.TYPE_BUILDINGS);
             } else if (v.equals(mTileStyleButton)) {
                 openDialog(GridViewDialogFragment.TYPE_TILES);
             } else if (v.equals(mPaintButton)) {
                 synchronized (mState) {
-                    mState.mTool = TERRAIN_TOOLS.BRUSH;
+                    mState.UIS_Tool = TERRAIN_TOOLS.BRUSH;
                 }
             } else if (v.equals(mSelectTerrainButton)) {
                 synchronized (mState) {
-                    mState.mTool = TERRAIN_TOOLS.SELECT;
+                    mState.UIS_Tool = TERRAIN_TOOLS.SELECT;
                     mState.resetSelectTool();
                 }
             } else if (v.equals(mBrushSquare1x1)) {
                 synchronized (mState) {
-                    mState.mBrushType = BRUSH_TYPES.SQUARE1X1;
+                    mState.UIS_BrushType = BRUSH_TYPES.SQUARE1X1;
                 }
             } else if (v.equals(mBrushSquare3x3)) {
                 synchronized (mState) {
-                    mState.mBrushType = BRUSH_TYPES.SQUARE3X3;
+                    mState.UIS_BrushType = BRUSH_TYPES.SQUARE3X3;
                 }
             } else if (v.equals(mBrushSquare5x5)) {
                 synchronized (mState) {
-                    mState.mBrushType = BRUSH_TYPES.SQUARE5X5;
+                    mState.UIS_BrushType = BRUSH_TYPES.SQUARE5X5;
                 }
             } else if (v.equals(mAcceptButton)) {
                 synchronized (mState) {
-                    if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.mTool == TERRAIN_TOOLS.SELECT) {
+                    if (mState.UIS_Mode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.UIS_Tool == TERRAIN_TOOLS.SELECT) {
                         mState.addSelectedTerrainEdit();
                         mState.resetSelectTool();
-                    } else if (mState.mMode == CITY_VIEW_MODES.EDIT_OBJECTS) {
-                        if (mState.mTool == OBJECT_TOOLS.NEW) {
-                            int objID = mState.addObject(mState.mDestRow, mState.mDestCol, mState.mSelectedObjectType);
+                    } else if (mState.UIS_Mode == CITY_VIEW_MODES.EDIT_OBJECTS) {
+                        if (mState.UIS_Tool == OBJECT_TOOLS.NEW) {
+                            int objID = mState.addObject(mState.UIS_DestRow, mState.UIS_DestCol, mState.UIS_SelectedObjectType);
                             if (objID >= 0) {
-                                mState.mDestCol = -1;
-                                mState.mDestRow = -1;
+                                mState.UIS_DestCol = -1;
+                                mState.UIS_DestRow = -1;
                             } else {
-                                Toast.makeText(mState.mActivity, "Error: Placement Failed. Code: " + objID, Toast.LENGTH_LONG).show();
+                                Toast.makeText(mState.NS_Activity, "Error: Placement Failed. Code: " + objID, Toast.LENGTH_LONG).show();
                             }
-                        } else if (mState.mTool == OBJECT_TOOLS.SELECT) {
-                            int objID = mState.addObject(mState.mDestRow, mState.mDestCol, mState.mSelectedObjectType,
-                                    mState.mSelectedObjectID);
+                        } else if (mState.UIS_Tool == OBJECT_TOOLS.SELECT) {
+                            int objID = mState.addObject(mState.UIS_DestRow, mState.UIS_DestCol, mState.UIS_SelectedObjectType,
+                                    mState.UIS_SelectedObjectID);
                             if (objID >= 0) {
-                                mState.mSelectedObjectID = -1;
-                                mState.mDestCol = -1;
-                                mState.mDestRow = -1;
+                                mState.UIS_SelectedObjectID = -1;
+                                mState.UIS_DestCol = -1;
+                                mState.UIS_DestRow = -1;
                             }
                         }
                     }
                 }
             } else if (v.equals(mCancelButton)) {
                 synchronized (mState) {
-                    if (mState.mMode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.mTool == TERRAIN_TOOLS.SELECT) {
+                    if (mState.UIS_Mode == CITY_VIEW_MODES.EDIT_TERRAIN && mState.UIS_Tool == TERRAIN_TOOLS.SELECT) {
                         mState.resetSelectTool();
-                    } else if (mState.mMode == CITY_VIEW_MODES.EDIT_OBJECTS) {
-                        if (mState.mTool == OBJECT_TOOLS.SELECT) {
+                    } else if (mState.UIS_Mode == CITY_VIEW_MODES.EDIT_OBJECTS) {
+                        if (mState.UIS_Tool == OBJECT_TOOLS.SELECT) {
                             mState.cancelMoveObject();
                         }
                     }
@@ -204,23 +204,23 @@ public class OverlayController implements Observer {
 
             } else if (v.equals(mDeleteButton)) {
                 synchronized (mState) {
-                    mState.mCityModel.freeObjectID(mState.mSelectedObjectID);
-                    mState.mSelectedObjectID = -1;
-                    mState.mDestCol = -1;
-                    mState.mDestRow = -1;
+                    mState.UIS_CityModel.freeObjectID(mState.UIS_SelectedObjectID);
+                    mState.UIS_SelectedObjectID = -1;
+                    mState.UIS_DestCol = -1;
+                    mState.UIS_DestRow = -1;
                 }
             } else if (v.equals(mBlendButton)) {
-                mState.mDrawWithBlending = !mState.mDrawWithBlending;
+                mState.NS_DrawWithBlending = !mState.NS_DrawWithBlending;
             } else if (v.equals(mEyedropperButton)) {
                 synchronized (mState) {
-                    if (mState.mTool != TERRAIN_TOOLS.EYEDROPPER) {
-                        mState.mPreviousTool = mState.mTool;
-                        mState.mTool = TERRAIN_TOOLS.EYEDROPPER;
+                    if (mState.UIS_Tool != TERRAIN_TOOLS.EYEDROPPER) {
+                        mState.UIS_PreviousTool = mState.UIS_Tool;
+                        mState.UIS_Tool = TERRAIN_TOOLS.EYEDROPPER;
                     }
                 }
             }
-            if (initMode != mState.mMode || initTool != mState.mTool) {
-                if (initMode == CITY_VIEW_MODES.EDIT_OBJECTS && initTool == OBJECT_TOOLS.SELECT && mState.mSelectedObjectID != -1) {
+            if (initMode != mState.UIS_Mode || initTool != mState.UIS_Tool) {
+                if (initMode == CITY_VIEW_MODES.EDIT_OBJECTS && initTool == OBJECT_TOOLS.SELECT && mState.UIS_SelectedObjectID != -1) {
                     mState.cancelMoveObject();
                 }
             }
@@ -239,9 +239,9 @@ public class OverlayController implements Observer {
             if (v.equals(mLeftButton)) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     synchronized (mState) {
-                        float min = Math.min(mState.mCityModel.getHeight() - mState.mFocusRow, mState.mFocusCol);
+                        float min = Math.min(mState.UIS_CityModel.getHeight() - mState.TS_FocusRow, mState.TS_FocusCol);
                         int duration = (int) min * Constant.MOVE_BUTTON_DURATION;
-                        mState.mScroller.startScroll((int) mState.mFocusRow * Constant.TILE_WIDTH, (int) mState.mFocusCol
+                        mState.TS_Scroller.startScroll((int) mState.TS_FocusRow * Constant.TILE_WIDTH, (int) mState.TS_FocusCol
                                 * Constant.TILE_WIDTH,
                                 (int) (min) * Constant.TILE_WIDTH, (int) (-min) * Constant.TILE_WIDTH,
                                 duration);
@@ -254,9 +254,9 @@ public class OverlayController implements Observer {
             } else if (v.equals(mUpButton)) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     synchronized (mState) {
-                        float min = Math.min(mState.mFocusRow, mState.mFocusCol);
+                        float min = Math.min(mState.TS_FocusRow, mState.TS_FocusCol);
                         int duration = (int) min * Constant.MOVE_BUTTON_DURATION;
-                        mState.mScroller.startScroll((int) mState.mFocusRow * Constant.TILE_WIDTH, (int) mState.mFocusCol
+                        mState.TS_Scroller.startScroll((int) mState.TS_FocusRow * Constant.TILE_WIDTH, (int) mState.TS_FocusCol
                                 * Constant.TILE_WIDTH,
                                 (int) (-min) * Constant.TILE_WIDTH, (int) (-min) * Constant.TILE_WIDTH,
                                 duration);
@@ -269,10 +269,10 @@ public class OverlayController implements Observer {
             } else if (v.equals(mDownButton)) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     synchronized (mState) {
-                        float min = Math.min(mState.mCityModel.getHeight() - mState.mFocusRow, mState.mCityModel.getWidth()
-                                - mState.mFocusCol);
+                        float min = Math.min(mState.UIS_CityModel.getHeight() - mState.TS_FocusRow, mState.UIS_CityModel.getWidth()
+                                - mState.TS_FocusCol);
                         int duration = (int) min * Constant.MOVE_BUTTON_DURATION;
-                        mState.mScroller.startScroll((int) mState.mFocusRow * Constant.TILE_WIDTH, (int) mState.mFocusCol
+                        mState.TS_Scroller.startScroll((int) mState.TS_FocusRow * Constant.TILE_WIDTH, (int) mState.TS_FocusCol
                                 * Constant.TILE_WIDTH,
                                 (int) (min) * Constant.TILE_WIDTH, (int) (min) * Constant.TILE_WIDTH,
                                 duration);
@@ -285,10 +285,10 @@ public class OverlayController implements Observer {
             } else if (v.equals(mRightButton)) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     synchronized (mState) {
-                        float min = Math.min(mState.mFocusRow, mState.mCityModel.getWidth() - mState.mFocusCol);
+                        float min = Math.min(mState.TS_FocusRow, mState.UIS_CityModel.getWidth() - mState.TS_FocusCol);
                         int duration = (int) min * Constant.MOVE_BUTTON_DURATION;
-                        mState.mScroller.startScroll((int) mState.mFocusRow * Constant.TILE_WIDTH,
-                                (int) mState.mFocusCol * Constant.TILE_WIDTH,
+                        mState.TS_Scroller.startScroll((int) mState.TS_FocusRow * Constant.TILE_WIDTH,
+                                (int) mState.TS_FocusCol * Constant.TILE_WIDTH,
                                 (int) -min * Constant.TILE_WIDTH,
                                 (int) min * Constant.TILE_WIDTH,
                                 duration);
@@ -311,7 +311,7 @@ public class OverlayController implements Observer {
         mUndoButton.setVisibility(View.GONE);
         mRedoButton.setVisibility(View.GONE);
 
-        switch (mState.mMode) {
+        switch (mState.UIS_Mode) {
         case CITY_VIEW_MODES.VIEW:
             mTerrainTools.setVisibility(View.GONE);
             mObjectTools.setVisibility(View.GONE);
@@ -322,9 +322,9 @@ public class OverlayController implements Observer {
         case CITY_VIEW_MODES.EDIT_TERRAIN:
             mTerrainTools.setVisibility(View.VISIBLE);
             mObjectTools.setVisibility(View.GONE);
-            mTileSyleIcon.setImageBitmap(TileBitmaps.getFullTileBitmap(mState.mSelectedTerrainType));
-            mBlendButton.setSelected(mState.mDrawWithBlending);
-            switch (mState.mTool) {
+            mTileSyleIcon.setImageBitmap(TileBitmaps.getFullTileBitmap(mState.UIS_SelectedTerrainType));
+            mBlendButton.setSelected(mState.NS_DrawWithBlending);
+            switch (mState.UIS_Tool) {
             case TERRAIN_TOOLS.BRUSH:
                 mMoveButtons.setVisibility(View.VISIBLE);
                 mGeneralTools.setVisibility(View.GONE);
@@ -334,7 +334,7 @@ public class OverlayController implements Observer {
                 mMoveButtons.setVisibility(View.GONE);
                 mGeneralTools.setVisibility(View.VISIBLE);
                 mBrushTools.setVisibility(View.GONE);
-                if (mState.mFirstSelectedRow != -1) {
+                if (mState.UIS_FirstSelectedRow != -1) {
                     mAcceptButton.setVisibility(View.VISIBLE);
                     mCancelButton.setVisibility(View.VISIBLE);
                 } else {
@@ -357,12 +357,12 @@ public class OverlayController implements Observer {
             mBrushTools.setVisibility(View.GONE);
             mMoveButtons.setVisibility(View.GONE);
 
-            if (mState.mDestRow != -1 && mState.mDestCol != -1) {
+            if (mState.UIS_DestRow != -1 && mState.UIS_DestCol != -1) {
                 mAcceptButton.setVisibility(View.VISIBLE);
-                if (mState.mTool == OBJECT_TOOLS.NEW) {
+                if (mState.UIS_Tool == OBJECT_TOOLS.NEW) {
                     mCancelButton.setVisibility(View.GONE);
                     mDeleteButton.setVisibility(View.GONE);
-                } else if (mState.mTool == OBJECT_TOOLS.SELECT) {
+                } else if (mState.UIS_Tool == OBJECT_TOOLS.SELECT) {
                     mCancelButton.setVisibility(View.VISIBLE);
                     mDeleteButton.setVisibility(View.VISIBLE);
                 }
@@ -375,7 +375,7 @@ public class OverlayController implements Observer {
             
             break;
         }
-        mGridButton.setSelected(mState.mDrawGridLines);
+        mGridButton.setSelected(mState.UIS_DrawGridLines);
     }
 
     private void openDialog(int type) {
@@ -383,6 +383,6 @@ public class OverlayController implements Observer {
         Bundle b = new Bundle();
         b.putInt(GridViewDialogFragment.TYPE, type);
         newFragment.setArguments(b);
-        newFragment.show(mState.mActivity.getFragmentManager(), "TileDialog");
+        newFragment.show(mState.NS_Activity.getFragmentManager(), "TileDialog");
     }
 }

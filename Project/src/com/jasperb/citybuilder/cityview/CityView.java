@@ -123,8 +123,8 @@ public class CityView extends SurfaceView implements SurfaceHolder.Callback {
             int height) {
         Log.v(TAG, "SURFACE CHANGED");
         synchronized (mState) {
-            mState.mWidth = width;
-            mState.mHeight = height;
+            mState.UIS_Width = width;
+            mState.UIS_Height = height;
         }
     }
 
