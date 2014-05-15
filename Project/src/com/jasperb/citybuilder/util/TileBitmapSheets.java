@@ -20,10 +20,6 @@ import android.util.Log;
 import com.jasperb.citybuilder.SharedState;
 import com.jasperb.citybuilder.Constant.TERRAIN;
 
-/**
- * @author Jasper
- * 
- */
 public class TileBitmapSheets {
     /**
      * String used for identifying this class.

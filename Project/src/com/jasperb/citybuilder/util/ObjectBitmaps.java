@@ -18,8 +18,8 @@ import android.graphics.Rect;
 import android.util.Log;
 
 import com.jasperb.citybuilder.Constant;
-import com.jasperb.citybuilder.SharedState;
 import com.jasperb.citybuilder.Constant.OBJECTS;
+import com.jasperb.citybuilder.SharedState;
 
 /**
  * @author Jasper
@@ -83,6 +83,8 @@ public class ObjectBitmaps {
                     getFullObjectBitmaps()[i] = new Bitmap[sliceCount];
                     //Log.d(TAG, "SLICES: " + sliceCount + " :: " + sliceWidth);
 
+                    //Slice the loaded bitmap into multiple bitmaps
+                    //Each slice is sized to allow drawing so that slices can be drawn in the order of the tile they lie one
                     for (int j = 0; j < sliceCount; j++) {
                         if (j == 0) {
                             trimmedRect.set(0, 0, sliceWidth, height);

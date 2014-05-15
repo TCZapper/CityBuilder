@@ -4,6 +4,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+/**
+ * An interface to extend the FileInputStream/FileOutputStream with functions for writing/reading primitives other than bytes
+ */
 public class FileStreamUtils {
     private FileOutputStream mOutputStream = null;
     private FileInputStream mInputStream = null;
@@ -69,7 +72,7 @@ public class FileStreamUtils {
     public boolean readBoolean() throws IOException {
         return mInputStream.read() == 0 ? false : true;
     }
-    
+
     public void close() throws IOException {
         if (mOutputStream != null)
             mOutputStream.close();

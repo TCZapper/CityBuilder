@@ -22,8 +22,7 @@ import com.jasperb.citybuilder.Constant.TERRAIN;
 import com.jasperb.citybuilder.Constant.TERRAIN_MODS;
 
 /**
- * @author Jasper
- * 
+ * Object for storing and handling bitmaps of all the different tiles
  */
 public class TileBitmaps {
     /**
@@ -45,6 +44,7 @@ public class TileBitmaps {
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setARGB(255, 225, 225, 225);
         mPaint.setStrokeWidth(0);
+        //Create full-sized copies of the terrain mod bitmap so that we have a bitmap to reuse for rescaling
         for (int i = 0; i < TERRAIN_MODS.count; i++) {
             try {
                 mScaledModBitmaps[i] = Bitmap.createScaledBitmap(mFullModBitmaps[i], mFullModBitmaps[i].getWidth(),
@@ -285,6 +285,7 @@ public class TileBitmaps {
         float visualScale = state.getTileWidth() / (float) Constant.TILE_WIDTH;
         mMatrix.setScale(visualScale, visualScale);
         if (state.UIS_DrawGridLines) {//Draw gridlines onto the terrain tiles and mods
+            //Scale bitmap by creating a whole new bitmap (as the empty space is extremely costly)
             for (int i = 0; i < mFullTileBitmaps.length; i++) {
                 if (TERRAIN.getBaseType(i) == i) {
                     mScaledTileBitmaps[i] = Bitmap.createScaledBitmap(mFullTileBitmaps[i], state.getTileWidth(), state.getTileHeight(),
@@ -296,6 +297,7 @@ public class TileBitmaps {
                     mScaledTileBitmaps[i] = mScaledTileBitmaps[TERRAIN.getBaseType(i)];
                 }
             }
+            //Scale bitmap by blanking the existing one and redrawing it scaled (empty space is not too costly)
             for (int i = 0; i < mFullModBitmaps.length; i++) {
                 mScaledModBitmaps[i].eraseColor(android.graphics.Color.TRANSPARENT);
                 mCanvas.setBitmap(mScaledModBitmaps[i]);
@@ -310,6 +312,7 @@ public class TileBitmaps {
                         state.getTileHeight() / 2 - mModOffsetY[i] * visualScale, mPaint);
             }
         } else {
+            //Scale bitmap by creating a whole new bitmap (as the empty space is extremely costly)
             for (int i = 0; i < mFullTileBitmaps.length; i++) {
                 if (TERRAIN.getBaseType(i) == i) {
                     mScaledTileBitmaps[i] = Bitmap.createScaledBitmap(mFullTileBitmaps[i], state.getTileWidth(), state.getTileHeight(),
@@ -318,6 +321,7 @@ public class TileBitmaps {
                     mScaledTileBitmaps[i] = mScaledTileBitmaps[TERRAIN.getBaseType(i)];
                 }
             }
+            //Scale bitmap by blanking the existing one and redrawing it scaled (empty space is not too costly)
             for (int i = 0; i < mFullModBitmaps.length; i++) {
                 mScaledModBitmaps[i].eraseColor(android.graphics.Color.TRANSPARENT);
                 mCanvas.setBitmap(mScaledModBitmaps[i]);

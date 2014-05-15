@@ -3,10 +3,8 @@
  */
 package com.jasperb.citybuilder.util;
 
-
 /**
- * @author Jasper
- * 
+ * Simple object to track the average frame draw time
  */
 public class PerfTools {
     private static final int MAXSAMPLES = 75;

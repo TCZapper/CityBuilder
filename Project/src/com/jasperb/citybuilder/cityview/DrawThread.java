@@ -25,8 +25,7 @@ import com.jasperb.citybuilder.util.PerfTools;
 import com.jasperb.citybuilder.util.TileBitmaps;
 
 /**
- * @author Jasper
- * 
+ * Thread responsible for drawing the city view
  */
 public class DrawThread extends Thread {
     /**
@@ -109,9 +108,11 @@ public class DrawThread extends Thread {
                             }
                             if (mDrawState.UIS_Width != 0 && mDrawState.UIS_Width == c.getWidth() && mDrawState.UIS_Height == c.getHeight()) {
                                 if (oldTileHeight != mDrawState.getTileHeight()) {
+                                    //Rescale the object and tile bitmaps because the current bitmaps aren't the right size
                                     mTileBitmaps.remakeBitmaps(mDrawState);
                                     mObjectBitmaps.remakeBitmaps(mDrawState);
                                 } else if (oldDrawGridLines != mDrawState.UIS_DrawGridLines) {
+                                    //Redraw the tile bitmaps because we need to toggle gridlines
                                     mTileBitmaps.remakeBitmaps(mDrawState);
                                 }
                                 // Log.v(TAG,"DRAW AT: " + mState.mFocusRow + " : " + mState.mFocusRow);
@@ -251,6 +252,7 @@ public class DrawThread extends Thread {
     private void drawGround(Canvas canvas) {
         //Log.d(TAG, "DRAW FIRST: " + firstRow + " : " + firstCol);
         float visualScale = mDrawState.getTileWidth() / (float) Constant.TILE_WIDTH;
+//        //Determine the bounds for the selected tiles for use when setting colour filters
 //        int minSelectedRow = 0, maxSelectedRow = 0, minSelectedCol = 0, maxSelectedCol = 0;
 //        if (mDrawState.mFirstSelectedRow != -1) {
 //            if (mDrawState.mSecondSelectedRow == -1) {
@@ -292,7 +294,10 @@ public class DrawThread extends Thread {
             for (; row <= lastRow; row++) {
                 // Time to draw the terrain to the buffer. TileBitmaps handles resizing the tiles, we just draw/position them
 //                    Log.d(TAG, "Paint Tile: " + row + " : " + col);
-                if (mDrawState.UIS_Mode == CITY_VIEW_MODES.EDIT_TERRAIN) {
+                
+                //Set the colour filters based off whether the tile is covered by a building
+                //Currently disabled the colour filters for selected tiles due to performance issues
+                if (mDrawState.UIS_Mode == CITY_VIEW_MODES.EDIT_TERRAIN) { 
 //                    if (mDrawState.mFirstSelectedRow != -1) {
 //                        if (row >= minSelectedRow && row <= maxSelectedRow && col >= minSelectedCol && col <= maxSelectedCol) {
 //                            if ((mDrawState.mSelectingFirstTile && row == mDrawState.mFirstSelectedRow && col == mDrawState.mFirstSelectedCol)
@@ -326,7 +331,10 @@ public class DrawThread extends Thread {
                 
                 int drawX = mDrawState.isoToRealXDownscaling(row, col) + mOriginX + mBitmapOffsetX;
                 int drawY = mDrawState.isoToRealYDownscaling(row, col) + mOriginY;
+                //Draw tile
                 canvas.drawBitmap(mTileBitmaps.getScaledTileBitmap(mDrawState.UIS_CityModel.getTerrain(row, col)), drawX, drawY, mTilePaint);
+                
+                //Draw terrain mods/decorations
                 int mod = mDrawState.UIS_CityModel.getMod(row, col, 0);
                 if (mod != TERRAIN_MODS.NONE) {
                     int index = 0;
@@ -380,6 +388,8 @@ public class DrawThread extends Thread {
         int minRow, maxRow, minCol, maxCol;
         if (mDrawState.UIS_FirstSelectedRow != -1) {
             Path path = new Path();
+            
+            //Determine min/max selected rows/columns
             if (mDrawState.UIS_SecondSelectedRow == -1) {
                 minRow = mDrawState.UIS_FirstSelectedRow;
                 maxRow = mDrawState.UIS_FirstSelectedRow + 1;
@@ -409,6 +419,7 @@ public class DrawThread extends Thread {
                     topX = mDrawState.isoToRealXDownscaling(mDrawState.UIS_SecondSelectedRow, mDrawState.UIS_SecondSelectedCol) + mOriginX;
                     topY = mDrawState.isoToRealYDownscaling(mDrawState.UIS_SecondSelectedRow, mDrawState.UIS_SecondSelectedCol) + mOriginY;
                 }
+                //Draw a rectangle indicating the selected corner of the selected region
                 path.moveTo(topX, topY);//top
                 path.lineTo(topX + mDrawState.getTileWidth() / 2, topY + mDrawState.getTileHeight() / 2);//right
                 path.lineTo(topX, topY + mDrawState.getTileHeight());//bottom
@@ -418,6 +429,8 @@ public class DrawThread extends Thread {
                 canvas.drawPath(path, mSelectedTilePaint);
                 path.reset();
             }
+            
+            //Draw a rectangle indicating the selected region
             path.moveTo(mDrawState.isoToRealXDownscaling(minRow, minCol) + mOriginX,
                     mDrawState.isoToRealYDownscaling(minRow, minCol) + mOriginY);//top
             path.lineTo(mDrawState.isoToRealXDownscaling(minRow, maxCol) + mOriginX,
@@ -433,23 +446,28 @@ public class DrawThread extends Thread {
         }
     }
 
+    /**
+     * Draw all visible objects from the city model.
+     * @param canvas
+     */
     private void drawObjects(Canvas canvas) {
         float visualScale = mDrawState.getTileWidth() / (float) Constant.TILE_WIDTH;
         Rect origin = new Rect();
         Rect dest = new Rect();
         Paint p = new Paint();
         if (mDrawState.UIS_Mode == CITY_VIEW_MODES.EDIT_TERRAIN)
-            p.setAlpha(100);
+            p.setAlpha(100);//draw the objects with some transparency (100/255)
         Rect screen = new Rect(0, 0, mDrawState.UIS_Width, mDrawState.UIS_Height);
 
         ObjectSlice currentSlice = mDrawState.UIS_CityModel.getObjectList();
+        //Iterate through object list which is sorted in the order we should draw them in
+        //We test every slice to see if it is visible
         while (currentSlice != null) {
             //currentSlice.log(TAG);
             int sliceWidth = OBJECTS.getScaledSliceWidth(currentSlice.type, mDrawState.getTileWidth());
             int sliceColumns = sliceWidth / (mDrawState.getTileWidth() / 2);
             int firstCol = currentSlice.col
                     - Math.min(sliceColumns * currentSlice.sliceIndex, OBJECTS.objectNumColumns[currentSlice.type] - 1);
-            //Log.d(TAG, "FIRSTCOL: " + firstCol);
             int drawX = mDrawState.isoToRealXDownscaling(currentSlice.row, firstCol) + mOriginX + mBitmapOffsetX
                     + sliceWidth * currentSlice.sliceIndex;
             int drawY = mDrawState.isoToRealYDownscaling(currentSlice.row, firstCol) + mOriginY
@@ -463,7 +481,9 @@ public class DrawThread extends Thread {
 
             dest.set(drawX, drawY - height, drawX + width, drawY);
 
+            //Only draw if the bitmap region intersects with the screen
             if (Rect.intersects(dest, screen)) {
+                //Only draw the part of the bitmap that the scaled bitmap was drawn to (for a minor performance benefit)
                 origin.set(0, 0, width, height);
                 canvas.drawBitmap(bitmap, origin, dest, p);
             }
@@ -472,12 +492,16 @@ public class DrawThread extends Thread {
         }
     }
 
+    /**
+     * Draw the selected object (drawn in front of all objects with slight transparency)
+     * @param canvas
+     */
     private void drawSelectedObject(Canvas canvas) {
         float visualScale = mDrawState.getTileWidth() / (float) Constant.TILE_WIDTH;
         Rect origin = new Rect();
         Rect dest = new Rect();
         Paint p = new Paint();
-        p.setAlpha(200);
+        p.setAlpha(200);//draw slightly transparent
         Rect screen = new Rect(0, 0, mDrawState.UIS_Width, mDrawState.UIS_Height);
         int type = mDrawState.UIS_SelectedObjectType;
 
@@ -488,7 +512,6 @@ public class DrawThread extends Thread {
                 + OBJECTS.objectNumColumns[type] + 1)
                 + mOriginY;
         for (int i = 0; i < OBJECTS.getSliceCount(type); i++) {
-
             Bitmap bitmap = mObjectBitmaps.getScaledObjectBitmap(type, i);
 
             int height = (int) Math.ceil(bitmap.getHeight() * visualScale);
@@ -496,7 +519,9 @@ public class DrawThread extends Thread {
 
             dest.set(drawX, drawY - height, drawX + width, drawY);
 
+            //Only draw if the bitmap region intersects with the screen
             if (Rect.intersects(dest, screen)) {
+                //Only draw the part of the bitmap that the scaled bitmap was drawn to (for a minor performance benefit)
                 origin.set(0, 0, width, height);
                 canvas.drawBitmap(bitmap, origin, dest, p);
             }

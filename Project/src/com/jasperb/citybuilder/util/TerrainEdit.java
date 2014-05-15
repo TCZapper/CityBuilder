@@ -5,10 +5,6 @@ package com.jasperb.citybuilder.util;
 
 import com.jasperb.citybuilder.CityModel;
 
-/**
- * @author Jasper
- * 
- */
 public class TerrainEdit {
     int mStartRow;
     int mStartCol;
@@ -34,9 +30,9 @@ public class TerrainEdit {
         mTerrain = terrain;
         mBlend = blend;
     }
-    
+
     public void setTerrain(CityModel model) {
-        if(mStartRow == mEndRow && mStartCol == mEndCol) {
+        if (mStartRow == mEndRow && mStartCol == mEndCol) {
             model.setTerrain(mStartRow, mStartCol, mTerrain, mBlend);
         } else {
             model.setTerrain(mStartRow, mStartCol, mEndRow, mEndCol, mTerrain, mBlend);
