@@ -23,15 +23,18 @@ import com.jasperb.citybuilder.util.TerrainEdit;
  * UIS_* indicates the UI thread reads and writes to it, but the draw thread only reads, so only UI thread reading can be unprotected
  * NS_* indicates Not Safe, meaning no protection needed
  * 
+ * Object editing is done on the draw thread but requested by the UI thread. In some case with object editing it may be necessary
+ * to block the UI thread to ensure no state corruption.
+ * 
  * @author Jasper
  */
 public class SharedState {
-    
+
     // Thread safe member variables (read from and written to by multiple threads)
-    public float TS_FocusRow = 0, TS_FocusCol = 0;
-    public OverScroller TS_Scroller = null;
-    private LinkedList<TerrainEdit> TS_TerrainEdits = new LinkedList<TerrainEdit>();
-    private ObjectEdit TS_ObjectEdits = null;
+    public float TS_FocusRow = 0, TS_FocusCol = 0;//Which column/row should be in the centre of the screen
+    public OverScroller TS_Scroller = null;//Controls automatic panning over time
+    private LinkedList<TerrainEdit> TS_TerrainEdits = new LinkedList<TerrainEdit>();//Queue of terrain edits to be handled by draw thread
+    private ObjectEdit TS_ObjectEdits = null;//Single object edit to be handled by draw thread
 
     // Thread safe member variables (read from by multiple threads, but only written to by UI thread)
     public int UIS_Width = 0, UIS_Height = 0;
@@ -47,17 +50,19 @@ public class SharedState {
     public int UIS_PreviousTool = TERRAIN_TOOLS.BRUSH;
     public int UIS_BrushType = BRUSH_TYPES.SQUARE1X1;
     public int UIS_SelectedObjectID = -1;
+    //The two opposite corners defining a rectangular bound
     public int UIS_FirstSelectedRow = -1, UIS_FirstSelectedCol = -1, UIS_SecondSelectedRow = -1, UIS_SecondSelectedCol = -1;
+    //Whether future tile selections should modify the first or second vertex of the rectangular bounds
     public boolean UIS_SelectingFirstTile = true;
     public boolean UIS_InputActive = false;
-    public int UIS_DestRow = -1, UIS_DestCol = -1;
-    public int UIS_OrigRow = -1, UIS_OrigCol = -1;
+    public int UIS_DestRow = -1, UIS_DestCol = -1;//Destination for a new object
+    public int UIS_OrigRow = -1, UIS_OrigCol = -1;//Original position of an object being moved
 
     // Only ever read
     public Observer NS_Overlay;
     public String NS_CityName;
     public Activity NS_Activity = null;
-    
+
     // Only used by UI thread 
     public boolean NS_DrawWithBlending = true;
 
@@ -184,6 +189,20 @@ public class SharedState {
         TS_TerrainEdits.add(new TerrainEdit(minRow, minCol, maxRow, maxCol, UIS_SelectedTerrainType, NS_DrawWithBlending));
     }
 
+    /**
+     * Add an object to the city model.
+     * Returns -1 if it failed to allocate an ID because all are currently in use.
+     * Returns -2 if it can't create a new building because a recent object edit is already awaiting processing.
+     * Returns -3 if the tiles covered by the building are already in use.
+     * 
+     * @param row
+     *            the minimum row covered by the building
+     * @param col
+     *            the minimum column covered by the building
+     * @param type
+     *            the type of the building
+     * @return a non-negative result is the new objects ID, a negative results is an error code
+     */
     public int addObject(int row, int col, int type) {
         if (TS_ObjectEdits == null) {
             for (int c = col; c < col + OBJECTS.objectNumColumns[type]; c++) {
@@ -202,6 +221,21 @@ public class SharedState {
         return -2;
     }
 
+    /**
+     * Add an object to the city model using an already allocated object ID.
+     * Returns -2 if it can't create a new building because a recent object edit is already awaiting processing.
+     * Returns -3 if the tiles covered by the building are already in use.
+     * 
+     * @param row
+     *            the minimum row covered by the building
+     * @param col
+     *            the minimum column covered by the building
+     * @param type
+     *            the type of the building
+     * @param id
+     *            the id of the building to create
+     * @return a non-negative result is the new objects ID, a negative results is an error code
+     */
     public int addObject(int row, int col, int type, int id) {
         if (TS_ObjectEdits == null) {
             for (int c = col; c < col + OBJECTS.objectNumColumns[type]; c++) {
@@ -217,16 +251,28 @@ public class SharedState {
         return -2;
     }
 
+    /**
+     * Restores an object being moved to its original position. Blocks the thread if necessary.
+     */
     public void cancelMoveObject() {
         while (TS_ObjectEdits != null) {}
 
         TS_ObjectEdits = new ObjectEdit(ObjectEdit.EDIT_TYPE.ADD, UIS_OrigRow, UIS_OrigCol, UIS_SelectedObjectType, UIS_SelectedObjectID);
-        
+
         UIS_SelectedObjectID = -1;
         UIS_DestRow = -1;
         UIS_DestCol = -1;
     }
 
+    /**
+     * Removes object with a specific id, but does not free the ID (so that it may be reused)
+     * 
+     * @param id
+     *            the id of the object to remove
+     * @param block
+     *            if true the calling thread will block until it can remove the object, otherwise if it fails it will return false
+     * @return true if the object was removed
+     */
     public boolean removeObject(int id, boolean block) {
         ObjectEdit newEdit = new ObjectEdit(ObjectEdit.EDIT_TYPE.REMOVE, id);
         if (TS_ObjectEdits == null) {

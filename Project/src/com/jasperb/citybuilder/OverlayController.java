@@ -139,9 +139,9 @@ public class OverlayController implements Observer {
                     mState.UIS_DestRow = -1;
                     mState.UIS_DestCol = -1;
                 }
-                openDialog(GridViewDialogFragment.TYPE_BUILDINGS);
+                openGridViewDialog(GridViewDialogFragment.TYPE_BUILDINGS);
             } else if (v.equals(mTileStyleButton)) {
-                openDialog(GridViewDialogFragment.TYPE_TILES);
+                openGridViewDialog(GridViewDialogFragment.TYPE_TILES);
             } else if (v.equals(mPaintButton)) {
                 synchronized (mState) {
                     mState.UIS_Tool = TERRAIN_TOOLS.BRUSH;
@@ -219,6 +219,8 @@ public class OverlayController implements Observer {
                     }
                 }
             }
+
+            // Handle cases where mode or tool is changed and requires resetting something
             if (initMode != mState.UIS_Mode || initTool != mState.UIS_Tool) {
                 if (initMode == CITY_VIEW_MODES.EDIT_OBJECTS && initTool == OBJECT_TOOLS.SELECT && mState.UIS_SelectedObjectID != -1) {
                     mState.cancelMoveObject();
@@ -371,14 +373,19 @@ public class OverlayController implements Observer {
                 mCancelButton.setVisibility(View.GONE);
                 mDeleteButton.setVisibility(View.GONE);
             }
-            
-            
+
             break;
         }
         mGridButton.setSelected(mState.UIS_DrawGridLines);
     }
 
-    private void openDialog(int type) {
+    /**
+     * Helper method for handling opening the grid view dialog
+     * 
+     * @param type
+     *            the type of content to show in the grid view
+     */
+    private void openGridViewDialog(int type) {
         GridViewDialogFragment newFragment = new GridViewDialogFragment();
         Bundle b = new Bundle();
         b.putInt(GridViewDialogFragment.TYPE, type);

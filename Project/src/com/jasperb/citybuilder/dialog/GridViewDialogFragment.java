@@ -31,9 +31,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jasperb.citybuilder.Constant;
-import com.jasperb.citybuilder.R;
 import com.jasperb.citybuilder.Constant.OBJECTS;
 import com.jasperb.citybuilder.Constant.TERRAIN;
+import com.jasperb.citybuilder.R;
 import com.jasperb.citybuilder.util.ObjectBitmaps;
 import com.jasperb.citybuilder.util.TileBitmaps;
 
@@ -129,6 +129,7 @@ public class GridViewDialogFragment extends DialogFragment {
             ViewGroup.LayoutParams layoutParams = mGridView.getLayoutParams();
             layoutParams.width = (int) (window.getDecorView().getWidth() * 0.8f);
 
+            //setup grid view configuration based off type of content
             if (mType == TYPE_BUILDINGS) {
                 layoutParams.width = layoutParams.width - (layoutParams.width % OBJECT_COL_WIDTH);
                 int numColumns = layoutParams.width / OBJECT_COL_WIDTH;
@@ -175,11 +176,12 @@ public class GridViewDialogFragment extends DialogFragment {
                             row.setImageBitmap(fullBitmap);
                         }
 
+                        //Create a single bitmap by combining the slices
                         int numSlices = ObjectBitmaps.getFullObjectBitmaps()[position].length;
                         int sliceWidth = ObjectBitmaps.getFullObjectBitmaps()[position][0].getWidth();
                         float imageWidth = (OBJECTS.objectNumRows[position] + OBJECTS.objectNumColumns[position])
                                 * (Constant.TILE_WIDTH / 2);
-                        if (OBJECT_COL_WIDTH < imageWidth) {
+                        if (OBJECT_COL_WIDTH < imageWidth) {//manage scaling the bitmap
                             float scale = OBJECT_COL_WIDTH / imageWidth;
                             //Convert the scale to something that will ensure slices are not partially transparent on the left/right edges
                             scale = (float) (Math.floor(scale * (Constant.TILE_WIDTH / 2))) / (Constant.TILE_WIDTH / 2);

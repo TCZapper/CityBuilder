@@ -23,11 +23,15 @@ public class CityModel {
      */
     public static final String TAG = "CityModel";
 
+    /**
+     * Represents a slice of the image of an object.
+     * Can be used to create a linked list of slices.
+     */
     public class ObjectSlice {
-        public short row, col;
-        public short id;
-        public byte type;
-        public byte sliceIndex;
+        public short row, col;//maximum row and minimum column of the slice (not the object)
+        public short id;//id of the object
+        public byte type;//object type
+        public byte sliceIndex;//0-based, indicates which slice it is
         public ObjectSlice next = null;
 
         public ObjectSlice(short row, short col, short id, byte type, byte sliceIndex) {
@@ -44,6 +48,12 @@ public class CityModel {
             Log.d(tag, id + ": [R" + row + ",C" + col + "] = " + type + "[" + sliceIndex + "]");
         }
 
+        /**
+         * Write the slice to a stream for saving
+         * 
+         * @param stream
+         * @throws IOException
+         */
         public void write(FileStreamUtils stream) throws IOException {
             stream.write(row);
             stream.write(col);
@@ -52,6 +62,13 @@ public class CityModel {
             stream.write(sliceIndex);
         }
 
+        /**
+         * Fill the slice according to data read from a stream
+         * 
+         * @param stream
+         * @return true if successfully read, false if EOF or -1 (which indicates the end of slices)
+         * @throws IOException
+         */
         public boolean read(FileStreamUtils stream) throws IOException {
             row = stream.readShort();
             if (row == -1)
@@ -64,14 +81,14 @@ public class CityModel {
         }
     }
 
-    private int mWidth, mHeight;
-    private byte[][] mTerrainMap = null;
-    private byte[][] mTerrainModMap;
-    private byte[][] mTerrainBlend;
-    private short[][] mObjectMap;
-    private boolean[] mUsedObjectIDs;//Not thread-safe (should only be read/written to by UI thread)
-    private ObjectSlice mObjectList = null;
-    private short mNumObjects = 0;
+    private int mWidth, mHeight;//dimensions of the world
+    private byte[][] mTerrainMap = null;//tile types of the world 
+    private byte[][] mTerrainModMap;//terrain mods of the world
+    private byte[][] mTerrainBlend;//whether the tile is set to blend with neighbouring tiles
+    private short[][] mObjectMap;//ID of the object covering the tile
+    private boolean[] mUsedObjectIDs;//List of used object IDs. Not thread-safe (should only be read/written to by UI thread)
+    private ObjectSlice mObjectList = null;//Linked list of object slices (sorted in the order they should be drawn)
+    private short mNumObjects = 0;//number of existing objects
 
     @SuppressWarnings("unused")
     private CityModel() {}// Prevent constructing without a width and height
@@ -91,6 +108,7 @@ public class CityModel {
         mTerrainModMap = new byte[mWidth][mHeight * Constant.MAX_NUMBER_OF_TERRAIN_MODS];
         mTerrainBlend = new byte[mWidth][mHeight];
 
+        // Fill the terrain with random-ish tiles
         for (int col = 0; col < mWidth; col++) {
             for (int row = 0; row < mHeight; row++) {
                 mTerrainMap[col][row] = TERRAIN.GRASS;
@@ -107,16 +125,23 @@ public class CityModel {
                 mObjectMap[col][row] = -1;
             }
         }
+
+        // Determine terrain mods and randomly create terrain decorations
         for (int col = 0; col < mWidth; col++) {
             for (int row = 0; row < mHeight; row++) {
-                determineTerrainDecorations(row, col);
+                generateTerrainDecorations(row, col);
                 determineTerrainMods(row, col);
             }
         }
     }
 
+    /**
+     * Create a city model from a stream/saved city model
+     * 
+     * @param stream
+     */
     public CityModel(FileStreamUtils stream) {
-        if(!restore(stream)) {
+        if (!restore(stream)) {
             mWidth = 0;
             mHeight = 0;
         }
@@ -208,9 +233,11 @@ public class CityModel {
             for (int row = startRow; row <= endRow; row++) {
                 mTerrainMap[col][row] = (byte) terrain;
                 mTerrainBlend[col][row] = (byte) (blend ? 1 : 0);
-                determineTerrainDecorations(row, col);
+                generateTerrainDecorations(row, col);
             }
         }
+
+        // Determine terrain mods for all modified tiles and their neighbours
         for (int col = Math.max(startCol - 1, 0); col <= Math.min(endCol + 1, mWidth - 1); col++)
             for (int row = Math.max(startRow - 1, 0); row <= Math.min(endRow + 1, mHeight - 1); row++)
                 determineTerrainMods(row, col);
@@ -228,7 +255,7 @@ public class CityModel {
     public void setTerrain(int row, int col, int terrain, boolean blend) {
         mTerrainMap[col][row] = (byte) terrain;
         mTerrainBlend[col][row] = (byte) (blend ? 1 : 0);
-        determineTerrainDecorations(row, col);
+        generateTerrainDecorations(row, col);
         for (int c = Math.max(col - 1, 0); c <= Math.min(col + 1, mWidth - 1); c++) {
             for (int r = Math.max(row - 1, 0); r <= Math.min(row + 1, mHeight - 1); r++) {
                 determineTerrainMods(r, c);
@@ -410,7 +437,15 @@ public class CityModel {
         return true;
     }
 
-    private void determineTerrainDecorations(int row, int col) {
+    /**
+     * Generate a random terrain decoration for a specific tile.
+     * Some terrain types do not have decorations.
+     * It is possible for some terrain types to randomly generate no terrain decoration.
+     * 
+     * @param row
+     * @param col
+     */
+    private void generateTerrainDecorations(int row, int col) {
         if (mTerrainMap[col][row] == TERRAIN.GRASS) {
             int rand = (int) ((Math.random() * TERRAIN_MODS.GRASS_DECORATION_COUNT) * TERRAIN_MODS.GRASS_DECORATION_CHANCE);
             if (rand < TERRAIN_MODS.GRASS_DECORATION_COUNT) {
@@ -423,8 +458,16 @@ public class CityModel {
         }
     }
 
+    /**
+     * Add an object to the model using an already allocated object ID
+     * 
+     * @param row
+     * @param col
+     * @param type
+     * @param id
+     */
     public void addObject(int row, int col, int type, int id) {
-        createObject(row, col, type, id);
+        createObjectSlices(row, col, type, id);
         for (int c = col; c < col + OBJECTS.objectNumColumns[type]; c++) {
             for (int r = row; r < row + OBJECTS.objectNumRows[type]; r++) {
                 mObjectMap[c][r] = (short) id;
@@ -432,6 +475,9 @@ public class CityModel {
         }
     }
 
+    /**
+     * Return an unused object ID and mark it as used
+     */
     public int allocateNewObjectID() {
         if (mNumObjects == Constant.OBJECT_LIMIT)
             return -1;
@@ -450,12 +496,28 @@ public class CityModel {
             return i;
         }
     }
-    
+
+    /**
+     * Mark an object ID as unused
+     */
     public void freeObjectID(int id) {
         mUsedObjectIDs[id] = false;
+        mNumObjects--;
     }
 
-    private void createObject(int row, int col, int type, int id) {
+    /**
+     * Create object slices for a new object and add them to the object list, sorted by order to draw in
+     * 
+     * @param row
+     *            the minimum row covered by the new object
+     * @param col
+     *            the minimum column covered by the new object
+     * @param type
+     *            the type of the new object
+     * @param id
+     *            the ID of the new object
+     */
+    private void createObjectSlices(int row, int col, int type, int id) {
         int sliceColumns = OBJECTS.getSliceWidth(type) / (Constant.TILE_WIDTH / 2);
         int lastColumn = col + OBJECTS.objectNumColumns[type] - 1;
         int sliceCount = OBJECTS.getSliceCount(type);
@@ -522,7 +584,13 @@ public class CityModel {
         return newSlice;
     }
 
-    public ObjectSlice removeObject(int id) {
+    /**
+     * Remove all object slices for a given ID from the object list
+     * 
+     * @param id
+     * @return the first object slice removed
+     */
+    public ObjectSlice removeObjectSlices(int id) {
         ObjectSlice firstSlice = null;
         ObjectSlice currentSlice = mObjectList, previousSlice = null;
         int slicesRemoved = 0;
@@ -543,6 +611,13 @@ public class CityModel {
         return firstSlice;
     }
 
+    /**
+     * Remove a specific object slice from the object list
+     * 
+     * @param parentNode
+     *            the preceding object slice of the one to remove
+     * @return the new child object slice of parentNode
+     */
     public ObjectSlice removeObjectSlice(ObjectSlice parentNode) {
         if (parentNode == null) {
             mObjectList = mObjectList.next;
@@ -553,6 +628,11 @@ public class CityModel {
         }
     }
 
+    /**
+     * Get the first object slice of a specific id
+     * 
+     * @param id
+     */
     public ObjectSlice getObjectSlice(int id) {
         ObjectSlice currentSlice = mObjectList;
         while (currentSlice != null && currentSlice.id != id)
@@ -561,16 +641,22 @@ public class CityModel {
         return currentSlice;
     }
 
-    /*
-     * Format:
-     * int mWidth, mHeight;
-     * short mNumObjects;
-     * byte[][] mTerrainMap;
-     * byte[][] mTerrainModMap;
-     * boolean[][] mTerrainBlend;
-     * ObjectSlice mObjectList;
+    /**
+     * Save the city model to a stream
+     * 
+     * @param stream
+     * @return true if successfully saved
      */
     public boolean save(FileStreamUtils stream) {
+        /*
+         * Format:
+         * int mWidth, mHeight;
+         * short mNumObjects;
+         * byte[][] mTerrainMap;
+         * byte[][] mTerrainModMap;
+         * boolean[][] mTerrainBlend;
+         * ObjectSlice mObjectList;
+         */
         Log.v(TAG, "Saving...");
         try {
             stream.write(Constant.CURRENT_VERSION_NUM);
@@ -591,7 +677,7 @@ public class CityModel {
                 curSlice.write(stream);
                 curSlice = curSlice.next;
             }
-            stream.write((short)-1);//Mark ending for object slice loop
+            stream.write((short) -1);//Mark ending for object slice loop
             stream.write(0xDEADBEEF);//Mark EOF
             stream.flush();
         } catch (IOException e) {
@@ -609,7 +695,23 @@ public class CityModel {
         return true;
     }
 
+    /**
+     * Fill the city model based off the contents of a stream.
+     * Allocates city model arrays if needed (ergo, it assumes same dimensions as prior uses of this object).
+     * 
+     * @param stream
+     * @return
+     */
     public boolean restore(FileStreamUtils stream) {
+        /*
+         * Format:
+         * int mWidth, mHeight;
+         * short mNumObjects;
+         * byte[][] mTerrainMap;
+         * byte[][] mTerrainModMap;
+         * boolean[][] mTerrainBlend;
+         * ObjectSlice mObjectList;
+         */
         Log.v(TAG, "Restoring...");
         try {
             @SuppressWarnings("unused")
@@ -624,7 +726,7 @@ public class CityModel {
                 mObjectMap = new short[mWidth][mHeight];
                 mUsedObjectIDs = new boolean[Constant.OBJECT_LIMIT];
                 Arrays.fill(mUsedObjectIDs, false);
-                for(short[] arr : mObjectMap) {
+                for (short[] arr : mObjectMap) {
                     Arrays.fill(arr, (short) -1);
                 }
             }
@@ -654,7 +756,7 @@ public class CityModel {
             } else {
                 mObjectList = null;
             }
-            if(stream.readInt() != 0xDEADBEEF) {//Check for EOF
+            if (stream.readInt() != 0xDEADBEEF) {//Check for EOF
                 Log.d(TAG, "Missing DEADBEEF at EOF");
                 return false;
             }
@@ -673,6 +775,11 @@ public class CityModel {
         return true;
     }
 
+    /**
+     * Setup mUsedObjectIDs array and mObjectMap array based off an object slice
+     * 
+     * @param slice
+     */
     private void setupReadObject(ObjectSlice slice) {
         if (!mUsedObjectIDs[slice.id]) {
             mUsedObjectIDs[slice.id] = true;

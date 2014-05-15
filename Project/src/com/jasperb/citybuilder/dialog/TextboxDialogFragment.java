@@ -28,7 +28,7 @@ public class TextboxDialogFragment extends DialogFragment {
             throw new ClassCastException(activity.toString() + " must implement TextBoxDialogListener");
         }
     }
-    
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         // Use the Builder class for convenient dialog construction
@@ -41,7 +41,7 @@ public class TextboxDialogFragment extends DialogFragment {
         builder.setView(input);
 
         // Set up the buttons
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() { 
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 mListener.onTextBoxDialogAccept(mType, input.getText().toString());

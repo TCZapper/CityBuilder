@@ -32,7 +32,7 @@ public class ObjectEdit {
             model.addObject(row, col, type, id);
             break;
         case REMOVE:
-            model.removeObject(id);
+            model.removeObjectSlices(id);
             break;
         }
     }

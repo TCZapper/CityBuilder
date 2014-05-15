@@ -15,6 +15,7 @@ public class CitySelectDialogFragment extends DialogFragment {
     public interface CitySelectDialogListener {
         public void onCitySelectDialogPick(int type, String cityName);
     }
+
     CitySelectDialogListener mListener = null;
     private String[] options;
     private int mType;

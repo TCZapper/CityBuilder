@@ -49,17 +49,17 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_view);
-        
+
         Intent intent = getIntent();
         String cityName = intent.getStringExtra(STATE_CITY_NAME);
-        Log.v(TAG,"ON CREATE: " + cityName);
-        
+        Log.v(TAG, "ON CREATE: " + cityName);
+
         try {
             mCityModel = new CityModel(new FileStreamUtils(openFileInput(cityName)));
         } catch (FileNotFoundException e) {
             mCityModel = new CityModel(intent.getIntExtra(STATE_CITY_WIDTH, 200), intent.getIntExtra(STATE_CITY_HEIGHT, 200));
         }
-        if(mCityModel.getWidth() == 0 || mCityModel.getHeight() == 0) {//Error (probably in restoring from saved model)
+        if (mCityModel.getWidth() == 0 || mCityModel.getHeight() == 0) {//Error (probably in restoring from saved model)
             finish();
         }
         mState = new SharedState();
@@ -77,7 +77,7 @@ public class MainViewActivity extends Activity implements GridViewDialogListener
         mOverlayController.mTerrainButton = (ImageView) findViewById(R.id.TerrainButton);
         mOverlayController.mObjectsButton = (ImageView) findViewById(R.id.ObjectsButton);
         mOverlayController.mMenuButton = (ImageView) findViewById(R.id.MenuButton);
-        
+
         mOverlayController.mObjectTools = (LinearLayout) findViewById(R.id.ObjectTools);
         mOverlayController.mBuildingsButton = (ImageView) findViewById(R.id.BuildingsButton);
         mOverlayController.mSelectObjectButton = (ImageView) findViewById(R.id.SelectObjectButton);

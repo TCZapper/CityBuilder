@@ -8,8 +8,11 @@ package com.jasperb.citybuilder;
  * 
  */
 public class Constant {
+    /**
+     * Current version of the application. Important for properly interpreting saved city models.
+     */
     public static final int CURRENT_VERSION_NUM = 1;
-    
+
     /**
      * Maximum amount of zoom for the contents of the city view.
      */
@@ -23,7 +26,7 @@ public class Constant {
     /**
      * Width of a single, full-sized tile in pixels.
      */
-    public static final int TILE_WIDTH = 96;// Must be a multiple of 4
+    public static final int TILE_WIDTH = 96;// Must be a multiple of 4 (to ensure all tiles have integer locations on-screen)
 
     /**
      * Height of a single, full-sized tile in pixels.
@@ -55,10 +58,20 @@ public class Constant {
      */
     public static final int FOCUS_EXTENDED_BOUNDARY = 8;
 
+    /**
+     * Maximum number of an objects per city model
+     */
     public static final short OBJECT_LIMIT = 3000;
-    
-    public static final int MAX_WORLD_SIZE = 500;//Must be multiple of MIN_WORLD_SIZE
-    public static final int MIN_WORLD_SIZE = 25;
+
+    /**
+     * Maximum width and height of a city model
+     */
+    public static final int MAX_CITY_MODEL_SIZE = 500;//Must be multiple of MIN_CITY_MODEL_SIZE
+
+    /**
+     * Minimum width and height of a city model
+     */
+    public static final int MIN_CITY_MODEL_SIZE = 25;
 
     /**
      * Types of available terrain.
@@ -159,6 +172,9 @@ public class Constant {
         }
     }
 
+    /**
+     * Types of available objects
+     */
     public static class OBJECTS {
         public static final int TEST2X4 = 0, TEST4X2 = 1, TEST1X3 = 2, TEST3X1 = 3, TEST1X1 = 4;
         public static final int buildingCount = 5;
@@ -166,6 +182,7 @@ public class Constant {
         public static final int count = buildingCount;
         public static final int NONE = count;
 
+        //Number of columns/rows covered by an object
         public static final byte[] objectNumColumns = new byte[count];
         public static final byte[] objectNumRows = new byte[count];
         static {
@@ -185,14 +202,29 @@ public class Constant {
             objectNumColumns[TEST1X1] = 1;
         }
 
+        /**
+         * Get the width of a slice for a specific object type
+         * 
+         * @param type
+         */
         public static int getSliceWidth(int type) {
             return (Constant.TILE_WIDTH / 2) * (2 + (OBJECTS.objectNumRows[type] - 1));
         }
-        
+
+        /**
+         * Get the scaled width of a slice for a specific object type based off the tile width
+         * 
+         * @param type
+         */
         public static int getScaledSliceWidth(int type, int tileWidth) {
             return (tileWidth / 2) * (2 + (OBJECTS.objectNumRows[type] - 1));
         }
 
+        /**
+         * Get the number of slices needed for a specific object type
+         * 
+         * @param type
+         */
         public static int getSliceCount(int type) {
             int width = (Constant.TILE_WIDTH / 2) * (OBJECTS.objectNumColumns[type] + OBJECTS.objectNumRows[type]);
             return (int) Math.ceil(width / (float) getSliceWidth(type));
@@ -229,7 +261,7 @@ public class Constant {
     public static class TERRAIN_TOOLS {
         public static final int BRUSH = 0, SELECT = 1, EYEDROPPER = 2;
     }
-    
+
     /**
      * Types of available terrain editing tools.
      */

@@ -33,7 +33,7 @@ public class CityViewController {
     private ScaleGestureDetector mScaleDetector = null;
     private GestureDetector mPanDetector = null;
     private boolean mInputClick = false;
-    private int mLastRow = -1, mLastCol = -1;
+    private int mLastRow = -1, mLastCol = -1;//previous row painted to
 
     /**
      * Initialize and allocate the necessary components of the view, except those related to the drawing thread
@@ -63,7 +63,8 @@ public class CityViewController {
      * Touch events from the city view get passed to this
      */
     public boolean onTouchEvent(MotionEvent event) {
-        synchronized (mState) {//Keep track of when user is supplying input
+        // Keep track of when user is supplying input
+        synchronized (mState) {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 mState.UIS_InputActive = true;
                 mInputClick = true;
@@ -75,7 +76,9 @@ public class CityViewController {
         }
         // Let the GestureDetectors interpret this event
         boolean result = mPanDetector.onTouchEvent(event);
-        mScaleDetector.onTouchEvent(event);
+        mScaleDetector.onTouchEvent(event);//always returns true, so can't use that to tell if it did anything
+        
+        // Handle tapping the city view
         if (!result && event.getAction() == MotionEvent.ACTION_UP && mInputClick) {
             if (mState.UIS_Mode == CITY_VIEW_MODES.EDIT_TERRAIN) {
                 if (mState.UIS_Tool == TERRAIN_TOOLS.BRUSH) {
@@ -87,6 +90,8 @@ public class CityViewController {
                         int row = (int) mState.realToIsoRowUpscaling(posX, posY);
                         int col = (int) mState.realToIsoColUpscaling(posX, posY);
                         if (mState.isTileValid(row, col)) {
+                            //Check if the selected tile is a corner of the selected bounds
+                            //If so set that corner as selected
                             if (row == mState.UIS_FirstSelectedRow && col == mState.UIS_FirstSelectedCol) {
                                 mState.UIS_SelectingFirstTile = true;
                             } else if (row == mState.UIS_SecondSelectedRow && col == mState.UIS_SecondSelectedCol) {
@@ -102,6 +107,7 @@ public class CityViewController {
                                 mState.UIS_SecondSelectedRow = temp;
                                 mState.UIS_SelectingFirstTile = true;
                             } else {
+                                //Set new position for the selected corner
                                 if (mState.UIS_SelectingFirstTile) {
                                     mState.UIS_FirstSelectedRow = row;
                                     mState.UIS_FirstSelectedCol = col;

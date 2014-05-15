@@ -9,7 +9,7 @@ import android.os.Bundle;
 import com.jasperb.citybuilder.R;
 
 public class MenuDialogFragment extends DialogFragment {
-    
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         // Use the Builder class for convenient dialog construction
@@ -17,14 +17,14 @@ public class MenuDialogFragment extends DialogFragment {
         builder.setTitle("Menu")
                .setItems(R.array.menu_options, new DialogInterface.OnClickListener() {
                    public void onClick(DialogInterface dialog, int which) {
-                       if(which == 0) {//Save
-                           
-                       } else if(which == 1) {//Restore
-                           
-                       } else if(which == 2) {//Settings
-                           
-                       } else if(which == 3) {//Main Menu
-                           
+                       if (which == 0) {//Save
+
+                       } else if (which == 1) {//Restore
+
+                       } else if (which == 2) {//Settings
+
+                       } else if (which == 3) {//Main Menu
+
                        }
                    }
                });

@@ -31,7 +31,7 @@ public class CreateCityDialogFragment extends DialogFragment {
             throw new ClassCastException(activity.toString() + " must implement CreateCityDialogListener");
         }
     }
-    
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -42,30 +42,30 @@ public class CreateCityDialogFragment extends DialogFragment {
 
         // Set up the input
         final EditText textboxCityName = (EditText) dialogView.findViewById(R.id.cityNameTextbox);
-        
-        String[] displayedValues = new String[Constant.MAX_WORLD_SIZE / Constant.MIN_WORLD_SIZE];
-        for(int i = 0; i < displayedValues.length; i++) {
-            displayedValues[i] = String.valueOf((i + 1) * Constant.MIN_WORLD_SIZE);
+
+        String[] displayedValues = new String[Constant.MAX_CITY_MODEL_SIZE / Constant.MIN_CITY_MODEL_SIZE];
+        for (int i = 0; i < displayedValues.length; i++) {
+            displayedValues[i] = String.valueOf((i + 1) * Constant.MIN_CITY_MODEL_SIZE);
         }
-        
+
         final NumberPicker pickerWidth = (NumberPicker) dialogView.findViewById(R.id.widthNumberPicker);
         pickerWidth.setMinValue(0);
-        pickerWidth.setMaxValue(displayedValues.length-1);
+        pickerWidth.setMaxValue(displayedValues.length - 1);
         pickerWidth.setDisplayedValues(displayedValues);
         final NumberPicker pickerHeight = (NumberPicker) dialogView.findViewById(R.id.heightNumberPicker);
         pickerHeight.setMinValue(0);
-        pickerHeight.setMaxValue(displayedValues.length-1);
+        pickerHeight.setMaxValue(displayedValues.length - 1);
         pickerHeight.setDisplayedValues(displayedValues);
 
         builder.setView(dialogView);
 
         // Set up the buttons
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() { 
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 mListener.onCreateCityDialogAccept(textboxCityName.getText().toString(),
-                        (pickerWidth.getValue() + 1) * Constant.MIN_WORLD_SIZE,
-                        (pickerHeight.getValue() + 1) * Constant.MIN_WORLD_SIZE);
+                        (pickerWidth.getValue() + 1) * Constant.MIN_CITY_MODEL_SIZE,
+                        (pickerHeight.getValue() + 1) * Constant.MIN_CITY_MODEL_SIZE);
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
